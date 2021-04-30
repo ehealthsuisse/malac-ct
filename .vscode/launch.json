@@ -1,0 +1,20 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: malac-ct",
+            "type": "python",
+            "request": "launch",
+            "program": "malac_ct.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-i", "test.csv", //"Y:\\Termserver\\termgit\\ASP-Liste\\20201028_ASP-Liste_ASP-Liste_Liste_der_humanen_Arzneispezialitäten_gelistet_nach_PZN_20200929_claml.xml",
+                "-o", "out.xml",
+                "-oclass", "ClaML3"
+            ]
+        }
+    ]
+}

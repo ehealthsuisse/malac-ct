@@ -1,0 +1,2 @@
+resource,url,version,name,title,status,description,property,property
+ValueSet,http://myFancy.url,1.0.0,myFancyPants,myTitleOfFancePants,draft,this is my facy pants valueset,qwer|http://qwer|this is qwer|code,asdf|http://asdf|this is asdf|code
