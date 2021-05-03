@@ -24,7 +24,7 @@ import sys
 from lxml import etree as etree_
 
 import claml3super as supermod
-from prop_csv_and_master import PropCsvAndMaster as pcam
+import prop_csv_and_master as pcam
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -62,15 +62,143 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-class ClaML3Sub(supermod.ClaML3, pcam):
+class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Classification=None, **kwargs_):
         super(ClaML3Sub, self).__init__(version, Classification,  **kwargs_)
 
-    def get_title(self):
-        return self.get_Classification()[0].get_Title()[0].get_name()
+    def get_resource(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'resource':
+                return oneMeta.get_value()
+
+    def get_url(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'url':
+                return oneMeta.get_value()
+
+    def get_identifier(self):
+        return self.get_Classification()[0].get_Identifier()[0].get_uid()
+        #todo get more into identifier from FHIR
 
     def get_version(self):
         return self.get_Classification()[0].get_Title()[0].get_version()
+
+    def get_name(self):
+        return self.get_Classification()[0].get_Title()[0].get_name()
+
+    def get_title(self):
+        return self.get_Classification()[0].get_Title()[0].get_valueOf_()
+
+    def get_status(self):
+        return self.get_Classification()[0].get_Identifier()[0].get_status()
+        
+    def get_experimental(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'experimental':
+                return oneMeta.get_value()
+
+    def get_date(self):
+        return self.get_Classification()[0].get_Identifier()[0].get_date()
+        
+    def get_publisher(self):
+        return self.get_Classification()[0].get_Authors()[0].get_Author()[0].get_name()
+
+    def get_contact(self):
+        return self.get_Classification()[0].get_Authors()[0].get_Author()[0].get_valueOf_()
+
+    def get_description(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'description':
+                return oneMeta.get_value()
+
+    def get_usecontext(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'useContext':
+                return oneMeta.get_value()
+
+    def get_jurisdiction(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'jurisdiction':
+                return oneMeta.get_value()
+
+    def get_purpose(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'purpose':
+                return oneMeta.get_value()
+
+    def get_copyright(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'copyright':
+                return oneMeta.get_value()
+
+    def get_casesensitive(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'caseSensitive':
+                return oneMeta.get_value()
+
+    def get_hierarchymeaning(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'hierarchyMeaning':
+                return oneMeta.get_value()
+
+    def get_compositional(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'compositional':
+                return oneMeta.get_value()
+
+    def get_versionneeded(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'versionNeeded':
+                return oneMeta.get_value()
+
+    def get_content(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'content':
+                return oneMeta.get_value()
+
+    def get_count(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'count':
+                return oneMeta.get_value()
+
+    def get_filter(self):
+        retArr = []
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'filter':
+                oneFilter = pcam.Filter()
+                oneFilter.code = oneMeta.get_value().split('|')[0]
+                oneFilter.description = oneMeta.get_value().split('|')[1]
+                oneFilter.operator = oneMeta.get_value().split('|')[2]
+                oneFilter.value = oneMeta.get_value().split('|')[3]
+                retArr.append(oneFilter)
+        return retArr
+
+    def get_property(self):
+        retArr = []
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'property':
+                oneProperty = pcam.Filter()
+                oneProperty.code = oneMeta.get_value().split('|')[0]
+                oneProperty.uri = oneMeta.get_value().split('|')[1]
+                oneProperty.description = oneMeta.get_value().split('|')[2]
+                oneProperty.type = oneMeta.get_value().split('|')[3]
+                retArr.append(oneProperty)
+        return retArr
+
+    def get_immutable(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'immutable':
+                return oneMeta.get_value()
+
+    def get_lockeddate(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'lockedDate':
+                return oneMeta.get_value()
+
+    def get_inactive(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'inactive':
+                return oneMeta.get_value()
 
     def exporto(self, outfile):
         #required ClaMl3 fields        
