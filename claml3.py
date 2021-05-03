@@ -200,6 +200,34 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             if oneMeta.get_name == 'inactive':
                 return oneMeta.get_value()
 
+    def get_implicitrules(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'implicitRules':
+                return oneMeta.get_value()
+
+    def get_language(self):
+        return self.get_Classification()[0].get_lang()
+
+    def get_text(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'text':
+                return oneMeta.get_value()
+
+    def get_contained(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'contained':
+                return oneMeta.get_value()
+
+    def get_extension(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'extension':
+                return oneMeta.get_value()
+
+    def get_modifierextension(self):
+        for oneMeta in self.get_Classification()[0].get_Meta():
+            if oneMeta.get_name == 'modifierExtension':
+                return oneMeta.get_value()
+
     def exporto(self, outfile):
         #required ClaMl3 fields        
         claml3 = ClaML3Sub('3.0.0')
