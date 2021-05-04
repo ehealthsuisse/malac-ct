@@ -67,14 +67,10 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         super(ClaML3Sub, self).__init__(version, Classification,  **kwargs_)
 
     def get_resource(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'resource':
-                return oneMeta.get_value()
+        return get_Meta_with_name('resource')
 
     def get_url(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'url':
-                return oneMeta.get_value()
+        return get_Meta_with_name('url')
 
     def get_identifier(self):
         return self.get_Classification()[0].get_Identifier()[0].get_uid()
@@ -93,9 +89,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return self.get_Classification()[0].get_Identifier()[0].get_status()
         
     def get_experimental(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'experimental':
-                return oneMeta.get_value()
+        return get_Meta_with_name('experimental')
 
     def get_date(self):
         return self.get_Classification()[0].get_Identifier()[0].get_date()
@@ -107,59 +101,37 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return self.get_Classification()[0].get_Authors()[0].get_Author()[0].get_valueOf_()
 
     def get_description(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'description':
-                return oneMeta.get_value()
+        return get_Meta_with_name('description')
 
     def get_usecontext(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'useContext':
-                return oneMeta.get_value()
+        return get_Meta_with_name('useContext')
 
     def get_jurisdiction(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'jurisdiction':
-                return oneMeta.get_value()
+        return get_Meta_with_name('jurisdiction')
 
     def get_purpose(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'purpose':
-                return oneMeta.get_value()
+        return get_Meta_with_name('purpose')
 
     def get_copyright(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'copyright':
-                return oneMeta.get_value()
+        return get_Meta_with_name('copyright')
 
     def get_casesensitive(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'caseSensitive':
-                return oneMeta.get_value()
+        return get_Meta_with_name('caseSensitive')
 
     def get_hierarchymeaning(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'hierarchyMeaning':
-                return oneMeta.get_value()
+        return get_Meta_with_name('hierarchyMeaning')
 
     def get_compositional(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'compositional':
-                return oneMeta.get_value()
+        return get_Meta_with_name('compositional')
 
     def get_versionneeded(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'versionNeeded':
-                return oneMeta.get_value()
+        return get_Meta_with_name('versionNeeded')
 
     def get_content(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'content':
-                return oneMeta.get_value()
+        return get_Meta_with_name('content')
 
     def get_count(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'count':
-                return oneMeta.get_value()
+        return get_Meta_with_name('count')
 
     def get_filter(self):
         retArr = []
@@ -186,47 +158,37 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return retArr
 
     def get_immutable(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'immutable':
-                return oneMeta.get_value()
+        return get_Meta_with_name('immutable')
 
     def get_lockeddate(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'lockedDate':
-                return oneMeta.get_value()
+        return get_Meta_with_name('lockedDate')
 
     def get_inactive(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'inactive':
-                return oneMeta.get_value()
+        return get_Meta_with_name('inactive')
 
     def get_implicitrules(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'implicitRules':
-                return oneMeta.get_value()
+        return get_Meta_with_name('implicitRules')
 
     def get_language(self):
         return self.get_Classification()[0].get_lang()
 
     def get_text(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'text':
-                return oneMeta.get_value()
+        return get_Meta_with_name('text')
 
     def get_contained(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'contained':
-                return oneMeta.get_value()
+        return get_Meta_with_name('contained')
 
     def get_extension(self):
-        for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'extension':
-                return oneMeta.get_value()
+        return get_Meta_with_name('extension')
 
     def get_modifierextension(self):
+        return get_Meta_with_name('modifierExtension')
+
+    def get_Meta_with_name(meta_name):
         for oneMeta in self.get_Classification()[0].get_Meta():
-            if oneMeta.get_name == 'modifierExtension':
+            if oneMeta.get_name == meta_name:
                 return oneMeta.get_value()
+
 
     def exporto(self, outfile):
         #required ClaMl3 fields        
