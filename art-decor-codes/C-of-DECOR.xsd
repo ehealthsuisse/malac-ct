@@ -1,0 +1,1993 @@
+<!-- 
+    
+    DECOR schema
+    Copyright (C) 2009-2018 Dr. Kai U. Heitmann
+    
+    This program is free software; you can redistribute it and/or modify it under the terms 
+    of the GNU General Public License as published by the Free Software Foundation; 
+    either version 3 of the License, or (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    See the GNU General Public License for more details.
+    
+    See http://www.gnu.org/licenses/gpl.html
+    
+-->
+<xs:schema xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns:fhir="http://hl7.org/fhir"
+    xmlns:sqf="http://www.schematron-quickfix.com/validator/process" elementFormDefault="qualified">
+
+    <!-- include DECOR datatype defintions -->
+    <xs:include schemaLocation="DECOR-datatypes.xsd"/>
+
+    <!-- this is the root element of any decor main file -->
+    <xs:element name="decor">
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- terminology, e.g. value sets -->
+                <xs:element minOccurs="1" maxOccurs="1" ref="terminology">
+                    <xs:annotation>
+                        <xs:appinfo>
+                            <xforms:label xml:lang="nl-NL">Terminologiedefinities</xforms:label>
+                            <xforms:label xml:lang="en-US">Terminology definitions</xforms:label>
+                            <xforms:label xml:lang="de-DE">Terminologische Definitionen</xforms:label>
+                        </xs:appinfo>
+                        <xs:documentation xml:lang="nl-NL">Terminologiedefinities</xs:documentation>
+                        <xs:documentation xml:lang="en-US">Terminology definitions</xs:documentation>
+                        <xs:documentation xml:lang="de-DE">Terminologische Definitionen</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+            </xs:sequence>
+            <xs:attribute name="repository" type="xs:boolean" use="optional">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">DECOR-project is een (building block) repository (BBR)</xforms:label>
+                        <xforms:label xml:lang="en-US">DECOR project is a (building block) repository (BBR)</xforms:label>
+                        <xforms:label xml:lang="de-DE">DECOR-Projekt ist ein (Building Block) Repository (BBR)</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Indication whether this DECOR project is a (building block) repository (BBR)</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="private" type="xs:boolean" use="optional">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">DECOR-project is privé</xforms:label>
+                        <xforms:label xml:lang="en-US">DECOR project is private</xforms:label>
+                        <xforms:label xml:lang="de-DE">DECOR-Projekt ist privat</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Indication whether this DECOR project is private, i.e. should NOT be included in searches from external.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="release" type="SmallNonNegativeInteger" fixed="1000" use="optional">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">DECOR-project release nummer</xforms:label>
+                        <xforms:label xml:lang="en-US">DECOR project release number</xforms:label>
+                        <xforms:label xml:lang="de-DE">DECOR-Projekt Release Nummer</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Release number (dddd) of the DECOR project file, for conversion detection beteeen releases later</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- Only relevant after compilation -->
+            <xs:attributeGroup ref="DecorCompilationAttributes"/>
+
+            <xs:anyAttribute namespace="##other" processContents="skip">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Contains dummy attributes that force xmlns declarations for templates</xs:documentation>
+                </xs:annotation>
+            </xs:anyAttribute>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="addrLine">
+        <xs:complexType mixed="true">
+            <xs:sequence/>
+            <xs:attribute name="type" type="AddressLineType" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="identifierAssociation">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">identifierAssociation links a dataset concept to an identifier scheme. Any concept may have multiple of these associations</xs:documentation>
+            </xs:annotation>
+            <!--<xs:attribute name="id" use="required" type="Oid">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">each assignment MUST have a project unique id so you can attach issues, change with precision, and potentially delete</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>-->
+            <xs:attribute name="conceptId" use="required" type="Oid">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">concept id this assocication is associated with</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="conceptFlexibility" use="optional" type="StaticFlexibility">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">concept effectiveDate this assocication is associated with</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="ref" type="Oid" use="required">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Object Identifier (OID) of the identification scheme this assocication is associated with. Example: '2.16.840.1.113883.4.1' for US Social Security Numbers</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- version handling -->
+            <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+            <!-- removed after talks with users: not relevant for now and a can of worms should want it -->
+            <!--<xs:attribute name="statusCode" type="ReleaseStatusCodeLifeCycle" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">manages the status of the association itself</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>-->
+
+            <xs:attributeGroup ref="IdentifierAssociationCompilationAttributes"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="VocabType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Vocab Type</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="EnumerationToken">
+            <xs:enumeration value="L">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Leaf</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Leaf</xforms:label>
+                        <xforms:label xml:lang="de-DE">Leaf</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">L Leaf; a term that has no children in the specialization hierarchy, and is selectable, and therefore deemed to be a leaf.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="A">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Abstract</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Abstract</xforms:label>
+                        <xforms:label xml:lang="de-DE">Abstract</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">A Abstract; a term that has children in the specialization hierarchy, but is not, itself, selectable and therefore deemed
+                        abstract.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="S">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Specializable</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Specializable</xforms:label>
+                        <xforms:label xml:lang="de-DE">Specializable</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">S Specializable; a term that has children in the specialization hierarchy, and is also selectable and therefore deemed
+                        specializable.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="D">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Deprecated</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Deprecated</xforms:label>
+                        <xforms:label xml:lang="de-DE">Deprecated</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">D Deprecated; a term that should not be used any longer</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ConformanceType">
+        <xs:annotation>
+            <xs:appinfo>
+                <xforms:label xml:lang="nl-NL">Conformancetype</xforms:label>
+                <xforms:label xml:lang="en-US">Conformance Type</xforms:label>
+                <xforms:label xml:lang="de-DE">Conformance Typ</xforms:label>
+            </xs:appinfo>
+            <xs:documentation xml:lang="en-US">Conformance Type</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="EnumerationToken">
+            <xs:enumeration value="R">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">Required</xforms:label>
+                        <xforms:label xml:lang="en-US">Required</xforms:label>
+                        <xforms:label xml:lang="de-DE">Required</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">R required. Implies max != 0, usually implies min > 0. If min > 0 then 'required' is implied unless 'mandatory' is stated.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="C">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">Conditioneel</xforms:label>
+                        <xforms:label xml:lang="en-US">Conditional</xforms:label>
+                        <xforms:label xml:lang="de-DE">Conditional</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">C conditional. Implies max != 0. Conditions SHALL be stated.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NP">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">Niet aanwezig</xforms:label>
+                        <xforms:label xml:lang="en-US">Not present</xforms:label>
+                        <xforms:label xml:lang="de-DE">Nicht erlaubt</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">NP not present. Implies min = 0 and max = 0.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <!--<xs:enumeration value="O">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">Optioneel</xforms:label>
+                        <xforms:label xml:lang="en-US">Optional</xforms:label>
+                        <xforms:label xml:lang="de-DE">Optional</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">O optional. Implies min = 0 and max != 0. Optional is not a real conformance value but rather the default if not specified or implied otherwise</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>-->
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="terminology">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="terminologyAssociation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="codeSystem" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="valueSet" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="conceptAssociation" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <!-- Cannot have two valueSets carrying the same id and effectiveDate -->
+        <xs:unique name="valueset-idversion-unique">
+            <xs:selector xpath="valueSet"/>
+            <xs:field xpath="@id"/>
+            <xs:field xpath="@effectiveDate"/>
+        </xs:unique>
+        <xs:unique name="valueset-ref-unique">
+            <xs:selector xpath="valueSet"/>
+            <xs:field xpath="@ref"/>
+        </xs:unique>
+        <!-- Cannot have two codeSystems carrying the same id and effectiveDate -->
+        <xs:unique name="codesystem-idversion-unique">
+            <xs:selector xpath="codeSystem"/>
+            <xs:field xpath="@id"/>
+            <xs:field xpath="@effectiveDate"/>
+        </xs:unique>
+        <xs:unique name="codesystem-ref-unique">
+            <xs:selector xpath="codeSystem"/>
+            <xs:field xpath="@ref"/>
+        </xs:unique>
+    </xs:element>
+    <xs:element name="terminologyAssociation">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">terminologyAssociation links a concept to a code or a concept list to a value set</xs:documentation>
+            </xs:annotation>
+            <!--<xs:attribute name="id" use="optional" type="Oid">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">each assignment SHOULD have a project unique id so you can attach issues, manage the status machine, change with precision, and potentially delete</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>-->
+            <!-- concept id where this assocication is associated with -->
+            <xs:attribute name="conceptId" use="required" type="Oid"/>
+            <xs:attribute name="conceptFlexibility" use="optional" type="StaticFlexibility">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Refers to the concept/@effectiveDate if conceptId points to a real concept and not to conceptList or a concept under a conceptList.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- a coded concept -->
+            <xs:attribute name="code" use="optional" type="EnumerationString"/>
+            <xs:attribute name="codeSystem" use="optional" type="Oid"/>
+            <!-- human readable things for codes -->
+            <xs:attribute name="codeSystemName" use="optional" type="NonEmptyString"/>
+            <xs:attribute ref="displayName" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">A displayname for the code, only for human readablility here</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- a value set and flexibility -->
+            <xs:attribute name="valueSet" type="BasicIdOrOid" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@id or @name. References to @name are discouraged because they become ambiguous quickly.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- coding strength -->
+            <xs:attribute name="strength" type="CodingStrengthType" default="required"
+                use="optional"/>
+
+            <!-- version handling -->
+            <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+            <!-- removed after talks with users: not relevant for now and a can of worms should want it -->
+            <!--<xs:attribute name="statusCode" type="ReleaseStatusCodeLifeCycle" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">manages the status of the association itself</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>-->
+
+            <xs:attribute name="equivalence" type="EquivalencyType" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Rating of mapping between the concept to the associated code or a concept list to an associated value set</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- Only relevant after compilation -->
+            <xs:attributeGroup ref="TerminologyAssociationCompilationAttributes"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="conceptAssociation">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Concept association is for mapping between coded concepts in value sets or between concepts in datasets</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="desc" minOccurs="0" maxOccurs="1"
+                    type="FreeFormMarkupWithLanguage"/>
+                <xs:element name="source" minOccurs="1" maxOccurs="1" type="SourceOrTargetValueSet"/>
+                <xs:element name="target" minOccurs="1" maxOccurs="1" type="SourceOrTargetValueSet"/>
+                <xs:element name="group" minOccurs="1" maxOccurs="unbounded"
+                    type="ConceptMapGroupDefinition"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="Oid" use="required">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Defines the globally unique identifier for this concept map.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ref="displayName" use="required"/>
+            <xs:attributeGroup ref="VersionHandling"/>
+            <xs:attribute name="statusCode" type="ItemStatusCodeLifeCycle" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="SourceOrTargetValueSet">
+        <xs:attribute name="ref" type="Uri" use="required"/>
+        <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a valueSet/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute ref="displayName" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">A displayname for the object, only for human readablility here</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="ConceptMapGroupDefinition">
+        <xs:sequence>
+            <xs:element name="source" minOccurs="1" maxOccurs="1" type="SourceOrTargetCodeSystem"/>
+            <xs:element name="target" minOccurs="1" maxOccurs="1" type="SourceOrTargetCodeSystem"/>
+            <xs:element name="element" minOccurs="1" maxOccurs="unbounded" type="ConceptMapElement"
+            />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SourceOrTargetCodeSystem">
+        <xs:attribute name="codeSystem" type="Oid" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="ConceptMapElement">
+        <xs:sequence>
+            <xs:element name="target" minOccurs="1" maxOccurs="unbounded" type="ConceptMapTarget"/>
+        </xs:sequence>
+        <xs:attribute name="code" type="EnumerationString" use="required"/>
+        <xs:attribute ref="displayName" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="ConceptMapTarget">
+        <xs:sequence>
+            <xs:element name="equivalence" minOccurs="1" maxOccurs="unbounded"
+                type="EquivalencyTypeDefinition"/>
+            <xs:element name="comment" type="FreeFormMarkupWithLanguage" minOccurs="0"
+                maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="code" type="EnumerationString" use="required"/>
+        <xs:attribute ref="displayName" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="EquivalencyTypeDefinition">
+        <xs:attribute name="code" type="EquivalencyType" use="required"/>
+    </xs:complexType>
+    <xs:element name="valueSet">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Value Set. A DECOR valueSet can take different forms. It may be a simple value set reference (@ref) to a value set from a repository without any contents, id, effectiveDate or statusCode, but with a name and a displayName. The other option is a valueSet with contents, id, effectiveDate, statusCode, name and displayName.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+                <!-- Only relevant after compilation -->
+                <xs:group ref="ValueSetCompilationSourceCodeSystem"/>
+                <!-- there may be one publishing and one or more endorsing authorities. not used by DECOR yet, but is populated by the ValueSet API upon retrieval based on the first project/copyright -->
+                <xs:element name="publishingAuthority" type="AuthorityType" minOccurs="0"
+                    maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">The authoritative body who has reviewed the Value set for (clinical) accuracy and relevance, 
+                            and authorized it for publication. Registries may require this element to be valued</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="endorsingAuthority" type="AuthorityType" minOccurs="0"
+                    maxOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A list of bodies who have reviewed the Value set for (clinical) accuracy and relevance, and endorsed it for use</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <!-- FHIR Value Set DSTUr1 0.8 compatibility -->
+                <xs:element name="purpose" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A statement about the purpose of the template</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="copyright" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A copyright statement relating to the template and/or its contents.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <!--  there may be 0..* value set revision history discriptions. not used by DECOR yet -->
+                <xs:element name="revisionHistory" type="ObjectHistory" minOccurs="0" maxOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">The free text description describing the changes in this version of the Value set
+                            as compared to the previous version. Since Value set versions are built off of previous versions, the net effect 
+                            of this field is to function as a comprehensive historical reference of the Value set.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="completeCodeSystem" type="CodeSystemReference" minOccurs="0"
+                    maxOccurs="unbounded"/>
+                <xs:element name="conceptList" type="ValueSetConceptList" minOccurs="0"
+                    maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="Oid" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Defines the globally unique identifier for this value set and may be used to reference it. Value sets SHOULD carry either @id or @ref</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ref="canonicalUri" use="optional"/>
+            <xs:attribute name="ref" type="Oid" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@id. Value sets SHALL carry either @id or @ref</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="name" use="required" type="BasicId"/>
+            <xs:attribute ref="displayName" use="required"/>
+            <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+            <xs:attribute name="statusCode" type="ItemStatusCodeLifeCycle" use="optional"/>
+            <xs:attribute ref="experimental" use="optional"/>
+
+            <!-- if @ref, flexibility -->
+            <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- Only relevant after compilation -->
+            <xs:attributeGroup ref="ValueSetCompilationAttributes"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="CodeSystemReference">
+        <xs:attribute name="codeSystem" type="Oid" use="required"/>
+        <xs:attribute name="codeSystemName" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Display name for the code system as it is known in your context. This may or may not be the official name for the code system.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeSystemVersion" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Version string for the code system. This is only relevant for code systems with incompatible versions. If specified, than your instances will need to carry this information exactly as-is.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a codeSystem/@codeSystemVersion. Default is unspecified which means 'latest available version'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="type" fixed="D" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Signals deprecation of the codeSystem in the context of this value set definition. This does not imply any status change in the code system itself.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="ValueSetConceptList">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="concept" type="ValueSetConcept"/>
+                <xs:element name="include" type="ValueSetRefOrIntensionalOp"/>
+                <xs:element name="exclude" type="ValueSetRefOrIntensionalOp"/>
+            </xs:choice>
+            <xs:element name="exception" type="ValueSetConcept" minOccurs="0" maxOccurs="unbounded"
+            />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ValueSetConcept">
+        <xs:sequence>
+            <xs:element ref="designation" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                type="FreeFormMarkupWithLanguage">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">You may add a description for convenience, but should note that most of the time the description here overlaps with the designation/description of the coded concept</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="code" type="EnumerationString" use="required"/>
+        <xs:attribute name="codeSystem" type="Oid" use="required"/>
+        <xs:attribute name="codeSystemName" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Display name for the code system as it is known in your context. This may or may not be the official name for the code system.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeSystemVersion" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Version string for the code system. This is only relevant for code systems with incompatible versions. If specified, than your instances will need to carry this information exactly as-is.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute ref="displayName" use="required"/>
+        <xs:attribute ref="ordinal" use="optional"/>
+        <xs:attribute name="level" type="xs:integer" use="required"/>
+        <xs:attribute name="type" type="VocabType" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="ValueSetRefOrIntensionalOp">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Either a value set ref or an operator op with code, codeSystem and displayName. Include is of another valueSet, typically from a repository, but potentially within the same DECOR definition.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element ref="designation" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                type="FreeFormMarkupWithLanguage">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">You may add a description for convenience, but should note that most of the time the description here overlaps with the description of the referenced value set / intensional definition</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <!-- value set ref -->
+        <xs:attributeGroup ref="ValueSetRefAttributes"/>
+        <!-- Only relevant after compilation -->
+        <xs:attributeGroup ref="ValueSetCompilationAttributes"/>
+        <!--  intensional definition -->
+        <xs:attributeGroup ref="IntensionalDefAttributes"/>
+    </xs:complexType>
+    <xs:attributeGroup name="ValueSetRefAttributes">
+        <xs:attribute name="ref" type="Oid" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a valueSet/@id.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a valueSet/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="exception" use="optional" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Indicates whether the valueSet contents should be treated as exceptions. Default is 'false' meaning that the contents are included as concepts.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="IntensionalDefAttributes">
+        <xs:attribute name="op" type="IntensionalOperators" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Intensional Definition</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="code" type="EnumerationString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">An identifier that uniquely names the class or "concept" within the context of the defining Code System</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeSystem" type="Oid" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">An identifier that uniquely names the Code System</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeSystemName" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Display name for the code system as it is known in your context. This may or may not be the official name for the code system.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="codeSystemVersion" type="NonEmptyString" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Version string for the code system. This is only relevant for code systems with incompatible versions. If specified, than your instances will need to carry this information exactly as-is.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute ref="displayName" use="optional"/>
+    </xs:attributeGroup>
+    <xs:simpleType name="IntensionalOperators">
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="is-a">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">is-a</xforms:label>
+                        <xforms:label xml:lang="nl-NL">is-a</xforms:label>
+                        <xforms:label xml:lang="de-DE">is-a</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">is-a or &lt;&lt; :: includes all concept ids that have a transitive is-a relationship with the concept Id provided as the value, including the provided concept itself (i.e. include child codes)</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">is-a of &lt;&lt; :: bevat alle concepten met een transitieve is-a relatie met het concept, inclusief het concept zelf (dus bevat onderliggende concepten)</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">is-a oder &lt; &lt; :: enthält alle Konzept-IDs, die eine transitive is-a-Beziehung zu der als Wert bereitgestellten Konzept-ID haben, einschließlich des bereitgestellten Konzepts selbst (d.h. untergeordnete Codes einschließen).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="descendent-of">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">descendant-of</xforms:label>
+                        <xforms:label xml:lang="nl-NL">descendant-of</xforms:label>
+                        <xforms:label xml:lang="de-DE">descendant-of</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">descendant-of or &lt; :: includes all concept ids that have a transitive is-a relationship with the concept Id provided as the value, excluding the provided concept itself (i.e. include child codes)</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">descendant-of of &lt; :: bevat alle concepten met een transitieve is-a relatie met het concept, exclusief het concept zelf (dus bevat onderliggende concepten)</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">descendant-of oder &lt; :: enthält alle Konzept-IDs, die eine transitive is-a-Beziehung zu der als Wert bereitgestellten Konzept-ID haben, mit Ausnahme des bereitgestellten Konzepts selbst (d. h. untergeordnete Codes einschließen).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="is-not-a">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">is-not-a</xforms:label>
+                        <xforms:label xml:lang="nl-NL">is-not-a</xforms:label>
+                        <xforms:label xml:lang="de-DE">is-not-a</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">is-not-a :: the specified property of the code does not have an is-a relationship with the provided value</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">is-not-a :: concepten die geen is-a relatie met het betreffende concept hebben</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">is-not-a :: enthält alle Konzept-IDs, die keine transitive is-a-Beziehung zu der als Wert bereitgestellten Konzept-ID haben</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="regex">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">regex</xforms:label>
+                        <xforms:label xml:lang="nl-NL">regex</xforms:label>
+                        <xforms:label xml:lang="de-DE">regex</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">regex :: the specified property of the code matches the regex specified in the provided value</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">regex :: concept-codes die voldoen aan het gespecificeerde reguliere-expressie-patroon</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">regex :: Die angegebene Eigenschaft des Codes stimmt mit dem im angegebenen Wert angegebenen regulären Ausdruck überein</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="in">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">in</xforms:label>
+                        <xforms:label xml:lang="nl-NL">in</xforms:label>
+                        <xforms:label xml:lang="de-DE">in</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">in :: the selection of a set of concepts based on their membership of a (SNOMED CT) reference set</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">in :: de selectie van een set concepten gebaseerd op hun lidmaatschap van een (SNOMED CT) referentieset</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">in :: die Auswahl einer Reihe von Konzepten basierend auf ihrer Zugehörigkeit zu einer (SNOMED CT) Referenzmenge</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="codeSystem">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Code system</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A description that describes the Code System</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <!-- 
+                    there may be one publishing and one or more endorsing authorities
+                    not used by DECOR yet, but is populated by the CodeSystem API upon retrieval based on the first project/copyright
+                -->
+                <xs:element name="publishingAuthority" type="AuthorityType" minOccurs="0"
+                    maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">The authoritative body who has reviewed the Code System for (clinical) accuracy and relevance, 
+                            and authorized it for publication. Registries may require this element to be valued</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="endorsingAuthority" type="AuthorityType" minOccurs="0"
+                    maxOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A list of bodies who have reviewed the Code System for (clinical) accuracy and relevance, and endorsed it for use</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <!-- FHIR Value Set DSTUr1 0.8 compatibility -->
+                <xs:element name="purpose" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A statement about the purpose of the template</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="copyright" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A copyright statement relating to the template and/or its contents.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <!-- 
+                    there may be 0..* value set revision history discriptions
+                    not used by DECOR yet
+                -->
+                <xs:element name="revisionHistory" type="ObjectHistory" minOccurs="0" maxOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">The free text description describing the changes in this version of the Code System
+                            as compared to the previous version. Since Code System versions are built off of previous versions, the net effect 
+                            of this field is to function as a comprehensive historical reference of the Code System.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:choice maxOccurs="1">
+                    <xs:element name="conceptList" type="CodeSystemConceptList" minOccurs="0"
+                        maxOccurs="1"/>
+                    <!-- or FHIR code system positioned temporarily here -->
+                    <xs:any namespace="http://hl7.org/fhir" minOccurs="0" maxOccurs="1"
+                        processContents="skip"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="id" use="optional" type="Oid">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">A version identifier that uniquely identifies each version of a Code System</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute ref="canonicalUri" use="optional"/>
+            <xs:attribute name="ref" type="Oid" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">A reference to a version identifier of a Code System</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="name" use="required" type="BasicId"/>
+            <xs:attribute ref="displayName" use="required"/>
+            <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+            <xs:attribute name="statusCode" type="ItemStatusCodeLifeCycle" use="optional"/>
+            <xs:attribute ref="experimental" use="optional"/>
+            <xs:attribute name="caseSensitive" type="xs:boolean" use="optional" default="true">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">If code comparison is case sensitive when codes within this system are compared to each other. If this value is missing, then it is not specified whether a code system is case sensitive or not.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <!-- if @ref, flexibility -->
+            <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a codeSystem/@codeSystem. Default is unspecified which means 'latest available version'.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- Only relevant after compilation -->
+            <xs:attributeGroup ref="CodeSystemCompilationAttributes"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="CodeSystemConceptList">
+        <xs:sequence>
+            <xs:element ref="codedConcept" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element name="codedConcept">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="designation" minOccurs="0" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">A language symbol for the concept that is intended to convey the concept meaning to a human being. It may contain multiple designations per
+                            language to expres preferences, synonyms etc. For example, in SNOMED CT, the concept of "fever" has the fully specified name of "fever (finding)", a preferred name of
+                            "fever", and synonyms of "febrile" and "pyrexia". These are all designations in English for the concept of "fever".</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en-US">You may add a description for convenience, but should note that most of the time the description here overlaps with the designation/description of the coded concept</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="code" type="EnumerationString" use="required">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">An identifier that uniquely names the class or "concept" within the context of the defining Code System</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="statusCode" type="NonEmptyString" use="optional" default="active">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Status of the "concept", in this context only "active" concepts are listed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+            <xs:attribute name="level" type="xs:integer" use="required"/>
+            <xs:attribute name="type" type="VocabType" use="required"/>
+            <xs:attribute ref="ordinal" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="designation">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">A description for the designation</xs:documentation>
+            </xs:annotation>
+            <xs:complexContent>
+                <xs:extension base="FreeFormMarkupWithLanguageCode">
+                    <xs:attribute name="type" type="DesignationType" use="optional">
+                        <xs:annotation>
+                            <xs:documentation xml:lang="en-US">Type of designation (for that language), preferred, synonym, abbreviation, fully specified name</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute ref="displayName" use="required">
+                        <xs:annotation>
+                            <xs:documentation xml:lang="en-US">A short description string for the designation</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="DesignationType">
+        <xs:annotation>
+            <xs:documentation>Details of how a designation would be used, see also http://hl7.org/fhir/ValueSet/designation-use (2.16.840.1.113883.4.642.3.259), extended</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="preferred">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">preferred</xforms:label>
+                        <xforms:label xml:lang="nl-NL">preferent</xforms:label>
+                        <xforms:label xml:lang="de-DE">bevorzugt</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">preferred</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="synonym">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">synonym</xforms:label>
+                        <xforms:label xml:lang="nl-NL">synoniem</xforms:label>
+                        <xforms:label xml:lang="de-DE">Synonym</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">synonym</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="abbreviation">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">abbreviation</xforms:label>
+                        <xforms:label xml:lang="nl-NL">afkorting</xforms:label>
+                        <xforms:label xml:lang="de-DE">Abkürzung</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">abbreviation</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="fsn">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">fully specified name</xforms:label>
+                        <xforms:label xml:lang="nl-NL">volledig gespecificeerde naam</xforms:label>
+                        <xforms:label xml:lang="de-DE">vollständig spezifizierter Name</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">fully specified name</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <!-- for later release
+            <xs:enumeration value="patientfriendly">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">patient-friendly</xforms:label>
+                        <xforms:label xml:lang="nl-NL">patiëntvriendelijk</xforms:label>
+                        <xforms:label xml:lang="de-DE">patientenfreundlich</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">patient-friendly</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            -->
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="EquivalencyType">
+        <xs:annotation>
+            <xs:documentation>Details of how two concepts map to each other, the source is : relatedto | equivalent | equal | wider | subsumes | narrower | specializes | inexact | unmatched | disjoint; See also FHIR ConceptMapEquivalence http://hl7.org/fhir/concept-map-equivalence; Releationship with "ISO/TR 12300:2014 Health informatics, Principles of mapping between terminological systems" is also indicated</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="relatedto">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">related to</xforms:label>
+                        <xforms:label xml:lang="nl-NL">gerelateerd aan</xforms:label>
+                        <xforms:label xml:lang="de-DE">verwandt mit</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The concepts are related to each other, and have at least some overlap in meaning, but the exact relationship is not known</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="equivalent">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">equivalent</xforms:label>
+                        <xforms:label xml:lang="nl-NL">gelijkwaardig</xforms:label>
+                        <xforms:label xml:lang="de-DE">äquivalent</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The definitions of the concepts mean the same thing (including when structural implications of meaning are considered) (i.e. extensionally identical). / ISO 12300: 2 = Equivalence of meaning, but with synonymy. For example, ureteric calculus and ureteric stone; gall stones and cholelithiasis.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="equal">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">equal</xforms:label>
+                        <xforms:label xml:lang="nl-NL">gelijk</xforms:label>
+                        <xforms:label xml:lang="de-DE">gleich</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The definitions of the concepts are exactly the same (i.e. only grammatical differences) and structural implications of meaning are identical or irrelevant (i.e. intentionally identical). / ISO 12300: 1 = Equivalence of meaning; lexical, as well as conceptual. For example, asthma and asthma; ovarian cyst and cyst of ovary.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="wider">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">wider</xforms:label>
+                        <xforms:label xml:lang="nl-NL">breder</xforms:label>
+                        <xforms:label xml:lang="de-DE">breiter</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The target mapping is wider in meaning than the source concept. / ISO 12300: 3 = Source concept is broader and has a less specific meaning than the target concept/term. For example, obesity and morbid obesity; diabetes and diabetes mellitus type II.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="subsumes">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">subsumes</xforms:label>
+                        <xforms:label xml:lang="nl-NL">omvat</xforms:label>
+                        <xforms:label xml:lang="de-DE">umfasst</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The target mapping subsumes the meaning of the source concept (e.g. the source is-a target).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="narrower">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">narrower</xforms:label>
+                        <xforms:label xml:lang="nl-NL">nauwer</xforms:label>
+                        <xforms:label xml:lang="de-DE">enger</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The target mapping is narrower in meaning than the source concept. The sense in which the mapping is narrower SHALL be described in the comments in this case, and applications should be careful when attempting to use these mappings operationally. / ISO 12300: 4 = Source concept is narrower and has a more specific meaning than the target concept/term. For example, feels ugly and self-image finding; acute renal failure syndrome secondary to dehydration and acute renal failure syndrome.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="specializes">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">specializes</xforms:label>
+                        <xforms:label xml:lang="nl-NL">specialiseert</xforms:label>
+                        <xforms:label xml:lang="de-DE">spezialisiert</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The target mapping specializes the meaning of the source concept (e.g. the target is-a source).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="inexact">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">inexact</xforms:label>
+                        <xforms:label xml:lang="nl-NL">onnauwkeurig</xforms:label>
+                        <xforms:label xml:lang="de-DE">ungenau</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The target mapping overlaps with the source concept, but both source and target cover additional meaning, or the definitions are imprecise and it is uncertain whether they have the same boundaries to their meaning. The sense in which the mapping is narrower SHALL be described in the comments in this case, and applications should be careful when attempting to use these mappings operationally.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="unmatched">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">unmatched</xforms:label>
+                        <xforms:label xml:lang="nl-NL">onvergelijkbaar</xforms:label>
+                        <xforms:label xml:lang="de-DE">unvergleichbar</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">There is no match for this concept in the destination concept system. / ISO 12300: 5 = No map is possible. No concept was found in the target with some degree of equivalence (as measured by any of the other four ratings).</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="disjoint">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">disjoint</xforms:label>
+                        <xforms:label xml:lang="nl-NL">elkaar uitsluitend</xforms:label>
+                        <xforms:label xml:lang="de-DE">sich auschließend</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">This is an explicit assertion that there is no mapping between the source and target concept.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <!--
+            <xs:enumeration value="unrated">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">unrated</xforms:label>
+                        <xforms:label xml:lang="nl-NL">onbeoordeeld</xforms:label>
+                        <xforms:label xml:lang="de-DE">nicht beurteilt</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">The mapping between source and target concept is not (yet) rated.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            -->
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="AuthorityType" mixed="true">
+        <xs:sequence>
+            <xs:element ref="addrLine" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="Oid" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Id of the authority/organisation/person</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="name" type="NonEmptyString" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Name of the authority/organisation/person</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <!--<xs:attribute name="email" type="EmailType" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Email address of the authority/organisation/person</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>-->
+    </xs:complexType>
+    <xs:complexType name="ObjectHistory">
+        <xs:sequence>
+            <xs:element name="desc" type="FreeFormMarkupWithLanguage" minOccurs="0"
+                maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="date" type="TimeStampNoTimezone"/>
+        <xs:attribute name="by" type="NonEmptyString"/>
+    </xs:complexType>
+    <xs:complexType name="RuleDefinition">
+        <xs:sequence>
+            <!-- description(s) of elements -->
+            <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                type="FreeFormMarkupWithLanguage"/>
+            <!-- item label, inherited by all subsequent elements unless overridden -->
+            <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
+            <!-- examples may be given -->
+            <xs:element ref="example" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- 
+                there maybe 0..1 inherit definitions before others in an element (indicating parent and sibling templates)
+            -->
+            <xs:element name="inherit" type="InheritDefinition" minOccurs="0" maxOccurs="0"/>
+            <!-- 
+                there may be 0..* vocabulary and 0..* property specifications
+            -->
+            <xs:choice>
+                <xs:element ref="vocabulary" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="property" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <!-- 
+                there may be 0..* text (element content) specifications
+            -->
+            <xs:element name="text" type="NonEmptyString" minOccurs="0" maxOccurs="unbounded"/>
+
+            <!-- 
+                attribute(s)
+            -->
+            <xs:element ref="attribute" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- 
+                choice of
+                
+                let
+                assert 
+                report
+                
+                defineVariable
+                
+                include
+                
+                choice
+                
+                or a new nested element
+                
+                or (non rule generating) items
+                constraint
+                issue
+            -->
+            <xs:choice maxOccurs="unbounded">
+                <xs:element ref="let" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="assert" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="report" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="defineVariable" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="element" type="RuleDefinition" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="include" type="IncludeDefinition" minOccurs="0"
+                    maxOccurs="unbounded"/>
+                <xs:element name="choice" type="ChoiceDefinition" minOccurs="0"
+                    maxOccurs="unbounded"/>
+                <!-- DEPRECATED: <xs:element ref="references" minOccurs="0" maxOccurs="unbounded"/> -->
+                <xs:element name="constraint" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+            </xs:choice>
+        </xs:sequence>
+
+        <!-- attributes of template (validation done by embedded schematron) -->
+        <xs:attribute ref="displayName" use="optional"/>
+        <xs:attributeGroup ref="VersionHandlingEffectiveDateOptional"/>
+        <xs:attribute name="statusCode" type="ItemStatusCodeLifeCycle" use="optional"/>
+
+        <!-- attributes of element (validation done by embedded schematron) -->
+        <xs:attribute name="name" use="optional" type="xs:anyURI"/>
+
+        <!-- @include is no longer supported and replaced by the include element, useWhere is not implemented yet -->
+        <xs:attribute name="include" type="xs:anyURI" use="prohibited"/>
+        <xs:attribute name="useWhere" type="xs:boolean" default="false" use="optional"/>
+
+        <!-- @contains -->
+        <xs:attribute name="contains" type="BasicIdOrOid" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a template/@id or @name. References to @name are discouraged because they become ambiguous quickly.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a template/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attributeGroup ref="MultiplicityRangeOptional"/>
+        <xs:attribute name="conformance" type="ConformanceType" use="optional"/>
+        <xs:attribute name="isMandatory" type="xs:boolean" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Default is unspecified which in practice means 'false'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <!-- an optional id for to be referenced by associated concepts -->
+        <xs:attribute name="id" type="Oid"/>
+
+        <!-- data type -->
+        <!--<xs:attribute name="datatype" type="DatatypeName"/>-->
+        <xs:attribute name="datatype" type="xs:QName"/>
+        <xs:attribute name="isClosed" type="xs:boolean" use="optional" default="false">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Whether the template is open (other elements than specified allowed) or closed (no other elements than specified allowed)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <!-- coding strength -->
+        <xs:attribute name="strength" type="CodingStrengthType" default="required" use="optional"/>
+
+    </xs:complexType>
+    <xs:complexType name="IncludeDefinition">
+        <xs:sequence>
+            <!-- description(s) of an include -->
+            <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                type="FreeFormMarkupWithLanguage"/>
+            <!-- item label, inherited by all subsequent elements unless overridden -->
+            <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="example" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <!-- DEPRECATED: <xs:element ref="references" minOccurs="0" maxOccurs="unbounded"/> -->
+                <xs:element name="constraint" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+            </xs:choice>
+        </xs:sequence>
+
+        <!-- attributes of includes (validation done by embedded schematron) -->
+        <xs:attribute name="ref" type="BasicIdOrOid" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a template/@id or @name. References to @name are discouraged because they become ambiguous quickly.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Reference to a template/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <!-- attributes of includes (validation done by embedded schematron) -->
+        <xs:attribute name="scenario" type="NonEmptyString" use="prohibited"/>
+        <xs:attribute name="effectiveDate" type="TimeStampNoTimezone" use="prohibited"/>
+        <xs:attributeGroup ref="MultiplicityRangeOptional"/>
+        <xs:attribute name="conformance" type="ConformanceType" use="optional"/>
+        <xs:attribute name="isMandatory" type="xs:boolean" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Default is unspecified which in practice means 'false'.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="InheritDefinition">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Inherit an artefact (here: a concept or a template), referenced by a ref (id). 
+                If no effectiveDate is given, flexibility DYNAMIC is assumed, STATIC date otherwise.</xs:documentation>
+        </xs:annotation>
+        <!-- attributes of inherit (validation done by embedded schematron) -->
+        <xs:attribute name="ref" type="Oid" use="required"/>
+        <!-- attributes of inherit (validation done by embedded schematron) -->
+        <xs:attribute name="effectiveDate" type="TimeStampNoTimezone" use="required"/>
+
+        <!-- Only relevant after compilation -->
+        <xs:attributeGroup ref="InheritCompilationAttributes"/>
+    </xs:complexType>
+    <xs:complexType name="ChoiceDefinition">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Choice of elements and includes. The choice supports min/max occurence and any of its constituents may have a min/max occurence. Min/max on consituents cannot exceed the min/max boundaries of the choice.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <!-- description(s) of elements -->
+            <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                type="FreeFormMarkupWithLanguage"/>
+            <!-- item label, inherited by all subsequent elements unless overridden -->
+            <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="include" type="IncludeDefinition" minOccurs="0"
+                    maxOccurs="unbounded"/>
+                <xs:element name="element" type="RuleDefinition" minOccurs="0" maxOccurs="unbounded"/>
+                <!-- DEPRECATED: <xs:element ref="references" minOccurs="0" maxOccurs="unbounded"/> -->
+                <xs:element name="constraint" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+            </xs:choice>
+        </xs:sequence>
+        <xs:attributeGroup ref="MultiplicityRangeOptional"/>
+    </xs:complexType>
+    <xs:element name="example">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip"
+                />
+            </xs:sequence>
+            <xs:attribute name="type" type="ExampleType" use="optional" default="neutral">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Can be used to indicate that the instance fragment (example) is right (@type=valid) or wrong (@type=error); default is "neutral".</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Kan worden gebruikt om te markeren dat het instancefragment (voorbeeld) geldig is (@type=valid) of fout (@type=error); standaardwaarde is "neutral".</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="caption" type="NonEmptyString" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Can be used to specify a caption (string) that precedes the instance fragment (example)</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="ExampleType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Type of Example given</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="error">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">ongeldig</xforms:label>
+                        <xforms:label xml:lang="en-US">error</xforms:label>
+                        <xforms:label xml:lang="de-DE">ungültig</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Used to indicate explicitly that the instance fragment (example) is in error.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Om aan te geven dat het een foutief instancefragment (voorbeeld) betreft.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="valid">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">geldig</xforms:label>
+                        <xforms:label xml:lang="en-US">valid</xforms:label>
+                        <xforms:label xml:lang="de-DE">gültig</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Used to indicate explicitly that the instance fragment (example) is valid.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Om aan te geven dat het een correct instancefragment (voorbeeld) betreft.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="neutral">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="nl-NL">neutraal</xforms:label>
+                        <xforms:label xml:lang="en-US">neutral</xforms:label>
+                        <xforms:label xml:lang="de-DE">neutral</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">Used to indicate that the instance fragment (example) is not explictly stated to be right or wrong.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Om aan te geven dat het instancefragment (voorbeeld) niet expliciet geldig of ongeldig is.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- DEPRECATED: <xs:element name="references">
+        <!-\- references concept="2.16.840.1.113883.2.4.6.99999.90.20010" target="2.16.840.1.113883.2.4.6.99999.90.3.700" -\->
+        <xs:complexType>
+            <xs:attribute name="concept" type="Oid"/>
+            <xs:attribute name="target" type="Oid"/>
+        </xs:complexType>
+    </xs:element>
+    -->
+    <xs:attribute name="displayName" type="NonEmptyString">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">A short description string for the designation</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ordinal" type="IntegerOrDecimalRange">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Relevant score value in an ordinal system, usually/preferably coded but ordinal values are known to exist with just a description. Coded examples include Apgar and Glasgow Coma Scale. An, at time of writing, uncoded example is the questionnaire "Positieve Gezondheid" (https://nl.wikipedia.org/wiki/Positieve_gezondheid)</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="experimental" type="xs:boolean">
+        <xs:annotation>
+            <xs:appinfo>
+                <xforms:label xml:lang="en-US">experimental</xforms:label>
+                <xforms:label xml:lang="nl-NL">voor testdoeleinden</xforms:label>
+                <xforms:label xml:lang="de-DE">für Testzwecke</xforms:label>
+            </xs:appinfo>
+            <xs:documentation xml:lang="en-US">DECOR project, codeSystem, valueSet or other artifact is for testing purposes, not real usage</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+
+    <!-- version handling -->
+    <xs:attribute name="effectiveDate" type="TimeStampNoTimezone">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Identifies the effective date of the version of the object.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="expirationDate" type="TimeStampNoTimezone">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Identifies the exiration date of the version of the object.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="officialReleaseDate" type="TimeStampNoTimezone">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Identifies the official release date of the version of the object.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="versionLabel" type="ShortDescriptiveName">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">A human readable version number or version label for convenient human rendition; not used by an application.</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attributeGroup name="VersionHandling">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Used to define version handling attributes</xs:documentation>
+        </xs:annotation>
+        <xs:attribute ref="effectiveDate" use="required"/>
+        <xs:attribute ref="expirationDate" use="optional"/>
+        <xs:attribute ref="officialReleaseDate" use="optional"/>
+        <xs:attribute ref="versionLabel" use="optional"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="VersionHandlingEffectiveDateOptional">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Used to define version handling attributes, effective date is optional here</xs:documentation>
+        </xs:annotation>
+        <xs:attribute ref="effectiveDate" use="optional"/>
+        <xs:attribute ref="expirationDate" use="optional"/>
+        <xs:attribute ref="officialReleaseDate" use="optional"/>
+        <xs:attribute ref="versionLabel" use="optional"/>
+    </xs:attributeGroup>
+    <xs:element name="let">
+        <xs:complexType>
+            <xs:attribute name="name" type="NonEmptyString" use="required"/>
+            <xs:attribute name="value" type="NonEmptyString" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="assert">
+        <xs:complexType mixed="true">
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+            <xs:attribute name="flag" type="NonEmptyString" use="optional"/>
+            <xs:attribute name="see" type="NonEmptyString" use="optional"/>
+            <xs:attribute name="role" type="AssertRole" use="required"/>
+            <xs:attribute name="test" type="NonEmptyString" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="report">
+        <xs:complexType mixed="true">
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+            <xs:attribute name="flag" type="NonEmptyString" use="optional"/>
+            <xs:attribute name="see" type="NonEmptyString" use="optional"/>
+            <xs:attribute name="role" type="AssertRole" use="required"/>
+            <xs:attribute name="test" type="NonEmptyString" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="defineVariable">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element name="code" minOccurs="0" maxOccurs="1" type="VarCode"/>
+                <xs:element name="use" minOccurs="0" maxOccurs="1" type="VarUse"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:NCName" use="required"/>
+            <xs:attribute name="path" type="xs:anyURI" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="VarCode">
+        <xs:attribute name="code" use="required" type="EnumerationString"/>
+        <xs:attribute name="codeSystem" use="required" type="Oid"/>
+    </xs:complexType>
+    <xs:complexType name="VarUse">
+        <xs:attribute name="path" use="required" type="xs:anyURI"/>
+        <xs:attribute name="as" use="required" type="DatatypeName"/>
+    </xs:complexType>
+    <xs:simpleType name="AssertRole">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Type of assertion (schematron)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="fatal">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Fatal</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Fataal</xforms:label>
+                        <xforms:label xml:lang="de-DE">Fatal</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="error">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Error</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Fout</xforms:label>
+                        <xforms:label xml:lang="de-DE">Fehler</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="warning">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Warning</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Waarschuwing</xforms:label>
+                        <xforms:label xml:lang="de-DE">Warnung</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="info">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Info</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Info</xforms:label>
+                        <xforms:label xml:lang="de-DE">Info</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="item">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+            </xs:sequence>
+            <xs:attribute name="label" type="NonEmptyString" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="SelfReferenceTemplateId">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Used as the type of a context template id</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="*">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Scope is templateId</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Scope is templateId</xforms:label>
+                        <xforms:label xml:lang="de-DE">Scope is templateId</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">template scope is templateId element and sibling nodes. Requires a top level element templateId with the same id as the template itself</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="**">
+                <xs:annotation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Scope is top level element</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Scope is top level element</xforms:label>
+                        <xforms:label xml:lang="de-DE">Scope is top level element</xforms:label>
+                    </xs:appinfo>
+                    <xs:documentation xml:lang="en-US">template scope is top level element with templateId element and child nodes. Requires that the template has one top level element and an element templateId with the same id as the template itself as child of that top level element</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="DecimalRange">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">A real number that is restricted to a maximum of 10 characters, and may have no more than 5 decimal places.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:maxExclusive value="1000000000"/>
+            <xs:minInclusive value="-1000000000"/>
+            <xs:fractionDigits value="5"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="IntegerRange">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">An integer number that is restricted to a maximum of 10 characters</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:integer">
+            <xs:maxExclusive value="1000000000"/>
+            <xs:minInclusive value="-1000000000"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="IntegerOrDecimalRange">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">An integer or decimal range</xs:documentation>
+        </xs:annotation>
+        <xs:union memberTypes="IntegerRange DecimalRange"/>
+    </xs:simpleType>
+    <xs:element name="attribute">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="desc" minOccurs="0" maxOccurs="unbounded"
+                    type="FreeFormMarkupWithLanguage"/>
+                <!-- item label, inherited by all subsequent elements unless overridden -->
+                <xs:element ref="item" minOccurs="0" maxOccurs="1"/>
+
+                <xs:choice>
+                    <xs:element ref="vocabulary" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element name="constraint" minOccurs="0" maxOccurs="unbounded"
+                        type="FreeFormMarkupWithLanguage"/>
+                </xs:choice>
+
+                <!-- constraints for attributes of type "coded" or "quantities"??????? -->
+                <!-- 
+                    <xs:choice maxOccurs="1">
+                    <xs:element ref="vocabulary" minOccurs="0" maxOccurs="1"/>
+                    <xs:element ref="property" minOccurs="0" maxOccurs="1"/>
+                </xs:choice>
+                -->
+            </xs:sequence>
+
+            <!-- == start definitional attributes -->
+            <!-- name of attributes required (name) -->
+            <xs:attribute name="name" type="EnumerationToken"/>
+
+            <!-- data type II: elements where other siblings are allowed -->
+            <xs:attribute name="value" type="NonEmptyString"/>
+            <!-- == end definitional attributes -->
+
+            <!-- == start shorthand attributes (discouraged) == -->
+            <!-- (@classCode|@contextConductionInd|@contextControlCode|@determinerCode|
+                  @extension|@independentInd|@institutionSpecified|@inversionInd|
+                  @mediaType|@moodCode|@negationInd|@nullFlavor|
+                  @operator|@qualifier|@representation|@root|
+                  @typeCode|@unit|@use) -->
+            <xs:attribute name="classCode" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="contextConductionInd" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="contextControlCode" type="EnumerationToken">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="determinerCode" type="EnumerationToken">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="extension" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="independentInd" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="institutionSpecified" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="inversionInd" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="mediaType" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="moodCode" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="negationInd" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="nullFlavor" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="operator" type="EnumerationToken">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="qualifier" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="representation" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="root" type="OidChoiceList">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="typeCode" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="unit" type="NonEmptyString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="use" type="EnumerationString">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Shorthand for HL7 V3 attribute. Use is discouraged, please use @name='..' and optionally @value='..' instead</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- == end shorthand attributes (discouraged) == -->
+
+            <!-- == start attribute properties == -->
+
+            <xs:attribute name="isOptional" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Determines that the attribute is requird to be in the instance. Default is 'false', meaning that the attribute is NOT optional, and thus required.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="prohibited" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Determines that the attribute is prohibited to be in the instance.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <!--<xs:attribute name="datatype" type="AttributeDatatypeName"/>-->
+            <xs:attribute name="datatype" type="xs:QName">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Determines the datatype of the attribute in the instance.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- == end attributes properties == -->
+
+            <!-- == start DECOR internal purpose only == -->
+            <!-- 20141215 - an optional id for to be referenced by associated concepts -->
+            <xs:attribute name="id" type="Oid"/>
+            <!-- == end DECOR internal purpose only == -->
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="property">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Used for attributes of type "quantity", "string" or "boolean". Allows assertion of one or more units, ranges, fraction digits or fixed values. Valid
+                combinations of attributes are: <li>
+                    <ul>@unit @minInclude @maxInclude @fractionDigits</ul>
+                    <ul>@currency @minInclude @maxInclude @fractionDigits</ul>
+                    <ul>@minLength @maxLength</ul>
+                    <ul>@value</ul>
+                </li>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+
+            <!-- quantity constraints -->
+            <xs:attribute name="unit" type="NonEmptyString"/>
+            <xs:attribute name="currency" type="NonEmptyString"/>
+            <xs:attribute name="minInclude" type="IntegerOrDecimalRange"/>
+            <xs:attribute name="maxInclude" type="IntegerOrDecimalRange"/>
+            <xs:attribute name="fractionDigits" type="FractionDigitsType"/>
+
+            <!-- string constraints -->
+            <xs:attribute name="minLength" type="SmallNonNegativeInteger"/>
+            <xs:attribute name="maxLength" type="SmallNonNegativeInteger"/>
+
+            <!-- fixed values -->
+            <xs:attribute name="value" type="NonEmptyString"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="FractionDigitsType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Data Set Value Domain Time Stamp Precision</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{1,4}[!\.]?"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="vocabulary">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Used for attributes of "coded" types. Allows assertion of one or more codes, code systems or value sets.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <!-- value set assertions -->
+            <xs:attribute name="valueSet" type="BasicIdOrOid" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@id or @name. References to @name are discouraged because they become ambiguous quickly.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="flexibility" type="StaticOrDynamicFlexibility" use="optional">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Reference to a valueSet/@effectiveDate. Default is unspecified which means 'latest available version'.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <!-- code constraints -->
+            <xs:attribute name="code" type="EnumerationString" use="optional"/>
+            <xs:attribute name="codeSystem" type="Oid" use="optional"/>
+
+            <!-- other constraints -->
+            <xs:attribute ref="displayName" use="optional"/>
+            <xs:attribute name="codeSystemName" type="NonEmptyString" use="optional"/>
+
+            <!-- concept domain (a sinple string as an "abstract" indication only) -->
+            <xs:attribute name="domain" type="NonEmptyString" use="optional"/>
+
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="CodingStrengthType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Coding strength of a vocabulary binding</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:NMTOKEN">
+            <xs:enumeration value="CNE">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">deprecated: use required. Required/CNE. Coded with no exceptions; this element SHALL be from the specified value set</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">deprecated: gebruik required. Verplicht/CNE. Gecodeerd, geen uitzonderingen; dit element MOET uit de gespecificeerde waardenlijst komen</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">deprecated: use required. Erforderlich/CNE. Codiert, keine Ausnahmen; das Element muss aus dem angegebene Value Set kommen.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Required/CNE</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Verplicht/CNE</xforms:label>
+                        <xforms:label xml:lang="de-DE">Erforderlich/CNE</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="required">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Required/CNE. Coded with no exceptions; this element SHALL be from the specified value set</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Verplicht/CNE. Gecodeerd, geen uitzonderingen; dit element MOET uit de gespecificeerde waardenlijst komen</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">Erforderlich/CNE. Codiert, keine Ausnahmen; das Element muss aus dem angegebene Value Set kommen.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Required/CNE</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Verplicht/CNE</xforms:label>
+                        <xforms:label xml:lang="de-DE">Erforderlich/CNE</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="CWE">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">deprecated, use extensible. Extensible/CWE. Coded with Exceptions; this element SHALL be from the specified value set if any of the codes within the value set can apply to the concept being communicated. If the value set does not cover the concept (based on human review), alternate codings (or, data type allowing, text) may be included instead.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">deprecated, gebruik extensible. Uitbreidbaar/CWE. Gecodeerde uitzonderingen toegestaan; dit element MOET uit de gespecificeerde waardenlijst komen als een van de codes binnen de waardenlijst van toepassing is op het concept dat wordt gecommuniceerd. Als de waarde het concept niet dekt (op basis van menselijke beoordeling), kunnen in plaats daarvan alternatieve coderingen (of datatype waarmee wordt toegestaan, tekst) worden opgenomen.</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">deprecated, use extensible. Erweiterbar/CWE. Codiert, Ausnahmen zugelassen; Dieses Element sollte aus dem angegebenen Value Set kommen, wenn das Konzept kommuniziert wird. Wenn der Code das Konzept nicht abdeckt (basierend auf menschlicher Überprüfung), können alternative Kodierungen (oder falls der Datentyp es erlaubt, Text) eingeschlossen sein.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Extensible/CWE</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Uitbreidbaar/CWE</xforms:label>
+                        <xforms:label xml:lang="de-DE">Erweiterbar/CWE</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="extensible">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Extensible/CWE. Coded with Exceptions; this element SHALL be from the specified value set if any of the codes within the value set can apply to the concept being communicated. If the value set does not cover the concept (based on human review), alternate codings (or, data type allowing, text) may be included instead.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Uitbreidbaar/CWE. Gecodeerde uitzonderingen toegestaan; dit element MOET uit de gespecificeerde waardenlijst komen als een van de codes binnen de value set van toepassing is op het concept dat wordt gecommuniceerd. Als de waarde het concept niet dekt (op basis van menselijke beoordeling), kunnen in plaats daarvan alternatieve coderingen (of datatype waarmee wordt toegestaan, tekst) worden opgenomen.</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">Erweiterbar/CWE. Codiert, Ausnahmen zugelassen; Dieses Element sollte aus dem angegebenen Value Set kommen, wenn das Konzept kommuniziert wird. Wenn der Code das Konzept nicht abdeckt (basierend auf menschlicher Überprüfung), können alternative Kodierungen (oder falls der Datentyp es erlaubt, Text) eingeschlossen sein.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Extensible/CWE</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Uitbreidbaar/CWE</xforms:label>
+                        <xforms:label xml:lang="de-DE">Erweiterbar/CWE</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="preferred">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Preferred. Instances are encouraged to draw from the specified codes for interoperability purposes but are not required to do so to be considered conformant.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Voorkeur. Instantiaties worden aangemoedigd om voor interoperabiliteitsdoeleinden codes op basis van de gespecificeerde waardenlijst te gebruiken.</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">Bevorzugt. Instanzen werden aufgefordert, für Interoperabilitätszwecke die Codes aus dem Value Set zu nutzen.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Preferred</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Voorkeur</xforms:label>
+                        <xforms:label xml:lang="de-DE">Bevorzugt</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="example">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Example. Instances are not expected or even encouraged to draw from the specified value set. The value set merely provides examples of the types of concepts intended to be included.</xs:documentation>
+                    <xs:documentation xml:lang="nl-NL">Voorbeeld. Instantiaties worden niet verwacht of zelfs maar aangemoedigd om codes op basis van de gespecificeerde waardenlijst te gebruiken. De waardenlijst stelt een voorbeeld voor van het type concept dat gebruikt kan worden.</xs:documentation>
+                    <xs:documentation xml:lang="de-DE">Beispiel. Es wird in Instanzen nicht erwartet, dass der Code aus  dem Value Set genutzt wird. Das Value Set enthält Beispiele für den Typ Konzept, die verwendet werden können.</xs:documentation>
+                    <xs:appinfo>
+                        <xforms:label xml:lang="en-US">Example</xforms:label>
+                        <xforms:label xml:lang="nl-NL">Voorbeeld</xforms:label>
+                        <xforms:label xml:lang="de-DE">Beispiel</xforms:label>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- =================================== -->
+
+    <!-- =================================== -->
+    <!-- COMPILATION ADDED STUFF -->
+    <!-- versionDate="2015-03-18T11:10:06" versionLabel="" compilationDate="2015-03-18T11:10:06" language="nl-NL" deeplinkprefix="http://localhost:8080/art-decor/" deeplinkprefixservices="http://localhost:8877/decor/services/" -->
+    <xs:attributeGroup name="ProvenanceCompilationAttributes">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Additional compilation attributes on the dataset, template and valueSet element</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="url" type="xs:anyURI" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the services URL useful in retrieving the dataset, template, or value set</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ident" type="ShortDescriptiveName" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the project @prefix of the project that defines the dataset, template, or value set</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="referencedFrom" type="ShortDescriptiveName" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the project @prefix of the project that referenced the dataset, template, or value set (normally current project)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="DecorCompilationAttributes">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Additional compilation attributes on the decor root element</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="versionDate" type="TimeStampNoTimezoneOrDevelopment" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the date stamp or 'development' for the currently processed project/(version|release)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="versionLabel" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the label for the currently processed project/(version|release)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="compilationDate" type="TimeStampNoTimezoneOrDevelopment" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the date stamp or 'development' of the compilation process</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="language" type="LanguageCodeOrAsterisk" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains principal used in the compilation process (compilation may be run multiple times, one per language)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="deeplinkprefix" type="xs:anyURI" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains ART-DECOR URI of the server that ran the compilation.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="deeplinkprefixservices" type="xs:anyURI" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains DECOR services URI of the server that ran the compilation.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attribute name="canonicalUri" type="xs:anyURI">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">HL7® FHIR® canonical URI. Logical URI to reference this StructureDefinition, logical model, value set, etc. (globally unique)</xs:documentation>
+            <xs:documentation xml:lang="de-DE">HL7® FHIR® canonical URI. Logical URI to reference this StructureDefinition, logical model, value set, etc. (globally unique)</xs:documentation>
+            <xs:documentation xml:lang="nl-NL">HL7® FHIR® kanonieke URI. Logische URI om te verwijzen naar deze StructureDefinition, dit logisch model, waardelijst, etc. (wereldwijd uniek)</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="refdisplay" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the calculated display name for the value in @ref</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+
+    <xs:attributeGroup name="InheritCompilationAttributes">
+        <!-- prefix="naw-" datasetId="2.16.840.1.113883.2.4.3.11.60.101.1.1" datasetEffectiveDate="2013-03-25T14:13:00" iType="group" iStatusCode="final" iEffectiveDate="2013-03-25T21:46:30" refdisplay="naw-dataelement-10000" -->
+        <xs:attribute name="prefix" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the project prefix for the original concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="datasetId" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the dataset id for the original concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="datasetEffectiveDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the dataset effectiveDate for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="datasetExpirationDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the dataset expirationDate for the original concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="datasetStatusCode" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the dataset statusCode for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="datasetVersionLabel" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the dataset versionLabel for the original concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iType" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the type for the original concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iStatusCode" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the statusCode for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iEffectiveDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the effectiveDate for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iVersionLabel" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the versionLabel for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="iExpirationDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the expirationDate for the inherited concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalId" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept id for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalStatusCode" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept statusCode for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalEffectiveDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept effectiveDate for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalVersionLabel" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept versionLabel for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalExpirationDate" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept expirationDate for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="originalPrefix" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the concept project prefix for the original concept, if the inherited concept was itself an inheriting/containing concept</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute ref="refdisplay" use="optional"/>
+        <xs:attribute name="localInherit" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains a boolean for whether or not the relationship 'lives' in the same project or not</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:group name="ValueSetCompilationSourceCodeSystem">
+        <xs:sequence>
+            <xs:element name="sourceCodeSystem" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains display names for code systems as an optimalization aid in the publication process</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:any processContents="skip" namespace="##any" minOccurs="0"
+                            maxOccurs="unbounded"/>
+                    </xs:sequence>
+                    <xs:anyAttribute processContents="skip" namespace="##any"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:attributeGroup name="ValueSetCompilationAttributes">
+        <xs:attributeGroup ref="ProvenanceCompilationAttributes"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="CodeSystemCompilationAttributes">
+        <xs:attributeGroup ref="ProvenanceCompilationAttributes"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="TerminologyAssociationCompilationAttributes">
+        <xs:annotation>
+            <xs:documentation xml:lang="en-US">Additional compilation attributes on the terminologyAssociation element</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="valueSetName" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en-US">Added in compilation process for releases. DO NOT ADD/EDIT yourself. Contains the displayName of the value set if available else the name</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute namespace="##other" processContents="skip"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="IdentifierAssociationCompilationAttributes">
+        <xs:attribute ref="refdisplay"/>
+        <xs:anyAttribute namespace="##other" processContents="skip"/>
+    </xs:attributeGroup>
+    <!-- =================================== -->
+</xs:schema>
