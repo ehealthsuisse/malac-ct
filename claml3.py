@@ -67,14 +67,16 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         super(ClaML3Sub, self).__init__(version, Classification,  **kwargs_)
 
     def get_resource(self):
-        return get_Meta_with_name('resource')
+        return get_Meta_with_name(self,'resource')
 
     def get_url(self):
-        return get_Meta_with_name('url')
+        return get_Meta_with_name(self,'url')
 
     def get_identifier(self):
-        return self.get_Classification()[0].get_Identifier()[0].get_uid()
-        #todo get more into identifier from FHIR
+        identifiers = []
+        for oneIdentifier in self.get_Classification()[0].get_Identifier(): 
+            identifiers.append(oneIdentifier.get_uid())
+        return identifiers
 
     def get_version(self):
         return self.get_Classification()[0].get_Title()[0].get_version()
@@ -89,7 +91,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return self.get_Classification()[0].get_Identifier()[0].get_status()
         
     def get_experimental(self):
-        return get_Meta_with_name('experimental')
+        return get_Meta_with_name(self,'experimental')
 
     def get_date(self):
         return self.get_Classification()[0].get_Identifier()[0].get_date()
@@ -101,37 +103,37 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return self.get_Classification()[0].get_Authors()[0].get_Author()[0].get_valueOf_()
 
     def get_description(self):
-        return get_Meta_with_name('description')
+        return get_Meta_with_name(self,'description')
 
     def get_usecontext(self):
-        return get_Meta_with_name('useContext')
+        return get_Meta_with_name(self,'useContext')
 
     def get_jurisdiction(self):
-        return get_Meta_with_name('jurisdiction')
+        return get_Meta_with_name(self,'jurisdiction')
 
     def get_purpose(self):
-        return get_Meta_with_name('purpose')
+        return get_Meta_with_name(self,'purpose')
 
     def get_copyright(self):
-        return get_Meta_with_name('copyright')
+        return get_Meta_with_name(self,'copyright')
 
     def get_casesensitive(self):
-        return get_Meta_with_name('caseSensitive')
+        return get_Meta_with_name(self,'caseSensitive')
 
     def get_hierarchymeaning(self):
-        return get_Meta_with_name('hierarchyMeaning')
+        return get_Meta_with_name(self,'hierarchyMeaning')
 
     def get_compositional(self):
-        return get_Meta_with_name('compositional')
+        return get_Meta_with_name(self,'compositional')
 
     def get_versionneeded(self):
-        return get_Meta_with_name('versionNeeded')
+        return get_Meta_with_name(self,'versionNeeded')
 
     def get_content(self):
-        return get_Meta_with_name('content')
+        return get_Meta_with_name(self,'content')
 
     def get_count(self):
-        return get_Meta_with_name('count')
+        return get_Meta_with_name(self,'count')
 
     def get_filter(self):
         retArr = []
@@ -158,33 +160,33 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return retArr
 
     def get_immutable(self):
-        return get_Meta_with_name('immutable')
+        return get_Meta_with_name(self,'immutable')
 
     def get_lockeddate(self):
-        return get_Meta_with_name('lockedDate')
+        return get_Meta_with_name(self,'lockedDate')
 
     def get_inactive(self):
-        return get_Meta_with_name('inactive')
+        return get_Meta_with_name(self,'inactive')
 
     def get_implicitrules(self):
-        return get_Meta_with_name('implicitRules')
+        return get_Meta_with_name(self,'implicitRules')
 
     def get_language(self):
         return self.get_Classification()[0].get_lang()
 
     def get_text(self):
-        return get_Meta_with_name('text')
+        return get_Meta_with_name(self,'text')
 
     def get_contained(self):
-        return get_Meta_with_name('contained')
+        return get_Meta_with_name(self,'contained')
 
     def get_extension(self):
-        return get_Meta_with_name('extension')
+        return get_Meta_with_name(self,'extension')
 
     def get_modifierextension(self):
-        return get_Meta_with_name('modifierExtension')
+        return get_Meta_with_name(self,'modifierExtension')
 
-    def get_Meta_with_name(meta_name):
+    def get_Meta_with_name(self,meta_name):
         for oneMeta in self.get_Classification()[0].get_Meta():
             if oneMeta.get_name == meta_name:
                 return oneMeta.get_value()
@@ -205,13 +207,70 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         rubKinds.add_RubricKind(RubricKindSub("preferred"))
 
         #optional ClaMl3 fields
+        #madatory FHIR fields
         metas = []
-        for oneProp in self.get_property():
-            metas.append(MetaSub(oneProp.code, oneProp.type))#,oneProp.uri or None, oneProp.description or None)))
+        metas.append(MetaSub('resource',self.get_resource()))
+        metas.append(MetaSub('url',self.get_url()))
+        title = TitleSub(self.get_name(),self.get_version(),None,self.get_title())
+        identStatusAndDate = IdentifierSub(None,None,None,None,None,None,self.get_status())
+        metas.append(MetaSub('description',self.get_description()))
 
-        claml3.add_Classification(ClassificationSub(lang,None,None,None,[TitleSub(title)],None,None,claKinds,None,rubKinds,None,None,None))
+        #conditional FHIR fields
+        if self.resource == pcam.Resource.CodeSystem: metas.append(MetaSub('content',self.get_content()))
+
+        #optional FHIR fields
+        if hasattr(self,'implicitrules'): metas.append(MetaSub('url',self.get_url()))
+        if hasattr(self,'text'): metas.append(MetaSub('text',self.get_text()))
+        if hasattr(self,'contained'): metas.append(MetaSub('contained',self.get_contained()))
+        if hasattr(self,'extension'): metas.append(MetaSub('extension',self.get_extension()))
+        if hasattr(self,'modifierextension'): metas.append(MetaSub('modifierextension',self.get_modifierextension()))
+        identifiers = None
+        if hasattr(self,'identifier'): 
+            identifiers = []
+            identifiers.append(identStatusAndDate)
+            for oneIdentifier in self.get_identifier():
+                identifiers.append(IdentifierSub(None,oneIdentifier))
+        if hasattr(self,'experimental'): metas.append(MetaSub('experimental',self.get_experimental()))
+        if hasattr(self,'date'): identStatusAndDate.date = self.get_date()
+        authors = None
+        if hasattr(self,'publisher'): 
+            authors = AuthorsSub(None,AuthorSub(self.get_publisher(),None,None))
+        #todo contactDetail filling
+        """ if hasattr(self,'contact'):
+            if authors is None:
+                authors = AuthorsSub()
+                for oneContact in self.get_contact():
+                    authors.append() """
+        if hasattr(self,'usecontext'): 
+            for oneUseContext in self.get_usecontext():
+                metas.append(MetaSub('usecontext',self.get_usecontext()))
+        if hasattr(self,'jurisdiction'): 
+            for oneJurisdiction in self.get_jurisdiction():
+                metas.append(MetaSub('jurisdiction',self.get_jurisdiction()))
+        if hasattr(self,'purpose'): metas.append(MetaSub("purpose",self.get_purpose()))
+        if hasattr(self,'copyright'): metas.append(MetaSub("copyright",self.get_copyright()))
+        if hasattr(self,'immutable'): metas.append(MetaSub("immutable",self.get_immutable()))
+        if hasattr(self,'lockeddate'): metas.append(MetaSub("lockedDate",self.get_lockeddate()))
+        if hasattr(self,'inactive'): metas.append(MetaSub("inactive",self.get_inactive()))
+        if hasattr(self,'casesensitive'): metas.append(MetaSub("caseSensitive",self.get_casesensitive()))
+        #todo valueset
+        #if hasattr(self,'valueset'): csv_list.append(("valueSet",self.get_valueset()))
+        if hasattr(self,'hierarchymeaning'): metas.append(MetaSub("hierarchyMeaning",self.get_hierarchymeaning()))
+        if hasattr(self,'compositional'): metas.append(MetaSub("compositional",self.get_compositional()))
+        if hasattr(self,'versionneeded'): metas.append(MetaSub("versionNeeded",self.get_versionneeded()))
+        #todo supplements
+        #if hasattr(self,'supplements'): csv_list.append(("supplements",self.get_supplements()))
+        if hasattr(self,'count'): metas.append(MetaSub("count",self.get_count()))
+        if hasattr(self,'filter'): 
+            for oneFilter in self.get_filter():
+                metas.append(MetaSub("filter",onefilter.code+"|"+onefilter.description+"|"+onefilter.operator+"|"+onefilter.value))
+        if hasattr(self,'property'): 
+            for oneProperty in self.get_property():
+                metas.append(MetaSub("property",oneProperty.code+"|"+oneProperty.uri+"|"+oneProperty.description+"|"+oneProperty.type))
+        # end list of metaelements
+        
+        claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,None))
         claml3.export(outfile, 0)
-
 
 supermod.ClaML3.subclass = ClaML3Sub
 # end class ClaMLSub
