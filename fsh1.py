@@ -21,6 +21,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
             lstFilter =  []
             lstProperty = []
+            lstConcept = []
 
             for line in file:
                 splittedLine = line.split('=')
@@ -104,12 +105,26 @@ class Fsh1(pcam.PropCsvAndMaster):
                         theProperty.uri = value
                     elif splittedLine[0].split('.')[1].strip() == 'type':
                         theProperty.type = value
-            
+
+                #processing the body with the concepts
+                if '* #' in splittedLine[0]:
+                    theConcept = None
+                    #if split here for VS and CS
+                    if '^' in splittedLine[0]:
+                        pass #add meta info of concepts
+                    else:
+                        theConcept.code = splittedLine[0].split(' ')[1]
+                        #detect if the display is here
+                        #detect if the display is splitted by a space
+                        theConcept.display = splittedLine[0].split(' ')[2].strip('"')
+                    #maybe add a detection of two # to give a syserr that nested hierarchy is not supported  
+
             if lstFilter != []:
                 self.filter = lstFilter
             if lstProperty != []:
                 self.property = lstProperty
-
+            if lstConcept != []:
+                self.concept = lstConcept
 
     def exporto(self, outfile):
         outfile.write('Instance: %s \n' % self.get_name())
