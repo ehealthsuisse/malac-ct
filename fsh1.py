@@ -1,3 +1,4 @@
+import sys
 import prop_csv_and_master as pcam
 
 class Fsh1(pcam.PropCsvAndMaster):
@@ -22,6 +23,9 @@ class Fsh1(pcam.PropCsvAndMaster):
             lstFilter =  []
             lstProperty = []
             lstConcept = []
+
+            finalVSSystem = None
+            finalVSVersion = None
 
             for line in file:
                 splittedLine = line.split('=')
@@ -94,7 +98,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             theProperty = oneProperty
                     # if none is found in the list, make one
                     if theProperty is None:
-                        theProperty = Property(splittedLine[0].split(']')[0])
+                        theProperty.idInFsh = splittedLine[0].split(']')[0]
                         lstProperty.append(theProperty)
                     # add the data to the Property
                     if splittedLine[0].split('.')[1].strip() == 'code':
@@ -109,15 +113,122 @@ class Fsh1(pcam.PropCsvAndMaster):
                 #processing the body with the concepts
                 if '* #' in splittedLine[0]:
                     theConcept = None
-                    #if split here for VS and CS
-                    if '^' in splittedLine[0]:
-                        pass #add meta info of concepts
-                    else:
-                        theConcept.code = splittedLine[0].split(' ')[1]
-                        #detect if the display is here
-                        #detect if the display is splitted by a space
-                        theConcept.display = splittedLine[0].split(' ')[2].strip('"')
-                    #maybe add a detection of two # to give a syserr that nested hierarchy is not supported  
+                    #split here for CS and VS
+                    if self.resource == self.resource.CodeSystem:
+                        if '^' in line:
+                            for oneConcept in lstConcept:
+                                if oneConcept.code is line.split(' ')[1].strip('#'):
+                                    if 'definition' in line:
+                                        oneConcept.definition = line.split['"'][1]
+                                    elif 'designation' in line:
+                                        theDesignation = None
+                                        # look with idInFsh for designation in the designation list
+                                        for oneDesignation in oneConcept.designation:
+                                            if oneDesignation.idInFsh == line.split(']')[0]:
+                                                theDesignation = oneDesignation
+                                        # if none is found in the list, make one
+                                        if theDesignation is None:
+                                            theDesignation.idInFsh = line.split(']')[0]
+                                            oneConcept.designation.append(theDesignation)
+                                        # split the line properly
+                                        if line.split('#') > 2:
+                                            value = line.split[' '][-1:][0].strip('#')
+                                        else:
+                                            value = line.split['"'][1]
+                                        # add the data to the designation
+                                        if 'language' in splittedLine[0].split('.')[1].strip():
+                                            theDesignation.language = value
+                                        elif 'use' in splittedLine[0].split('.')[1].strip():
+                                            theDesignation.use = value
+                                        elif 'value' in splittedLine[0].split('.')[1].strip():
+                                            theDesignation.value = value
+                                    elif 'property' in line:
+                                        #line.split('^')[1]
+                                        theProperty = None
+                                        # look with idInFsh for Property in the Property list
+                                        for oneProperty in oneConcept.property:
+                                            if oneProperty.idInFsh == line.split(']')[0]:
+                                                theProperty = oneProperty
+                                        # if none is found in the list, make one
+                                        if theProperty is None:
+                                            theProperty.idInFsh = line.split(']')[0]
+                                            oneConcept.property.append(theProperty)
+                                        # split the line properly
+                                        if line.split('#') > 2:
+                                            value = line.split[' '][-1:][0].strip('#')
+                                        else:
+                                            value = line.split['"'][1]
+                                        # add the data to the Property
+                                        if 'code' in splittedLine[0].split('.')[1].strip():
+                                            theProperty.code = value
+                                        elif 'value' in splittedLine[0].split('.')[1].strip():
+                                            theProperty.value = value
+                        else:
+                            # a detection of two # (without a ^) in a line to give a syserr that nested hierarchy is not supported 
+                            if len(line.split('#')) > 2:
+                                sys.exit('nested hierarchy per "* #this #that" is not supported, only the use of a multiparent hierarchy per propertys is supported.')
+                            # go on with parsing main data of the concept 
+                            theConcept.code = line.split(' ')[1].strip('#')
+                            if '"' in line:
+                                theConcept.display = line.split('"')[1]
+                            theConcept.designation = []
+                            theConcept.property = []
+                            lstConcept.append(theConcept)
+                       
+                    elif self.resource == self.resource.ValueSet:
+                        if 'compose.include.system' in line:
+                            finalVSSystem = line.split('"')[1].strip()
+                        if 'compose.include.version' in line:
+                            finalVSVersion = line.split('"')[1].strip()
+                        if '.code' in line:
+                            theConcept.idInFsh = line.split('.code')[0]
+                            theConcept.code = line.split('#')[1].strip()
+                            theConcept.system = finalVSSystem
+                            theConcept.version = finalVSVersion
+                            theConcept.designation = []
+                            theConcept.filter = []
+                            lstConcept.append(theConcept)
+                        if '.display' in line:
+                            for oneConcept in lstConcept:
+                                if oneConcept.idInFsh == line.split('.display')[0]:
+                                    theConcept = oneConcept
+                                    theConcept.display = line.split('"')[1].strip()
+                        if '.designation' in line:
+                            theDesignation = None
+                            for oneConcept in lstConcept:
+                                if oneConcept.idInFsh == line.split('.designation')[0]:
+                                    # look with idInFsh for designation in the designation list of the concept
+                                    for oneDesignation in oneConcept.designation: # e.g. ->* compose.include.concept[5].designation[4].language
+                                        if oneDesignation.idInFsh == line.split(']')[0]+line.split(']')[1]:
+                                            theDesignation = oneDesignation
+                                    # if none is found in the list, make one
+                                    if theDesignation is None:
+                                        theDesignation.idInFsh = line.split(']')[0]+line.split(']')[1]
+                                        oneConcept.designation.append(theDesignation)
+                                    # add the data to the designation
+                                    if '.language' in line:
+                                        theDesignation.language = value
+                                    elif '.use' in line:
+                                        theDesignation.use = value
+                                    elif '.value' in line:
+                                        theDesignation.value = value
+                        if '.filter' in line:
+                            theFilter = None
+                            # look with idInFsh for filter in the filter list of the concept
+                            for oneConcept in lstConcept:
+                                if oneConcept.idInFsh == line.split(']')[0]:
+                                    theFilter = oneConcept
+                            # if none is found in the list, make one
+                            if theFilter is None:
+                                theFilter.idInFsh = line.split(']')[0]
+                                oneConcept.filter = theFilter
+                            # add the data to the designation
+                            if '.property' in line:
+                                theFilter.property = value
+                            elif '.op' in line:
+                                theFilter.op = value
+                            elif '.value' in line:
+                                theFilter.value = value
 
             if lstFilter != []:
                 self.filter = lstFilter
@@ -126,9 +237,9 @@ class Fsh1(pcam.PropCsvAndMaster):
             if lstConcept != []:
                 self.concept = lstConcept
 
-    def exporto(self, outfile):
+    def exporto(self, outfile, argsLang=None):
         outfile.write('Instance: %s \n' % self.get_name())
-        outfile.write('InstanceOf: %s \n' % self.get_resource().name)#todo
+        outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
         outfile.write('* url = "%s" \n' % self.get_url())
         outfile.write('* version = "%s" \n' % self.get_version())
@@ -141,6 +252,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         
         if hasattr(self, 'implicitrules'): outfile.write('* implicitRules = "%s" \n' % self.get_implicitrules())
         if hasattr(self, 'language'): outfile.write('* language = "%s" \n' % self.get_language())
+        elif argsLang is not None: outfile.write('* language = "%s" \n' % argsLang)
         if hasattr(self, 'text'): outfile.write('* text = "%s" \n' % self.get_text())
         if hasattr(self, 'contained'): outfile.write('* contained = "%s" \n' % self.get_contained())
         if hasattr(self, 'extension'): outfile.write('* extension = "%s" \n' % self.get_implicitrules())
@@ -185,20 +297,77 @@ class Fsh1(pcam.PropCsvAndMaster):
         if hasattr(self, 'filter'): 
             i = 0
             for oneFilter in self.get_filter():
-                outfile.write('* filter[%s].code = #%s \n' % (i, oneFilter.code))
-                outfile.write('* filter[%s].description = "%s" \n' % (i, oneFilter.description))
-                outfile.write('* filter[%s].operator = #%s \n' % (i, oneFilter.operator))
-                outfile.write('* filter[%s].value = #%s \n' % (i, oneFilter.value))
+                if hasattr(oneFilter, 'code'): outfile.write('* filter[%s].code = #%s \n' % (i, oneFilter.code))
+                if hasattr(oneFilter, 'description'): outfile.write('* filter[%s].description = "%s" \n' % (i, oneFilter.description))
+                if hasattr(oneFilter, 'operator'): outfile.write('* filter[%s].operator = #%s \n' % (i, oneFilter.operator))
+                if hasattr(oneFilter, 'value'): outfile.write('* filter[%s].value = #%s \n' % (i, oneFilter.value))
                 i += 1
         if hasattr(self, 'property'): 
             i = 0
             for oneProperty in self.get_property():
-                outfile.write('* property[%s].code = #%s \n' % (i, oneProperty.code))
-                outfile.write('* property[%s].uri = "%s" \n' % (i, oneProperty.uri))
-                outfile.write('* property[%s].description = "%s" \n' % (i, oneProperty.description))
-                outfile.write('* property[%s].type = #%s \n' % (i, oneProperty.type))
+                if hasattr(oneProperty, 'code'): outfile.write('* property[%s].code = #%s \n' % (i, oneProperty.code))
+                if hasattr(oneProperty, 'uri'): outfile.write('* property[%s].uri = "%s" \n' % (i, oneProperty.uri))
+                if hasattr(oneProperty, 'description'): outfile.write('* property[%s].description = "%s" \n' % (i, oneProperty.description))
+                if hasattr(oneProperty, 'type'): outfile.write('* property[%s].type = #%s \n' % (i, oneProperty.type))
                 i += 1
-        #if self.property is not None: outfile.write('* property = "%s" \n' % self.property)
+        
+        if hasattr(self, 'concept'):
+            tempConcept = None
+            j = -1
+            k = -1
+            for oneConcept in self.get_concept():
+                #for CodeSystems
+                if self.resource.name == 'CodeSystem':
+                    if hasattr(oneConcept, 'displayName'): 
+                        outfile.write('* #%s "%s"\n' % (oneConcept.code, oneConcept.displayName))
+                    else:
+                        outfile.write('* #%s\n' % (oneConcept.code))
+                    if hasattr(oneConcept, 'definition'):
+                        outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
+                    if hasattr(oneConcept, 'designation'): 
+                        i = 0
+                        for oneDesignation in oneConcept.designation:
+                            if hasattr(oneDesignation, 'language'): outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use'): outfile.write('* #%s ^designation[%s].use = #%s \n' % (oneConcept.code, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'value'): outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
+                            i += 1
+                    if hasattr(oneConcept, 'property'): 
+                        i = 0
+                        for oneProperty in oneConcept.property:
+                            if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
+                            if hasattr(oneProperty, 'value'): outfile.write('* #%s ^property[%s].valueString = "%s" \n' % (oneConcept.code, i, oneProperty.value))
+                            i += 1
+                elif self.resource.name == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
+                    if tempConcept == None or tempConcept.system != oneConcept.system:
+                        j += 1
+                        k = -1
+                        tempConcept = oneConcept
+                        outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
+                        if hasattr(oneConcept, 'version'):
+                            outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
+                    
+                    if hasattr(oneConcept, 'code'):
+                        k += 1
+                        outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
+                    if hasattr(oneConcept, 'display'):
+                        outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
+                    if hasattr(oneConcept, 'designation'):
+                        i = -1
+                        for oneDesignation in oneConcept.designation:
+                            i += 1
+                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use'): outfile.write('* compose.include[%s].concept[%s].designation[%s].use = #%s \n' % (j, k, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
+                    if hasattr(oneConcept, 'filter'):
+                        k += 1
+                        if hasattr(oneDesignation.filter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
+                        if hasattr(oneDesignation.filter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
+                        if hasattr(oneDesignation.filter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
+                        
+                    # ToDo: implement exclude similar to include
+                    # ToDo: implement simple Hierarchie for Children with the member extension
+                    
+
         outfile.close()
 
 def parse(inFilename):
