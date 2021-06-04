@@ -1,4 +1,5 @@
 import argparse
+import sys
 import xml.etree.ElementTree as ET
 
 #The list of accepted input formats: ClaML-> claml, valueSet -> IHE SVS, CodeSystem -> FHIR CodeSystem, ValueSet -> FHIR ValueSet 
@@ -17,6 +18,9 @@ def init_argparse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-oclass", "--outputClassification", help='the output files classification', required=True
+    )
+    parser.add_argument(
+        "-argsLang", "--argumentLanguage", help='the language for the output classification'
     )
     return parser
 
@@ -52,7 +56,7 @@ def main() -> None:
 
     input = inputClass.parse(args.input)
     outfile = open(args.output, 'w', newline='', encoding='utf-8') 
-    outputClass.exporto(input, outfile)
+    outputClass.exporto(input, outfile, args.argumentLanguage)
     
 if __name__ == "__main__":
     main()
