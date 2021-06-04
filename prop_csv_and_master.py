@@ -60,7 +60,7 @@ class PropCsvAndMaster(object):
             self.contact = []
             self.usecontext = []
             self.jurisdiction = []
-            self.filter = []
+            #self.filter = [] this should not be a list
             self.property = []
             self.concept = []
             
@@ -163,7 +163,7 @@ class PropCsvAndMaster(object):
                                 tempFilter.property = filterElements[0]
                                 tempFilter.op = filterElements[1]
                                 tempFilter.value = filterElements[2]
-                                tempConcept.filter.append(tempFilter)
+                                tempConcept.filter = tempFilter # this is not a list! 
                             if 'exclude' == headingList[i]: tempConcept.exclude = row[i]
                         
                 self.concept.append(tempConcept)
@@ -279,7 +279,7 @@ class PropCsvAndMaster(object):
     def get_concept(self):
         return self.concept
 
-    def exporto(self, outfile):
+    def exporto(self, outfile, argsLang=None):
         csv_list = []
         # start list of metaelements
         csv_list.append(("resource",self.get_resource()))#todo
@@ -294,6 +294,7 @@ class PropCsvAndMaster(object):
         
         if hasattr(self,'implicitrules'): csv_list.append(("implicitRules",self.get_implicitrules()))
         if hasattr(self,'language'): csv_list.append(("language",self.get_language()))
+        elif argsLang is not None: csv_list.append(("language",argsLang))
         if hasattr(self,'text'): csv_list.append(("text",self.get_text()))
         if hasattr(self,'contained'): csv_list.append(("contained",self.get_contained()))
         if hasattr(self,'extension'): csv_list.append(("extension",self.get_extension()))
@@ -444,7 +445,7 @@ class PropCsvAndMaster(object):
                                 csv_header.append('designation')
                             csv_line.append(oneDesignation)
                     countOfFilter = 0
-                    if hasattr(self,'designation'): 
+                    if hasattr(self,'filter'): 
                         for oneFilter in oneConcept.filter:
                             countOfFilter += 1
                             if csv_header.count('filter') < countOfFilter:
