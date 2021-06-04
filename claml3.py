@@ -191,15 +191,57 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             if oneMeta.get_name == meta_name:
                 return oneMeta.get_value()
 
+    def get_concept(self):
+        retArr = []
+        for oneClass in self.get_Classification()[0].get_class():
+            theConcept = None
+            theConcept = pcam.CSConcept
+            theConcept.code = oneClass.get_code()
+            for oneRubric in oneClass.get_Rubric():
+                if oneRubric.get_id() == "display":
+                    theConcept.display = oneRubric.get_Label()[0].get_valueOf_()
+                elif oneRubric.get_id() == "definition":
+                    theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
+                elif oneRubric.get_id() == "designation":
+                    splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
+                    theDesignation = None
+                    theDesignation = pcam.ConceptDesignation
+                    theDesignation.language = splittedValue[0]
+                    theDesignation.use = splittedValue[1]
+                    theDesignation.value = splittedValue[2]
+                    theConcept.designation.append(theDesignation)
+            for oneSuperClass in oneClass.get_SuperClass():
+                theProperty = None
+                theProperty = pcam.CSConcept.ConceptProperty
+                theProperty.code = "parent"
+                theProperty.value = oneSuperClass.get_code()
+                theConcept.property.append(theProperty)
+            for oneSubClass in oneClass.get_SubClass():
+                theProperty = None
+                theProperty = pcam.CSConcept.ConceptProperty
+                theProperty.code = "child"
+                theProperty.value = oneSubClass.get_code()
+                theConcept.property.append(theProperty)
+            for oneMeta in oneClass.get_Meta():
+                theProperty = None
+                theProperty = pcam.CSConcept.ConceptProperty
+                theProperty.code = oneMeta.get_name()
+                theProperty.value = oneMeta.get_value()
+                theConcept.property.append(theProperty)
 
-    def exporto(self, outfile):
+            retArr.append(theConcept)
+        return retArr
+
+    def exporto(self, outfile, argsLang=None):
         #required ClaMl3 fields        
         claml3 = ClaML3Sub('3.0.0')
         if hasattr(self,'language'):
             lang = self.get_language()
+        elif argsLang is not None:
+            lang = argsLang
         else:
             print("A language code is required in ClaMl3. Please type one in (i.e. 'en','de-DE' or 'de-AT') and press enter:")
-            lang = 'en'#input()
+            lang = input()
         title = self.get_title()
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
@@ -263,13 +305,37 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         if hasattr(self,'count'): metas.append(MetaSub("count",self.get_count()))
         if hasattr(self,'filter'): 
             for oneFilter in self.get_filter():
-                metas.append(MetaSub("filter",onefilter.code+"|"+onefilter.description+"|"+onefilter.operator+"|"+onefilter.value))
+                metas.append(MetaSub("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
         if hasattr(self,'property'): 
             for oneProperty in self.get_property():
                 metas.append(MetaSub("property",oneProperty.code+"|"+oneProperty.uri+"|"+oneProperty.description+"|"+oneProperty.type))
         # end list of metaelements
         
-        claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,None))
+        classes = []
+        if hasattr(self,'concept'):
+            for oneConcept in self.get_concept():
+                theClass = None
+                theClass = ClassSub()
+                theClass.set_code(oneConcept.code)
+                if hasattr(oneConcept,'display'):
+                    theClass.add_Rubric(RubricSub(id="display",Label=(LabelSub(valueOf_=oneConcept.display))))
+                if hasattr(oneConcept,'definition'):
+                    theClass.add_Rubric(RubricSub(id="definition",Label=(LabelSub(valueOf_=oneConcept.definition))))
+                if hasattr(oneConcept,'designation'):
+                    for oneDesignation in oneConcept.designation:
+                        theClass.add_Rubric(RubricSub(id="designation",Label=(LabelSub(valueOf_=oneConcept.designation))))
+                
+                if hasattr(oneConcept,'property'):
+                    for oneProperty in oneConcept.property:
+                        if oneProperty.code == "parent":
+                            theClass.add_SuperClass(SuperClassSub(oneProperty.value))
+                        elif oneProperty.code == "child":
+                            theClass.add_SubClass(SubClassSub(oneProperty.value))
+                        else:
+                            theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                classes.append(theClass)
+
+        claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,classes))
         claml3.export(outfile, 0)
 
 supermod.ClaML3.subclass = ClaML3Sub
