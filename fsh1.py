@@ -6,7 +6,7 @@ class Fsh1(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super(pcam.PropCsvAndMaster, self).__init__()
         # open the file in read mode
-        with open(inFile, 'r') as file:
+        with open(inFile, 'r', encoding="utf8") as file:
             self.name = file.readline().split(':')[1].strip().strip('"')
             self.resource = pcam.Resource[file.readline().split(':')[1].strip().strip('"')]
             file.readline()
@@ -14,11 +14,11 @@ class Fsh1(pcam.PropCsvAndMaster):
             self.version = file.readline().split('=')[1].strip().strip('"')
             file.readline()
             self.title = file.readline().split('=')[1].strip().strip('"')
-            self.status = file.readline().split('=')[1].strip().strip('#')
+            self.status = pcam.Status[file.readline().split('=')[1].strip().strip('#')]
             self.description = file.readline().split('=')[1].strip().strip('"')
             
             if self.resource == self.resource.CodeSystem:
-                self.content = file.readline().split('=')[1].strip().strip('#')
+                self.content = pcam.Content[file.readline().split('=')[1].strip().strip('#')]
 
             lstFilter =  []
             lstProperty = []
@@ -29,9 +29,10 @@ class Fsh1(pcam.PropCsvAndMaster):
 
             for line in file:
                 splittedLine = line.split('=')
-                if '//' in splittedLine[0].strip():
+                if '//' in splittedLine[0].strip() or len(splittedLine[0].strip()) == 0:
                     continue
-                value = splittedLine[1].split('//')[0].strip().strip('"').strip('#')
+                if '=' in splittedLine:
+                    value = splittedLine[1].split('//')[0].strip().strip('"').strip('#')
                 if splittedLine[0] == '* implicitRules ': self.implicitrules = value
                 if splittedLine[0] == '* language ': self.language = value
                 if splittedLine[0] == '* text ': self.text = value
@@ -115,6 +116,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theConcept = None
                     #split here for CS and VS
                     if self.resource == self.resource.CodeSystem:
+                        theConcept = pcam.CSConcept.__new__(pcam.CSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                         if '^' in line:
                             for oneConcept in lstConcept:
                                 if oneConcept.code is line.split(' ')[1].strip('#'):
@@ -176,6 +178,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             lstConcept.append(theConcept)
                        
                     elif self.resource == self.resource.ValueSet:
+                        theConcept = pcam.VSConcept.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                         if 'compose.include.system' in line:
                             finalVSSystem = line.split('"')[1].strip()
                         if 'compose.include.version' in line:

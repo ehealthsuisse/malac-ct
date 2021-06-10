@@ -45,7 +45,7 @@ class PropCsvAndMaster(object):
     def __init__(self, inFile):
         super(PropCsvAndMaster, self).__init__()
         # open the file in read mode
-        with open(inFile, 'r') as csvfile:
+        with open(inFile, 'r', encoding="utf8") as csvfile:
             # creating dictreader object
             file = csv.reader(csvfile)
             # iterating over first two rows and append values to empty list

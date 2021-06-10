@@ -318,12 +318,12 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
                 if hasattr(oneConcept,'display'):
-                    theClass.add_Rubric(RubricSub(id="display",Label=(LabelSub(valueOf_=oneConcept.display))))
+                    theClass.add_Rubric(RubricSub(id="display",Label=[LabelSub(valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
-                    theClass.add_Rubric(RubricSub(id="definition",Label=(LabelSub(valueOf_=oneConcept.definition))))
+                    theClass.add_Rubric(RubricSub(id="definition",Label=[LabelSub(valueOf_=oneConcept.definition)]))
                 if hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(id="designation",Label=(LabelSub(valueOf_=oneConcept.designation))))
+                        theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=oneConcept.designation)]))
                 
                 if hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
