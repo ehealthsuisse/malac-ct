@@ -11735,7 +11735,7 @@ def get_required_ns_prefix_defs(rootNode):
     return nsmap, namespacedefs
 
 
-def parse(inFileName, silence=False, print_warnings=True):
+def parse(inFileName, silence=True, print_warnings=True):
     global CapturedNsmap_
     gds_collector = GdsCollector_()
     parser = None
@@ -11767,7 +11767,7 @@ def parse(inFileName, silence=False, print_warnings=True):
     return rootObj
 
 
-def parseEtree(inFileName, silence=False, print_warnings=True,
+def parseEtree(inFileName, silence=True, print_warnings=True,
                mapping=None, nsmap=None):
     parser = None
     doc = parsexml_(inFileName, parser)
@@ -11804,7 +11804,7 @@ def parseEtree(inFileName, silence=False, print_warnings=True,
     return rootObj, rootElement, mapping, reverse_mapping
 
 
-def parseString(inString, silence=False, print_warnings=True):
+def parseString(inString, silence=True, print_warnings=True):
     '''Parse a string, create the object tree, and export it.
 
     Arguments:
@@ -11839,7 +11839,7 @@ def parseString(inString, silence=False, print_warnings=True):
     return rootObj
 
 
-def parseLiteral(inFileName, silence=False, print_warnings=True):
+def parseLiteral(inFileName, silence=True, print_warnings=True):
     parser = None
     doc = parsexml_(inFileName, parser)
     gds_collector = GdsCollector_()

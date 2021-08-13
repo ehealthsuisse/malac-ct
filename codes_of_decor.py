@@ -22,7 +22,8 @@ import os
 import sys
 from lxml import etree as etree_
 
-import ??? as supermod
+import codes_of_decor_super as supermod
+import prop_csv_and_master as pcam
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -61,9 +62,12 @@ SaveElementTreeNode = True
 #
 
 
-class decorSub(supermod.decor):
+class decorSub(supermod.decor, pcam.PropCsvAndMaster):
     def __init__(self, repository=None, private=None, release='1000', versionDate=None, versionLabel=None, compilationDate=None, language=None, deeplinkprefix=None, deeplinkprefixservices=None, terminology=None, **kwargs_):
         super(decorSub, self).__init__(repository, private, release, versionDate, versionLabel, compilationDate, language, deeplinkprefix, deeplinkprefixservices, terminology,  **kwargs_)
+
+    
+
 supermod.decor.subclass = decorSub
 # end class decorSub
 
@@ -378,7 +382,7 @@ def get_root_tag(node):
     return tag, rootClass
 
 
-def parse(inFilename, silence=False):
+def parse(inFilename, silence=True):
     parser = None
     doc = parsexml_(inFilename, parser)
     rootNode = doc.getroot()
@@ -401,7 +405,7 @@ def parse(inFilename, silence=False):
     return rootObj
 
 
-def parseEtree(inFilename, silence=False):
+def parseEtree(inFilename, silence=True):
     parser = None
     doc = parsexml_(inFilename, parser)
     rootNode = doc.getroot()
@@ -427,7 +431,7 @@ def parseEtree(inFilename, silence=False):
     return rootObj, rootElement, mapping, reverse_mapping
 
 
-def parseString(inString, silence=False):
+def parseString(inString, silence=True):
     if sys.version_info.major == 2:
         from StringIO import StringIO
     else:
@@ -451,7 +455,7 @@ def parseString(inString, silence=False):
     return rootObj
 
 
-def parseLiteral(inFilename, silence=False):
+def parseLiteral(inFilename, silence=True):
     parser = None
     doc = parsexml_(inFilename, parser)
     rootNode = doc.getroot()

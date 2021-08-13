@@ -11,9 +11,8 @@
             "program": "malac_ct.py",
             "console": "integratedTerminal",
             "args": [
-                "-i", "test.csv", //"Y:\\Termserver\\termgit\\ASP-Liste\\20201028_ASP-Liste_ASP-Liste_Liste_der_humanen_Arzneispezialitäten_gelistet_nach_PZN_20200929_claml.xml",
-                "-o", "out.xml",
-                "-oclass", "ClaML3"
+                //"-o", "icd10gm2021syst_claml_20200918_20201111___.1.fsh",//"CS-ISO-3166-1-alpha-3.xml",
+                "-i", "icd10gm2021syst_claml_20200918_20201111.1.propcsv.csv", //"Y:\\Termserver\\termgit\\ASP-Liste\\20201028_ASP-Liste_ASP-Liste_Liste_der_humanen_Arzneispezialitäten_gelistet_nach_PZN_20200929_claml.xml",
             ]
         }
     ]
