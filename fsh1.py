@@ -2,26 +2,20 @@ import sys
 import prop_csv_and_master as pcam
 import re
 
+tempindex = None
+
 class Fsh1(pcam.PropCsvAndMaster):
 
     def __init__(self, inFile):
         super().__init__()
         # open the file in read mode
         with open(inFile, 'r', encoding="utf8") as file:
+            # first mandatory fields, using the instance way of fsh
             self.name = file.readline().split(':')[1].strip().strip('"')
             self.resource = pcam.Resource[file.readline().split(':')[1].strip().strip('"')]
             file.readline()
-            self.url = file.readline().split(' = ')[1].strip().strip('"')
-            self.version = file.readline().split('=')[1].strip().strip('"')
-            file.readline()
-            self.title = file.readline().split('=')[1].strip().strip('"')
-            self.status = pcam.Status[file.readline().split('=')[1].strip().strip('#')]
-            self.description = file.readline().split('=')[1].strip().strip('"')
-            #self.content = file.readline().split('=')[1].strip().strip('#')
-
-            if self.resource == self.resource.CodeSystem:
-                self.content = pcam.Content[file.readline().split('=')[1].strip().strip('#')]
-
+            
+            # preparing lists and some variables 
             lstFilter =  []
             lstProperty = []
             dictConcept = {}
@@ -30,6 +24,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             finalVSVersion = None
 
             for line in file:
+                # preprocessing of value
                 splittedLine = line.split('=',1)
                 if '//' in splittedLine[0].strip() or len(splittedLine[0].strip()) == 0:
                     continue
@@ -41,7 +36,21 @@ class Fsh1(pcam.PropCsvAndMaster):
                     value = value[:-1]
                 if "\\\"" in value:
                     value = value.replace("\\\"",'"')
-                if splittedLine[0] == '* implicitRules ': self.implicitrules = value
+
+                # more mandatory fields
+                if splittedLine[0] == '* status ':self.status = pcam.Status[value]
+                
+                #self.content = file.readline().split('=')[1].strip().strip('#')
+
+                elif splittedLine[0] == '* content ' and self.resource == self.resource.CodeSystem:
+                    self.content = pcam.Content[value]
+
+                # optional fields
+                elif splittedLine[0] == '* url ': self.url = value
+                elif splittedLine[0] == '* version ':self.version = value
+                elif splittedLine[0] == '* title ':self.title = value
+                elif splittedLine[0] == '* description ':self.description = value
+                elif splittedLine[0] == '* implicitRules ': self.implicitrules = value
                 elif splittedLine[0] == '* language ': self.language = value
                 
                 #self.__getattribute__(splittedLine[0]) = value
@@ -106,12 +115,12 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theProperty = None
                     # look with idInFsh for Property in the Property list
                     for oneProperty in lstProperty:
-                        if oneProperty.idInFsh == splittedLine[0].split(']')[0]:
+                        if oneProperty.idInFsh == splittedLine[0].split('.')[0]:
                             theProperty = oneProperty
                     # if none is found in the list, make one
                     if theProperty is None:
-                        theProperty = pcam.Property.__init__(pcam.Property)
-                        theProperty.idInFsh = splittedLine[0].split(']')[0]
+                        theProperty = pcam.Property()
+                        theProperty.idInFsh = splittedLine[0].split('.')[0]
                         lstProperty.append(theProperty)
                     # add the data to the Property
                     if splittedLine[0].split('.')[1].strip() == 'code':
@@ -121,7 +130,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     elif splittedLine[0].split('.')[1].strip() == 'uri':
                         theProperty.uri = value
                     elif splittedLine[0].split('.')[1].strip() == 'type':
-                        theProperty.type = value
+                        theProperty.type = pcam.PropertyCodeType[value]
 
                 #processing the body with the concepts
                 else: 
@@ -140,8 +149,20 @@ class Fsh1(pcam.PropCsvAndMaster):
             #split here for CS and VS
             if self.resource == self.resource.CodeSystem:
                 theConcept = pcam.CSConcept.__new__(pcam.CSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
-                if not re.match('\* concept\[\d+\]\.code .*', line):
-                    if oneConcept := dictConcept[line.split(']')[0].split('[')[1]]:
+                
+                # parsing index if the = and + notation is used
+                index = line.split(']')[0].split('[')[1]
+                global tempindex
+                if index == "=":
+                    index = tempindex
+                elif index == "+": 
+                    tempindex = int(tempindex)+1
+                    index = tempindex
+                else:
+                    tempindex = index
+
+                if not re.match('\* concept\[[\d+\+=]\]\.code .*', line):
+                    if oneConcept := dictConcept[index]:
                         if 'display' in line:
                             oneConcept.display = value
                         elif 'definition' in line:
@@ -150,11 +171,11 @@ class Fsh1(pcam.PropCsvAndMaster):
                             theDesignation = None
                                         # look with idInFsh for designation in the designation list
                             for oneDesignation in oneConcept.designation:
-                                if oneDesignation.idInFsh == line.split(']')[0]:
+                                if oneDesignation.idInFsh == line.split('.')[1]:
                                     theDesignation = oneDesignation
                                         # if none is found in the list, make one
                             if theDesignation is None:
-                                theDesignation.idInFsh = line.split(']')[0]
+                                theDesignation.idInFsh = line.split('.')[1]
                                 oneConcept.designation.append(theDesignation)
                                         # split the line properly
                             if line.split('#') > 2:
@@ -173,12 +194,12 @@ class Fsh1(pcam.PropCsvAndMaster):
                             theProperty = None
                                         # look with idInFsh for Property in the Property list
                             for oneProperty in oneConcept.property:
-                                if oneProperty.idInFsh == line.split(']')[1]:
+                                if oneProperty.idInFsh == line.split('.')[1]:
                                     theProperty = oneProperty
                                         # if none is found in the list, make one
                             if theProperty is None:
                                 theProperty = pcam.CSConcept.ConceptProperty()
-                                theProperty.idInFsh = line.split(']')[1]
+                                theProperty.idInFsh = line.split('.')[1]
                                 oneConcept.property.append(theProperty)
                                         # split the line properly
                             #if len(line.split('#')) > 2:
@@ -196,7 +217,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theConcept.code = value
                     theConcept.designation = []
                     theConcept.property = []
-                    dictConcept[line.split(']')[0].split('[')[1]] = theConcept
+                    dictConcept[tempindex] = theConcept
+                    
                         
                         # todo get to version 2
             elif self.resource == self.resource.ValueSet:

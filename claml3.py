@@ -264,7 +264,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         metas.append(MetaSub('description',self.get_description()))
 
         #conditional FHIR fields
-        if self.get_resource() == pcam.Resource.CodeSystem: metas.append(MetaSub('content',self.get_content()))
+        if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
         #optional FHIR fields
         if tmp := self.get_implicitrules(): metas.append(MetaSub('url',tmp))
@@ -312,7 +312,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 metas.append(MetaSub("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
         if tmp := self.get_property(): 
             for oneProperty in tmp:
-                metas.append(MetaSub("property",oneProperty.code+"|"+oneProperty.uri+"|"+oneProperty.description+"|"+oneProperty.type.value))
+                metas.append(MetaSub("property",str(oneProperty)))
         # end list of metaelements
         
         classes = []

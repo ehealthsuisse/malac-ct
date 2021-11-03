@@ -294,8 +294,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas.append(MetaSub('status', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
 
-        #conditional FHIR fields
-        if self.get_resource() == pcam.Resource.CodeSystem: metas.append(MetaSub('content',self.get_content()))
+        #conditional and mandatory FHIR fields
+        if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
         #optional FHIR fields
         if tmp := self.get_language():
@@ -349,7 +349,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 metas.append(MetaSub("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
         if tmp := self.get_property(): 
             for oneProperty in tmp:
-                metas.append(MetaSub("property",oneProperty.code+"|"+oneProperty.uri+"|"+oneProperty.description+"|"+oneProperty.type.value))
+                metas.append(MetaSub("property",str(oneProperty)))
         # end list of metaelements
         
         classes = []
@@ -358,15 +358,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
-                if oneConcept.display:
+                if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.display)]))
-                if oneConcept.definition:
+                if hasattr(oneConcept,'definition'):
                     theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.definition)]))
-                if oneConcept.designation:
+                if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.designation)]))
                 
-                if oneConcept.property:
+                if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "parent":
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))

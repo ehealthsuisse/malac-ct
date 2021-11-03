@@ -1,7 +1,7 @@
-resource,url,version,name,title,status,description,property,property
-ValueSet,http://myFancy.url,1.0.0,myFancyPants,myTitleOfFancePants,draft,this is my facy pants valueset,qwer|http://qwer|this is qwer|code,asdf|http://asdf|this is asdf|code
+resource,url,version,name,title,status,description,property,property,content
+CodeSystem,http://myFancy.url,1.0.0,myFancyPants,myTitleOfFancePants,draft,this is my facy pants valueset,qwer|http://qwer|this is qwer|code,asdf|http://asdf|this is asdf|code,example
 
-system,code
-1243,my1234
-2345,my2345
-3456,my3456
+system,code,balala
+1243,my1234,asd 
+2345,my2345,asd
+3456,my3456,asd

@@ -359,7 +359,7 @@ class PropCsvAndMaster(object):
                 csv_list.append(("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
         if tmp := self.get_property(): 
             for oneProperty in tmp:
-                csv_list.append(("property",oneProperty.code+"|"+(oneProperty.uri or "")+"|"+(oneProperty.description or "")+"|"+oneProperty.type.value))
+                csv_list.append(("property",str(oneProperty)))
         # end list of metaelements
         for csvline in zip(*csv_list): #transpose the list
             newline = True
@@ -534,11 +534,15 @@ class Filter():
         self.value = None
 
 class Property():
-    def __init__(self, code=None, uri=None, description=None, type=PropertyCodeType):
+    def __init__(self, code=None, uri=None, description=None, type=PropertyCodeType, idInFsh=None):
         self.code = code
         self.uri = uri
         self.description = description
         self.type = type
+        self.idInFsh = idInFsh
+
+    def __str__(self) -> str:
+        return self.code+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+self.type.value
 
 class CSConcept():
     def __init__(self):

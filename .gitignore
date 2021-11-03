@@ -6,3 +6,6 @@ __pycache__/propCsvAndMaster.cpython-39.pyc
 __pycache__/
 out.xml
 out.fsh
+*.zip
+icd10_testdata/
+icd10gm_mult/
