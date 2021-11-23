@@ -77,7 +77,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_resource(self):
         res = get_Meta_with_name(self,'resource')
         if res is None:
-            res = pcam.Resource.CodeSystem
+            res = pcam.Resource.CodeSystem.value
         return res
 
     def get_url(self):
@@ -230,8 +230,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         tmp += onePara.get_valueOf_()+" "
                     for oneFragment in oneRubric.get_Label()[0].get_Fragment():
                         tmp += oneFragment.get_valueOf_()+" "
-                        
-                
+                    for oneReference in oneRubric.get_Label()[0].get_Reference():
+                        tmp += oneReference.get_valueOf_()+" "
+                    for oneTable in oneRubric.get_Label()[0].get_Table():
+                        tmp += "!ignored Table!"
+
                 if oneRubric.get_kind() == "preferred":
                     theConcept.display = tmp
                 elif oneRubric.get_kind() == "definition":

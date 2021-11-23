@@ -151,7 +151,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 theConcept = pcam.CSConcept.__new__(pcam.CSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                 
                 # parsing index if the = and + notation is used
-                index = line.split(']')[0].split('[')[1]
+                index = line.split(']')[0].split('[')[1]#.strip("'")
                 global tempindex
                 if index == "=":
                     index = tempindex
@@ -161,7 +161,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 else:
                     tempindex = index
 
-                if not re.match('\* concept\[[\d+\+=]\]\.code .*', line):
+                if not re.match('\* concept\[(\d+|\+|=)+\]\.code .*', line):
                     if oneConcept := dictConcept[index]:
                         if 'display' in line:
                             oneConcept.display = value
@@ -397,7 +397,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             i += 1
-                elif self.get_resource().name == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
+                elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1
                         k = -1
