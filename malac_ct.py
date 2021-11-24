@@ -22,7 +22,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-i", "--input", help='the input file, classification is detected automaticly', required=True
     )
     parser.add_argument(
-        "-o", "--output", help='the output file, if none is given MaLaC-CT will convert into all other known formats.'
+        "-o", "--output", help='the output file, if none is given MaLaC-CT will convert into all other known formats.', required=False
     )
     parser.add_argument(
         "-langArg", "--argumentLanguage", help='the language element for the output classification', required=False
@@ -37,7 +37,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-j2xServer", "--json2xmlFHIRServer", help="Directly run a json2xml convert on a given FHIR server after sushi. "+
         "the FHIR Server adress including the base path wraped into quotation marks. e.g.:"+
         '--user fhiruser:fhiruserpassword "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/"'+
-        "Warning: a json has to exists, that is usually generated via sushi!', required=False"
+        "Warning: a json has to exists, that is usually generated via sushi!", required=False
     )
     parser.add_argument(
         "-j2xUser", "--json2xmlFHIRServerUser", help="the FHIR server user password if needed"+
@@ -94,7 +94,7 @@ def main() -> None:
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
-    if (not "fhir" in args.input and not "fhir" in args.output):
+    if (not "fhir" in args.input and args.output != None and not "fhir" in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
         
         iModule = __import__(iClassValue[0])
