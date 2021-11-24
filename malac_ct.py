@@ -65,7 +65,7 @@ def main() -> None:
     sys.stdout.write(args.input+" to\n")
 
     # if the input is a fhir xml or a fhir json, and the output any other classification, then do that
-    if (args.goFshConvertingToFsh or ("fhir" in args.input and not "fhir" in args.output)):
+    if (args.goFshConvertingToFsh or ("fhir" in args.input and args.output == None) or ("fhir" in args.input and args.output != None and not "fhir" in args.output)):
         import os
 
         sys.stdout.write("-------------------- start gofsh --------------------\n")
@@ -94,7 +94,7 @@ def main() -> None:
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
-    if (not "fhir" in args.input and args.output != None and not "fhir" in args.output):
+    if not("fhir" in args.input and args.output != None and "fhir" in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
         
         iModule = __import__(iClassValue[0])
