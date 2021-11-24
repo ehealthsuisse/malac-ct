@@ -416,11 +416,11 @@ class PropCsvAndMaster(object):
                     if 'definition' not in csv_header and hasattr(oneConcept,'definition'):
                         csv_header.append('definition')
                         csv_line.append(oneConcept.definition)
-                    while headerDesignationIterator < len(conceptDesig := oneConcept.designation): 
+                    while hasattr(oneConcept,'designation') and headerDesignationIterator < len(conceptDesig := oneConcept.designation): 
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
-                    while headerPropertyIterator < len(conceptProps := oneConcept.property): 
+                    while hasattr(oneConcept,'property') and headerPropertyIterator < len(conceptProps := oneConcept.property): 
                         csv_header.append('property')
                         csv_line.append(conceptProps[headerPropertyIterator])
                         headerPropertyIterator += 1 

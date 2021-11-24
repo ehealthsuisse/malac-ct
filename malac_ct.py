@@ -9,8 +9,9 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
     ".2.fsh":["fsh2", "Fsh2"],
-    ".4.fhir.json":["fhir4json", "FHIR4json"],
-    ".4.fhir.xml":["fhir4xml", "FHIR4xml"]}# nice2have ,IHEsvs, ArtDecor)
+    #".4.fhir.json":["fhir4json", "FHIR4json"],
+    #".4.fhir.xml":["fhir4xml", "FHIR4xml"]
+    }# nice2have ,IHEsvs, ArtDecor)
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\" and a predefined CSV a file ending \".1.csv\"."
 
 def init_argparse() -> argparse.ArgumentParser:
@@ -55,6 +56,7 @@ def detectClassByEnding(filename):
             return listClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
+# todo: get all paths if fhir.json or xml is the output format
 def main() -> None:
     start = time.time()
     sys.stdout.write("MaLaC-CT converted\n")
@@ -87,10 +89,13 @@ def main() -> None:
         os.rmdir(os.path.dirname(args.input)+"\\o")
         sys.stdout.write("*.1.fsh\n")
 
-
-        args.input = args.input.replace(".4.fhir.json",".1.fsh")
+        if (args.input.endswith(".4.fhir.json")):
+            args.input = args.input.replace(".4.fhir.json",".1.fsh")
+        elif (args.input.endswith(".4.fhir.xml")):
+            args.input = args.input.replace(".4.fhir.xml",".1.fsh")
 
     # look at the name of the input file and load the classification, 
+    
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
@@ -106,7 +111,7 @@ def main() -> None:
         # look at the name of the output file and load the classification, 
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
         if args.output != None:
-            oClassValue,oClass = detectClassByEnding(args.output) 
+            oClassValue,oClass = detectClassByEnding(args.output)
             oModule = __import__(oClassValue[0])
             outputClass = getattr(oModule, oClassValue[1])
 

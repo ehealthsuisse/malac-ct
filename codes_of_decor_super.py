@@ -24,7 +24,7 @@ try:
     ModulenotfoundExp_ = ModuleNotFoundError
 except NameError:
     ModulenotfoundExp_ = ImportError
-from six.moves import zip_longest
+#from six.moves import zip_longest
 import os
 import re as re_
 import base64
@@ -628,7 +628,8 @@ except ModulenotfoundExp_ as exp:
             else:
                 result = GeneratedsSuper.gds_encode(str(instring))
             return result
-        def __eq__(self, other):
+        # commented out not using the six libary
+        '''def __eq__(self, other):
             def excl_select_objs_(obj):
                 return (obj[0] != 'parent_object_' and
                         obj[0] != 'gds_collector_')
@@ -636,7 +637,7 @@ except ModulenotfoundExp_ as exp:
                 return False
             return all(x == y for x, y in zip_longest(
                 filter(excl_select_objs_, self.__dict__.items()),
-                filter(excl_select_objs_, other.__dict__.items())))
+                filter(excl_select_objs_, other.__dict__.items())))'''
         def __ne__(self, other):
             return not self.__eq__(other)
         # Django ETL transform hooks.
