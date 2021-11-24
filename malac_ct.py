@@ -136,7 +136,7 @@ def main() -> None:
             # TODO dirname has to be functional if a relative path is given
             # TODO sushi should only use one fsh-file, not all files in dir
             # TODO different file name to title could be supported
-            with open(os.path.dirname(args.input)+"\\sushi-config.yaml", 'w', newline='', encoding='utf-8') as f:
+            with open(os.path.dirname(args.input)+"/sushi-config.yaml", 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
             os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
@@ -151,11 +151,11 @@ def main() -> None:
             # move fhir json to root, delete old file before
             if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
-            os.rename(os.path.dirname(args.input)+"\\input\\vocabulary\\CodeSystem-"+
+            os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
                 os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
-            os.rmdir(os.path.dirname(args.input)+"\\input\\vocabulary")
-            os.rmdir(os.path.dirname(args.input)+"\\input")
-            os.remove(os.path.dirname(args.input)+"\\sushi-config.yaml")
+            os.rmdir(os.path.dirname(args.input)+"/input/vocabulary")
+            os.rmdir(os.path.dirname(args.input)+"/input")
+            os.remove(os.path.dirname(args.input)+"/sushi-config.yaml")
             sys.stdout.write("*.4.fhir.json\n")
             
     # run converter, create from json a xml       
