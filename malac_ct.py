@@ -143,7 +143,7 @@ def main() -> None:
             os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
             sys.stdout.write("-------------------- start sushi --------------------\n")
             startSushi = time.time()
-            subprocess.call(["sushi","-v"], shell=True)
+            subprocess.call(["sushi -v"], shell=True)
             subprocess.call(["sushi",os.path.dirname(args.input)," -o ",os.path.dirname(args.input)], shell=True)
             endSushi = time.time()
             sys.stdout.write("-------------------- end sushi --------------------\n")
