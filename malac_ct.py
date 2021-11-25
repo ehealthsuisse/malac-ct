@@ -153,8 +153,14 @@ def main() -> None:
             # move fhir json to root, delete old file before
             if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
-            os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
-                os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            if ("/CS-" in args.input):
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
+                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            elif ("/VS-" in args.input):
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/ValueSet-"+
+                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            else:
+                sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
             os.rmdir(os.path.dirname(args.input)+"/input/vocabulary")
             os.rmdir(os.path.dirname(args.input)+"/input")
             os.remove(os.path.dirname(args.input)+"/sushi-config.yaml")
