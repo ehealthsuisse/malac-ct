@@ -271,7 +271,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                 theProperty.code = oneMeta.get_name()
                 theProperty.value = oneMeta.get_value()
-                theProperty.type = pcam.PropertyCodeType.code
+                theProperty.type = pcam.PropertyCodeType.string
                 thePropertys.append(theProperty)                
 
             if len(thePropertys) > 0:
