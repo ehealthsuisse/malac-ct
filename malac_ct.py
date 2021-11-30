@@ -154,10 +154,10 @@ def main() -> None:
             if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
             if ("/CodeSystem-" in args.input):
-                os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/"+
                     os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
             elif ("/ValueSet-" in args.input):
-                os.rename(os.path.dirname(args.input)+"/input/vocabulary/ValueSet-"+
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/"+
                     os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
             else:
                 sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
