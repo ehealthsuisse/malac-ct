@@ -122,9 +122,9 @@ class PropCsvAndMaster(object):
                 #initializing the body/content
                 for row in file:
 
-                    if self.resource.name == 'CodeSystem':
+                    if self.resource == self.resource.CodeSystem:
                         tempConcept = CSConcept() #alternative construktor to create an new object without calling __init__, for minimal memory allocation
-                    elif self.resource.name == 'ValueSet':
+                    elif self.resource == self.resource.ValueSet:
                         tempConcept = VSConcept() #.__new__(VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
 
                     for i in range(0, len(row)):
@@ -134,7 +134,7 @@ class PropCsvAndMaster(object):
                             #row[i].replace(';',',')
                             row[i].strip("\"").strip("\'")
 
-                            if self.resource.name == 'CodeSystem':
+                            if self.resource == self.resource.CodeSystem:
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
                                 if 'definition' == headingList[i]: tempConcept.definition = row[i]
@@ -153,7 +153,7 @@ class PropCsvAndMaster(object):
                                     tempProperty.type = PropertyCodeType(propertyElements[2])
                                     tempConcept.property.append(tempProperty)                        
                                 
-                            elif self.resource.name == 'ValueSet':
+                            elif self.resource == self.resource.ValueSet:
                                 if 'system' == headingList[i]: tempConcept.system = row[i]
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]

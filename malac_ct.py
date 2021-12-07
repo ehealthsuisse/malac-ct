@@ -140,21 +140,27 @@ def main() -> None:
             with open(os.path.dirname(args.input)+"/sushi-config.yaml", 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
-            os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
+            #os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
             sys.stdout.write("-------------------- start sushi --------------------\n")
             startSushi = time.time()
-            subprocess.call(["sushi","-v"])
-            subprocess.call(["sushi",os.path.dirname(args.input),"-o",os.path.dirname(args.input)])
+            subprocess.call(["sushi","-v"], shell=True)
+            subprocess.call(["sushi",os.path.dirname(args.input),"-o",os.path.dirname(args.input)], shell=True)
             endSushi = time.time()
             sys.stdout.write("-------------------- end sushi --------------------\n")
             sys.stdout.write("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.\n")
-            os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
+            #os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
             
             # move fhir json to root, delete old file before
             if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
-            os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
-                os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            if ("/CS-" in args.input):
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/CodeSystem-"+
+                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            elif ("/VS-" in args.input):
+                os.rename(os.path.dirname(args.input)+"/input/vocabulary/ValueSet-"+
+                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+            else:
+                sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
             os.rmdir(os.path.dirname(args.input)+"/input/vocabulary")
             os.rmdir(os.path.dirname(args.input)+"/input")
             os.remove(os.path.dirname(args.input)+"/sushi-config.yaml")

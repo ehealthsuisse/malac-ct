@@ -99,7 +99,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return self.get_Title().get_valueOf_()
 
     def get_status(self):
-        return get_Meta_with_name(self,'status')
+        return get_Meta_with_name(self,'preliminary')
         
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
@@ -158,7 +158,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'content')
 
     def get_count(self):
-        return get_Meta_with_name(self,'count')
+        # todo: change all classifications to a dynamic count
+        return len(self.get_Class())
 
     def get_filter(self):
         retArr = []
@@ -182,7 +183,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 oneProperty.description = oneMeta.get_value().split('|')[2]
                 oneProperty.type = oneMeta.get_value().split('|')[3]
                 retArr.append(oneProperty)
-
         return self.get_additionalConceptPropertys(retArr)
 
     def get_immutable(self):
@@ -215,6 +215,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
 
+    # todo use get_concept also for claml3
     def get_concept(self):
         retArr = []
         for oneClass in self.get_Class():
@@ -223,6 +224,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
             thePropertys = []
 
+            theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+            theProperty.code = "kind"
+            theProperty.value = oneClass.get_kind()
+            theProperty.type = pcam.PropertyCodeType.string
+            thePropertys.append(theProperty)
+
+            usedPreferredLong = False
             for oneRubric in oneClass.get_Rubric():
                 tmp = ""
                 if (tmp := oneRubric.get_Label()[0].get_valueOf_().strip()) == "":
@@ -233,9 +241,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     for oneReference in oneRubric.get_Label()[0].get_Reference():
                         tmp += oneReference.get_valueOf_()+" "
                     for oneTable in oneRubric.get_Label()[0].get_Table():
+                        # todo: find a solution to get the whole table into a fhir element
                         tmp += "!ignored Table!"
 
-                if oneRubric.get_kind() == "preferred":
+                if oneRubric.get_kind() == "preferredLong":
+                    theConcept.display = tmp
+                    usedPreferredLong = True
+                elif not usedPreferredLong and oneRubric.get_kind() == "preferred":
                     theConcept.display = tmp
                 elif oneRubric.get_kind() == "definition":
                     theConcept.definition = tmp
@@ -271,7 +283,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                 theProperty.code = oneMeta.get_name()
                 theProperty.value = oneMeta.get_value()
-                theProperty.type = pcam.PropertyCodeType.code
+                theProperty.type = pcam.PropertyCodeType.string
                 thePropertys.append(theProperty)                
 
             if len(thePropertys) > 0:
@@ -294,7 +306,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('url',self.get_url()))
-        metas.append(MetaSub('status', self.get_status()))
+        metas.append(MetaSub('preliminary', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
 
         #conditional and mandatory FHIR fields
@@ -361,6 +373,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
+                
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
@@ -371,7 +384,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
-                        if oneProperty.code == "parent":
+                        if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
+                            theClass.set_kind(oneProperty.value)
+                        elif oneProperty.code == "parent":
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
