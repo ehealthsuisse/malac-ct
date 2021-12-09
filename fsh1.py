@@ -340,7 +340,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_compositional(): outfile.write('* compositional = "%s" \n' % tmp)
         if tmp := self.get_versionneeded(): outfile.write('* versionNeeded = "%s" \n' % tmp)
         #if tmp := self.get_supplements(): outfile.write('* supplements = "%s" \n' % tmp)
-        if tmp := self.get_count(): outfile.write('* count = "%s" \n' % tmp)
+        if tmp := self.get_count(): outfile.write('* count = %s \n' % tmp)
         if tmp := self.get_filter(): 
             i = 0
             for oneFilter in tmp:

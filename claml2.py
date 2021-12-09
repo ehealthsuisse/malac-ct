@@ -20,6 +20,8 @@
 
 import os
 import sys
+import re
+from typing import NoReturn
 from lxml import etree as etree_
 
 import claml2super as supermod
@@ -75,10 +77,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return parse(inFilename)
 
     def get_resource(self):
-        res = get_Meta_with_name(self,'resource')
-        if res is None:
-            res = pcam.Resource.CodeSystem.value
-        return res
+        if res := get_Meta_with_name(self,'resource'):
+            return res
+        else:
+            return pcam.Resource.CodeSystem.value
 
     def get_url(self):
         return get_Meta_with_name(self,'url')
@@ -92,14 +94,26 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_version(self):
         return self.get_Title().get_version()
 
+    # replaces " " and "_" to "-", deletes to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it 
     def get_name(self):
-        return self.get_Title().get_name()
-
+        return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+        
+    # primär: meta.titleLong / sekundär: title.name)
     def get_title(self):
-        return self.get_Title().get_valueOf_()
+        if tempTitle := get_Meta_with_name(self,'titleLong'):
+            return tempTitle
+        else:
+            return self.get_Title().get_name()
 
     def get_status(self):
-        return get_Meta_with_name(self,'preliminary')
+        if (tempStatus := get_Meta_with_name(self,'status')) in set(item.value for item in pcam.Status):
+            return tempStatus
+        elif get_Meta_with_name(self,'preliminary') is "true":
+            return pcam.Status.draft.value
+        elif get_Meta_with_name(self,'preliminary') is "false":
+            return pcam.Status.active.value
+        else:
+            return pcam.Status.unknown.value
         
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
@@ -155,10 +169,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'supplements')
 
     def get_content(self):
-        return get_Meta_with_name(self,'content')
+        if tempContent := get_Meta_with_name(self,'content'):
+            return tempContent
+        else:
+            return pcam.Content.complete.value
 
     def get_count(self):
-        # todo: change all classifications to a dynamic count
         return len(self.get_Class())
 
     def get_filter(self):
@@ -226,7 +242,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
             theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
             theProperty.code = "kind"
-            theProperty.value = oneClass.get_kind()
+            if tempKind := oneClass.get_kind() is None:
+                tempKind = "noKind"
+            theProperty.value = tempKind
             theProperty.type = pcam.PropertyCodeType.string
             thePropertys.append(theProperty)
 
@@ -306,7 +324,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('url',self.get_url()))
-        metas.append(MetaSub('preliminary', self.get_status()))
+        # if the status is draft or active, a prelim attribute is created
+        if self.get_status() is "draft":
+            metas.append(MetaSub('preliminary', "true"))
+        elif self.get_status() is "active":
+            metas.append(MetaSub('preliminary', "false"))
+        metas.append(MetaSub('status', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
 
         #conditional and mandatory FHIR fields

@@ -143,7 +143,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'content')
 
     def get_count(self):
-        return get_Meta_with_name(self,'count')
+        return len(self.get_Class())
 
     def get_filter(self):
         retArr = []

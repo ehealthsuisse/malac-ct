@@ -279,7 +279,7 @@ class PropCsvAndMaster(object):
         return self.supplements
 
     def get_count(self):
-        return self.count
+        return len(self.get_concept())
 
     def get_filter(self):
         return self.filter
