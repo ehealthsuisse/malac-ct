@@ -311,10 +311,16 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
+        # todo make the contact write also possible for claml2&3
         if tmp := self.get_contact():
             i = 0 
             for oneContact in tmp:
-                outfile.write('* contact[%s] = "%s" \n' % (i,oneContact))
+                if tmpName := oneContact.name:
+                    outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
+                if tmpSystem := oneContact.telecom[0].system:
+                    outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
+                if tmpValue := oneContact.telecom[0].value:
+                    outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
                 i += 1
         if tmp := self.get_usecontext(): 
             i = 0

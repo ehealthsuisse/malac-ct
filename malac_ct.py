@@ -52,6 +52,9 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-up", "--upload2FhirServer", action="store_true", help='Directly upload the converted FHIR json to the given FHIR Server. Can only be run if all the j2x argument(s) are given.', required=False
     )
+    parser.add_argument(
+        "-url", "--fhirIgUrl", help="the home adress of the FHIR IG Publisher URL, to fill a predefined url in the resource", required=False
+    )
     
     return parser
 
@@ -111,6 +114,7 @@ def main() -> None:
         inputClass = getattr(iModule, iClassValue[1])
 
         # serialize the input file,
+        inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
 
         # look at the name of the output file and load the classification, 
@@ -148,8 +152,7 @@ def main() -> None:
             sys.stdout.write("-------------------- start sushi --------------------\n")
             startSushi = time.time()
             subprocess.call("sushi -v", shell=True)
-            tempSub = "sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\""
-            subprocess.call(tempSub, shell=True)
+            subprocess.call("sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\"", shell=True)
             endSushi = time.time()
             sys.stdout.write("-------------------- end sushi --------------------\n")
             sys.stdout.write("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.\n")

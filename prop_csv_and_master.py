@@ -335,7 +335,7 @@ class PropCsvAndMaster(object):
         if tmp := self.get_publisher(): csv_list.append(("publisher",tmp))
         if tmp := self.get_contact():
             for oneContact in tmp:
-                csv_list.append(("contact",oneContact))
+                csv_list.append(("contact", str(oneContact)))
         if tmp := self.get_usecontext(): 
             for oneUseContext in tmp:
                 csv_list.append(("useContext",oneUseContext))
@@ -526,6 +526,47 @@ class PropertyCodeType(enum.Enum):
     dateTime = "DateTime"
     decimal = "Decimal"
 
+class ContactDetail():
+    def __init__(self):
+        self.name = None
+        self.telecom = []
+
+    def __str__(self) -> str:
+        tempStr = ""
+        if temp := self.name:
+            tempStr += temp
+        tempStr += "|"
+        if temp := self.telecom[0].system:
+            tempStr += temp
+        tempStr += "|"
+        if temp := self.telecom[0].value:
+            tempStr += temp
+        return tempStr
+
+    class ConcactPoint():
+        def __init__(self):
+            self.system = None # ContactPointSystem
+            self.value = None
+            self.use = None # ContactPointUse
+            self.rank = None
+            self.period = None
+        
+        class ContactPointSystem(enum.Enum):
+            phone = "phone"
+            fax = "fax"
+            email = "email"
+            pager = "pager"
+            url = "url"
+            sms = "sms"
+            other = "other"
+
+        class ContactPointUse(enum.Enum):
+            home = "home"
+            work = "work"
+            temp = "temp"
+            old = "old"
+            mobile = "mobile"
+            
 class Filter():
     def __init__(self):
         self.code = None

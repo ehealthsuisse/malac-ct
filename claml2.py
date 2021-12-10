@@ -64,9 +64,9 @@ SaveElementTreeNode = True
 #
 
 def get_Meta_with_name(self,meta_name):
-        for oneMeta in self.get_Meta():
-            if oneMeta.get_name() == meta_name:
-                return oneMeta.get_value()
+    for oneMeta in self.get_Meta():
+        if oneMeta.get_name() == meta_name:
+            return oneMeta.get_value()
 
 class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Meta=None, Identifier=None, Title=None, Authors=None, Variants=None, ClassKinds=None, UsageKinds=None, RubricKinds=None, Modifier=None, ModifierClass=None, Class=None, **kwargs_):
@@ -82,8 +82,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.CodeSystem.value
 
+    # todo create get url for other classifications
     def get_url(self):
-        return get_Meta_with_name(self,'url')
+        if tempUrl := self.globalUrl:
+            return tempUrl+self.get_resource()+"-"+self.get_name()
+        elif tempUrl := get_Meta_with_name(self,'url'):
+            return tempUrl
 
     def get_identifier(self):
         identifiers = []
@@ -94,7 +98,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_version(self):
         return self.get_Title().get_version()
 
-    # replaces " " and "_" to "-", deletes to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it 
+    # replaces " " and "_" to "-", deletes up to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it 
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
         
@@ -108,9 +112,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_status(self):
         if (tempStatus := get_Meta_with_name(self,'status')) in set(item.value for item in pcam.Status):
             return tempStatus
-        elif get_Meta_with_name(self,'preliminary') is "true":
+        elif get_Meta_with_name(self,'preliminary') == "true":
             return pcam.Status.draft.value
-        elif get_Meta_with_name(self,'preliminary') is "false":
+        elif get_Meta_with_name(self,'preliminary') == "false":
             return pcam.Status.active.value
         else:
             return pcam.Status.unknown.value
@@ -122,21 +126,40 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return self.get_Title().get_date()
         
     def get_publisher(self):
-        if hasattr(self,"Authors"): 
-            authors = self.get_Authors()
-            if hasattr(self, "Author"):
-                return authors.get_Author()[0].get_name()
+        if authors := self.get_Authors():
+            if author := authors.get_Author()[0]:
+                return author.get_name()
         return None
 
     def get_contact(self):
-        if hasattr(self,"Authors"): 
-            authors = self.get_Authors()
-            if hasattr(self, "Author"):
-                return authors.get_Author()[0].get_valueOf_()
-        return None
+        tempConDetS = []
+        if authors := self.get_Authors():
+            for oneAuthor in authors.get_Author():
+                oneConDet = pcam.ContactDetail()
+                oneConDet.name = oneAuthor.get_name()
+                if tempValueOf := oneAuthor.get_valueOf_():
+                    oneConPoi = pcam.ContactDetail.ConcactPoint()
+                    oneConPoi.value = tempValueOf
+                    oneConDet.telecom = [oneConPoi]
+                tempConDetS.append(oneConDet)
+        if (website := get_Meta_with_name(self,'website')) and not website == "":
+            oneConDet = pcam.ContactDetail()
+            oneConPoi = pcam.ContactDetail.ConcactPoint()
+            oneConPoi.value = website
+            oneConPoi.system = pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value
+            oneConDet.telecom = [oneConPoi]
+            tempConDetS.append(oneConDet)
+        return tempConDetS
 
     def get_description(self):
-        return get_Meta_with_name(self,'description')
+        tempRet = None
+        if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
+            tempRet = tempDesc
+            if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+                tempRet += "\n\n"+tempDescEn
+        elif (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+            tempRet = tempDescEn
+        return tempRet
 
     def get_usecontext(self):
         return get_Meta_with_name(self,'useContext')
@@ -171,6 +194,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_content(self):
         if tempContent := get_Meta_with_name(self,'content'):
             return tempContent
+        elif tempContent := get_Meta_with_name(self,'unvollstaendig'):
+            if tempContent == "false":
+                return pcam.Content.complete.value
+            elif tempContent == "true":
+                return pcam.Content.fragment.value
         else:
             return pcam.Content.complete.value
 
@@ -239,14 +267,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             theConcept.code = oneClass.get_code()
 
             thePropertys = []
-
-            theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-            theProperty.code = "kind"
-            if tempKind := oneClass.get_kind() is None:
-                tempKind = "noKind"
-            theProperty.value = tempKind
-            theProperty.type = pcam.PropertyCodeType.string
-            thePropertys.append(theProperty)
+            
+            if tempKind := oneClass.get_kind():
+                theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                theProperty.code = "kind"                
+                theProperty.value = tempKind
+                theProperty.type = pcam.PropertyCodeType.string
+                thePropertys.append(theProperty)
 
             usedPreferredLong = False
             for oneRubric in oneClass.get_Rubric():
@@ -325,9 +352,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
-        if self.get_status() is "draft":
+        if self.get_status() == "draft":
             metas.append(MetaSub('preliminary', "true"))
-        elif self.get_status() is "active":
+        elif self.get_status() == "active":
             metas.append(MetaSub('preliminary', "false"))
         metas.append(MetaSub('status', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
@@ -417,6 +444,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
                             theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))
+                
+                # if there was no kind given, create one with "noKind"
+                if temp := theClass.get_kind():
+                    theClass.set_kind("noKind")
+                
                 classes.append(theClass)
 
         claml2 = ClaML2Sub('2.0.0',metas,identifiers,title,authors,None,claKinds,None,rubKinds,None,None,classes)

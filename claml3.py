@@ -91,6 +91,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def get_version(self):
         return self.get_Classification()[0].get_Title()[0].get_version()
 
+    # todo: only override functions that are different to claml2 
     def get_name(self):
         return self.get_Classification()[0].get_Title()[0].get_name()
 
