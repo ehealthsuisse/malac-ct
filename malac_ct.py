@@ -88,13 +88,13 @@ def main() -> None:
         # move gofsh fsh to root, delete createrd files afterwards and old file before
         if (os.path.exists(args.input.replace(".4.fhir.json",".1.fsh"))):
             os.remove(args.input.replace(".4.fhir.json",".1.fsh"))
-        os.rename(os.path.dirname(args.input)+"\\o\\input\\fsh\\"+
-            os.path.basename(args.input.replace(".4.fhir.json","-Instance.fsh")),args.input.replace(".4.fhir.json",".1.fsh"))
-        os.remove(os.path.dirname(args.input)+"\\o\\input\\fsh\\index.txt")
-        os.rmdir(os.path.dirname(args.input)+"\\o\\input\\fsh")
-        os.rmdir(os.path.dirname(args.input)+"\\o\\input")
-        os.remove(os.path.dirname(args.input)+"\\o\\sushi-config.yaml")
-        os.rmdir(os.path.dirname(args.input)+"\\o")
+        os.rename(os.path.join(os.path.dirname(args.input),"o","input","fsh",
+            os.path.basename(args.input.replace(".4.fhir.json","-Instance.fsh"))),args.input.replace(".4.fhir.json",".1.fsh"))
+        os.remove(os.path.join(os.path.dirname(args.input),"o","input","fsh","index.txt"))
+        os.rmdir(os.path.join(os.path.dirname(args.input),"o","input","fsh"))
+        os.rmdir(os.path.join(os.path.dirname(args.input),"o","input"))
+        os.remove(os.path.join(os.path.dirname(args.input),"o","sushi-config.yaml"))
+        os.rmdir(os.path.join(os.path.dirname(args.input),"o"))
         sys.stdout.write("*.1.fsh\n")
 
         if (args.input.endswith(".4.fhir.json")):
@@ -145,7 +145,7 @@ def main() -> None:
             # TODO dirname has to be functional if a relative path is given
             # TODO sushi should only use one fsh-file, not all files in dir
             # TODO different file name to title could be supported
-            with open(os.path.dirname(args.input)+"/sushi-config.yaml", 'w', newline='', encoding='utf-8') as f:
+            with open(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
             os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
@@ -162,16 +162,16 @@ def main() -> None:
             if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
             if ("CodeSystem-" in args.input):
-                os.rename(os.path.dirname(args.input)+"/input/vocabulary/"+
-                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+                os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",
+                    "CodeSystem-"+os.path.basename(args.input.replace(iClass,".json").replace("CodeSystem-","").lower())),args.input.replace(iClass,".4.fhir.json"))
             elif ("ValueSet-" in args.input):
-                os.rename(os.path.dirname(args.input)+"/input/vocabulary/"+
-                    os.path.basename(args.input.replace(iClass,".json")),args.input.replace(iClass,".4.fhir.json"))
+                os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",
+                    "ValueSet-"+os.path.basename(args.input.replace(iClass,".json").replace("ValueSet-","").lower())),args.input.replace(iClass,".4.fhir.json"))
             else:
                 sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
-            os.rmdir(os.path.dirname(args.input)+"/input/vocabulary")
-            os.rmdir(os.path.dirname(args.input)+"/input")
-            os.remove(os.path.dirname(args.input)+"/sushi-config.yaml")
+            os.rmdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
+            os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
+            os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
             sys.stdout.write("*.4.fhir.json\n")
             
     # run converter, create from json a xml       
