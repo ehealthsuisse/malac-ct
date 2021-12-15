@@ -583,7 +583,7 @@ class Property():
         self.idInFsh = idInFsh
 
     def __str__(self) -> str:
-        return self.code+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+self.type.value
+        return (self.code or "None")+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+(self.type.value or "None")
 
 class CSConcept():
     def __init__(self):
@@ -601,9 +601,9 @@ class CSConcept():
 
         def __str__(self) -> str:
             buildStr = ""
-            if hasattr(self, 'code'): buildStr = self.code
-            if hasattr(self, 'value'): buildStr += "|"+self.value
-            if hasattr(self, 'type'): buildStr += "|"+self.type.value
+            buildStr = self.code or "None"
+            buildStr += "|"+ (self.value or "None") 
+            buildStr += "|"+ (self.type.value or "None")
             return buildStr
 
 class VSConcept():

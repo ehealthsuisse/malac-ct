@@ -286,7 +286,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
         outfile.write('* url = "%s" \n' % self.get_url())
-        outfile.write('* version = "%s" \n' % self.get_version())
+        outfile.write('* version = "%s" \n' % (self.get_version() or "None"))
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
         outfile.write('* status = #%s \n' % self.get_status())
@@ -358,7 +358,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_property(): 
             i = 0
             for oneProperty in tmp:
-                if hasattr(oneProperty, 'code') and oneProperty.code: outfile.write('* property[%s].code = #%s \n' % (i, oneProperty.code))
+                if hasattr(oneProperty, 'code'): outfile.write('* property[%s].code = #%s \n' % (i, oneProperty.code or "None") )
                 if hasattr(oneProperty, 'uri') and oneProperty.uri: outfile.write('* property[%s].uri = "%s" \n' % (i, oneProperty.uri))
                 if hasattr(oneProperty, 'description') and oneProperty.description: outfile.write('* property[%s].description = "%s" \n' % (i, oneProperty.description))
                 if hasattr(oneProperty, 'type') and oneProperty.type: outfile.write('* property[%s].type = #%s \n' % (i, oneProperty.type.name))
@@ -399,7 +399,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     if hasattr(oneConcept, 'property') and oneConcept.property != []: 
                         i = 0
                         for oneProperty in oneConcept.property:
-                            if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (iConcept, i, oneProperty.code))
+                            if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (iConcept, i, oneProperty.code or "None"))
                             if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             i += 1
