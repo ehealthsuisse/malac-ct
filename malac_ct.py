@@ -67,23 +67,23 @@ def detectClassByEnding(filename):
 # todo: get all paths if fhir.json or xml is the output format
 def main() -> None:
     start = time.time()
-    sys.stdout.write("-------------------- MaLaC-CT started --------------------\n")
+    print("-------------------- MaLaC-CT started --------------------")
     
     parser = init_argparse()
     args = parser.parse_args()
 
-    sys.stdout.write("converted "+args.input+" to\n")
+    print("converted "+args.input+" to")
 
     # if the input is a fhir xml or a fhir json, and the output any other classification, then do that
     if (args.goFshConvertingToFsh or ("fhir" in args.input and args.output == None) or ("fhir" in args.input and args.output != None and not "fhir" in args.output)):
         import os
 
-        sys.stdout.write("-------------------- start gofsh --------------------\n")
+        print("-------------------- start gofsh --------------------")
         startGoFsh = time.time()
         os.system("gofsh \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\\o\" -s file-per-definition")
         endGoFsh = time.time()
-        sys.stdout.write("-------------------- end gofsh --------------------\n")
-        sys.stdout.write("gofsh needed "+str(round(endGoFsh-startGoFsh,2))+" seconds.\n")
+        print("-------------------- end gofsh --------------------")
+        print("gofsh needed "+str(round(endGoFsh-startGoFsh,2))+" seconds.")
 
         # move gofsh fsh to root, delete createrd files afterwards and old file before
         if (os.path.exists(args.input.replace(".4.fhir.json",".1.fsh"))):
@@ -95,7 +95,7 @@ def main() -> None:
         os.rmdir(os.path.join(os.path.dirname(args.input),"o","input"))
         os.remove(os.path.join(os.path.dirname(args.input),"o","sushi-config.yaml"))
         os.rmdir(os.path.join(os.path.dirname(args.input),"o"))
-        sys.stdout.write("*.1.fsh\n")
+        print("*.1.fsh")
 
         if (args.input.endswith(".4.fhir.json")):
             args.input = args.input.replace(".4.fhir.json",".1.fsh")
@@ -127,7 +127,7 @@ def main() -> None:
             # open a new file and export to output file
             outfile = open(args.output, 'w', newline='', encoding='utf-8') 
             outputClass.exporto(input, outfile, outputClass, args.argumentLanguage)
-            sys.stdout.write("*"+oClass+"\n")
+            print("*"+oClass+"")
         # if no output class is given, than convert to all known formats
         else:
             for oClass in listClasses:
@@ -138,7 +138,7 @@ def main() -> None:
                     # open a new file and export to output file
                     outfile = open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') 
                     outputClass.exporto(input, outfile, outputClass, argsLang=args.argumentLanguage)
-                    sys.stdout.write("*"+oClass+"\n")
+                    print("*"+oClass+"")
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
             import os
@@ -149,13 +149,13 @@ def main() -> None:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
             os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
-            sys.stdout.write("-------------------- start sushi --------------------\n")
+            print("-------------------- start sushi --------------------")
             startSushi = time.time()
             subprocess.Popen("sushi -v", shell=True).communicate()
             subprocess.Popen("sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\"", shell=True).communicate()
             endSushi = time.time()
-            sys.stdout.write("-------------------- end sushi --------------------\n")
-            sys.stdout.write("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.\n")
+            print("-------------------- end sushi --------------------")
+            print("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.")
             os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
             
             # move fhir json to root, delete old file before
@@ -172,7 +172,7 @@ def main() -> None:
             os.rmdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
             os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
             os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
-            sys.stdout.write("*.4.fhir.json\n")
+            print("*.4.fhir.json")
             
     # run converter, create from json a xml       
     if (url := args.json2xmlFHIRServer):
@@ -196,7 +196,7 @@ def main() -> None:
         res.raise_for_status()
         with open(args.input.replace(iClass,".4.fhir.xml"), 'w', newline='', encoding='utf-8') as xml_format_file:
             xml_format_file.write(xml.dom.minidom.parseString(res.text).toprettyxml())
-        sys.stdout.write("*.4.fhir.xml\n")
+        print("*.4.fhir.xml")
 
         if (args.upload2FhirServer):
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
@@ -213,11 +213,13 @@ def main() -> None:
                     res = requests.put(url, headers=headers, data=json_format_file) # files={'upload_file': json_format_file})
                 else:
                     res = requests.put(url, headers=headers, auth=auth, data=json_format_file) # files={'upload_file': json_format_file})
-            res.raise_for_status()
-            sys.stdout.write("& uploaded to given fhir server\n")
 
-    sys.stdout.write("in "+str(round(time.time()-start,2))+" seconds.\n")
-    sys.stdout.write("-------------------- MaLaC-CT ended --------------------\n")
+            print(res.text)
+            res.raise_for_status()
+            print("& uploaded to given fhir server")
+
+    print("in "+str(round(time.time()-start,2))+" seconds.")
+    print("-------------------- MaLaC-CT ended --------------------")
 
 if __name__ == "__main__":
     main()
