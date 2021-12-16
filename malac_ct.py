@@ -67,12 +67,12 @@ def detectClassByEnding(filename):
 # todo: get all paths if fhir.json or xml is the output format
 def main() -> None:
     start = time.time()
-    sys.stdout.write("MaLaC-CT converted\n")
+    sys.stdout.write("-------------------- MaLaC-CT started --------------------\n")
     
     parser = init_argparse()
     args = parser.parse_args()
 
-    sys.stdout.write(args.input+" to\n")
+    sys.stdout.write("converted "+args.input+" to\n")
 
     # if the input is a fhir xml or a fhir json, and the output any other classification, then do that
     if (args.goFshConvertingToFsh or ("fhir" in args.input and args.output == None) or ("fhir" in args.input and args.output != None and not "fhir" in args.output)):
@@ -151,8 +151,8 @@ def main() -> None:
             os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
             sys.stdout.write("-------------------- start sushi --------------------\n")
             startSushi = time.time()
-            subprocess.call("sushi -v", shell=True)
-            subprocess.call("sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\"", shell=True)
+            subprocess.Popen("sushi -v", shell=True).communicate()
+            subprocess.Popen("sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\"", shell=True).communicate()
             endSushi = time.time()
             sys.stdout.write("-------------------- end sushi --------------------\n")
             sys.stdout.write("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.\n")
@@ -216,7 +216,8 @@ def main() -> None:
             res.raise_for_status()
             sys.stdout.write("& uploaded to given fhir server\n")
 
-    sys.stdout.write("in "+str(round(time.time()-start,2))+" seconds.")
+    sys.stdout.write("in "+str(round(time.time()-start,2))+" seconds.\n")
+    sys.stdout.write("-------------------- MaLaC-CT ended --------------------\n")
 
 if __name__ == "__main__":
     main()
