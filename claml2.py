@@ -325,11 +325,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 thePropertys.append(theProperty)
             
             for oneMeta in oneClass.get_Meta():
-                theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                theProperty.code = oneMeta.get_name()
-                theProperty.value = oneMeta.get_value()
-                theProperty.type = pcam.PropertyCodeType.string
-                thePropertys.append(theProperty)                
+                # skip the old TS_ATTRIBUTE_* properties
+                if not oneMeta.get_name().startsWith("TS_ATTRIBUTE_"):
+                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty.code = oneMeta.get_name()
+                    theProperty.value = oneMeta.get_value()
+                    theProperty.type = pcam.PropertyCodeType.string
+                    thePropertys.append(theProperty)
 
             if len(thePropertys) > 0:
                 theConcept.property = thePropertys
