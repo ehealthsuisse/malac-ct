@@ -326,7 +326,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             
             for oneMeta in oneClass.get_Meta():
                 # skip the old TS_ATTRIBUTE_* properties
-                if not oneMeta.get_name().startsWith("TS_ATTRIBUTE_"):
+                if not oneMeta.get_name().startswith("TS_ATTRIBUTE_"):
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                     theProperty.code = oneMeta.get_name()
                     theProperty.value = oneMeta.get_value()

@@ -159,7 +159,7 @@ class Fsh2(Fsh1):
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
                             if hasattr(oneProperty, 'value'): outfile.write('* #%s ^property[%s].value%s = "%s" \n' % (oneConcept.code, i, oneProperty.type.value, oneProperty.value))
                             i += 1
-                elif self.get_resource().name == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
+                elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1
                         k = -1
@@ -182,9 +182,10 @@ class Fsh2(Fsh1):
                             if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter'):
                         k += 1
-                        if hasattr(oneDesignation.filter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
-                        if hasattr(oneDesignation.filter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
-                        if hasattr(oneDesignation.filter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
+                        for oneFilter in oneConcept.filter:
+                            if hasattr(oneFilter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
+                            if hasattr(oneFilter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
+                            if hasattr(oneFilter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
                         
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension
