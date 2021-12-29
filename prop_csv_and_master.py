@@ -27,10 +27,13 @@ class PropCsvAndMaster(object):
         self.jurisdiction = []
         self.purpose = None
         self.copyright = None
-        self.immutable = None
+        self.concept = []
+        # following are used only in ValueSets
+        self.immutable = None 
         self.lockeddate = None
         self.inactive = None
-        self.casesensitive = None
+        # following are used only in CodeSystems
+        self.casesensitive = None 
         self.valueset = None
         self.hierarchymeaning = None #HierarchyMeaning
         self.compositional = None
@@ -39,8 +42,7 @@ class PropCsvAndMaster(object):
         self.count = None
         self.filter = []
         self.property = []
-        self.concept = []
-        
+
         if inFile is not None:
             # open the file in read mode
             with open(inFile, 'r', encoding="utf8") as csvfile:
@@ -52,15 +54,6 @@ class PropCsvAndMaster(object):
                 file.__next__()
                 # iterating over the next row with headings for concepts
                 headingList = file.__next__()
-
-                # lists have to get initialized
-                self.identifier = []
-                self.contact = []
-                self.usecontext = []
-                self.jurisdiction = []
-                #self.filter = [] this should not be a list
-                self.property = []
-                self.concept = []
                 
                 #initializing the header/metadata
                 i = -1
@@ -167,12 +160,14 @@ class PropCsvAndMaster(object):
                                     tempConcept.designation.append(tempDesignation)
                                 if 'filter' == headingList[i]:
                                     filterElements = row[i].split('|')
-                                    tempFilter = VSConcept.ConceptFilter()
+                                    tempFilter = VSConcept.VSConceptFilter()
                                     tempFilter.property = filterElements[0]
                                     tempFilter.op = filterElements[1]
                                     tempFilter.value = filterElements[2]
                                     tempConcept.filter = tempFilter # this is not a list! 
-                                if 'exclude' == headingList[i]: tempConcept.exclude = row[i]
+                                if 'exclude' == headingList[i]:
+                                    if row[i].lower() == "true" or "yes" or "1":
+                                        tempConcept.exclude = True
                             
                     self.concept.append(tempConcept)
 
@@ -191,6 +186,7 @@ class PropCsvAndMaster(object):
     def get_version(self):
         return self.version
 
+    # TODO build in a recognition if CodeSystem oder ValueSet is already in name
     def get_name(self):
         return self.name
 
@@ -612,12 +608,13 @@ class VSConcept():
         self.version = None
         self.code = None
         self.display = None
-        self.designation = None
-        self.filter = None
+        self.designation = [] # ConceptDesignation
+        self.filter = [] # VSConceptFilter
         self.exclude = False
-        self.member = None #einfach Hierarchie für Children mit der Extension
+        self.member = [] # simple hirarchie that stores all children, needs a extension
+        self.level = -1 # additional information in what level the concept can be found, just for easier writing
     
-    class ConceptFilter():
+    class VSConceptFilter():
         def __init__(self):
             self.property = None
             self.op = None

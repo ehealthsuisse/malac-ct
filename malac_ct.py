@@ -10,6 +10,7 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
     ".2.fsh":["fsh2", "Fsh2"],
+    ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"]
     #".4.fhir.json":["fhir4json", "FHIR4json"],
     #".4.fhir.xml":["fhir4xml", "FHIR4xml"]
     }# nice2have ,IHEsvs, ArtDecor)
@@ -55,7 +56,10 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-url", "--fhirIgUrl", help="the home adress of the FHIR IG Publisher URL, to fill a predefined url in the resource", required=False
     )
-    
+    parser.add_argument(
+        "-CSSuppl4VS", "--CodeSystemSupplement4Valueset", action="store_true", help="Creates a CodeSystem Supplement for a ValueSet", required=False
+    )
+
     return parser
 
 def detectClassByEnding(filename):
@@ -103,7 +107,6 @@ def main() -> None:
             args.input = args.input.replace(".4.fhir.xml",".1.fsh")
 
     # look at the name of the input file and load the classification, 
-    
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
@@ -113,7 +116,7 @@ def main() -> None:
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
-        # serialize the input file,
+        # serialize the input file
         inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
 
@@ -125,20 +128,34 @@ def main() -> None:
             outputClass = getattr(oModule, oClassValue[1])
 
             # open a new file and export to output file
-            outfile = open(args.output, 'w', newline='', encoding='utf-8') 
-            outputClass.exporto(input, outfile, outputClass, args.argumentLanguage)
-            print("*"+oClass+"")
+            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"): 
+                with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
+                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage)
+                    print("*"+oClass)
+            else:
+                import os
+                with open(args.output, 'w', newline='', encoding='utf-8') as outfileVS:
+                    with open(os.path.join(os.path.dirname(args.output),"CodeSystem-suppl-4-"+os.path.basename(args.output).lower()), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
+                        outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
+                        print("*"+oClass+" and CodeSystem-suppl-4-*"+oClass)
         # if no output class is given, than convert to all known formats
         else:
             for oClass in listClasses:
-                if not args.input.endswith(oClass):
+                if not args.input.endswith(oClass) or oClass == "svsextelga1": #for the beta there is this exception that svs is no indirect export format!
                     oModule = __import__(listClasses[oClass][0])
                     outputClass = getattr(oModule, listClasses[oClass][1])
 
                     # open a new file and export to output file
-                    outfile = open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') 
-                    outputClass.exporto(input, outfile, outputClass, argsLang=args.argumentLanguage)
-                    print("*"+oClass+"")
+                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"): 
+                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile: 
+                            outputClass.exporto(input, outfile, outputClass, argsLang=args.argumentLanguage)
+                            print("*"+oClass)
+                    else:
+                        import os
+                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfileVS:
+                            with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
+                                outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
+                                print("*"+oClass+" and CodeSystem-suppl-4-*"+oClass)
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
             import os
@@ -159,16 +176,21 @@ def main() -> None:
             os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
             
             # move fhir json to root, delete old file before
-            if (os.path.exists(args.input.replace(iClass,".4.fhir.json"))):
+            
+            
+            if os.path.exists(args.input.replace(iClass,".4.fhir.json")):
                 os.remove(args.input.replace(iClass,".4.fhir.json"))
-            if ("CodeSystem-" in args.input):
-                os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",
-                    "CodeSystem-"+os.path.basename(args.input.replace(iClass,".json").replace("CodeSystem-","").lower())),args.input.replace(iClass,".4.fhir.json"))
-            elif ("ValueSet-" in args.input):
-                os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",
-                    "ValueSet-"+os.path.basename(args.input.replace(iClass,".json").replace("ValueSet-","").lower())),args.input.replace(iClass,".4.fhir.json"))
-            else:
-                sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
+            if os.path.exists(os.path.join(os.path.dirname(args.input),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,".4.fhir.json").lower()))):
+                os.remove(os.path.join(os.path.dirname(args.input),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,".4.fhir.json").lower())))
+            
+            file_names = os.listdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
+            for file_name in file_names:
+                if ("CodeSystem-" in file_name) or ("ValueSet-" in file_name):
+                    os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",file_name),
+                        os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
+                else:
+                    sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
+
             os.rmdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
             os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
             os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))

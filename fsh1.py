@@ -1,6 +1,7 @@
-import sys
+from datetime import datetime
 import prop_csv_and_master as pcam
 import re
+import copy
 
 tempindex = None
 
@@ -219,8 +220,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theConcept.property = []
                     dictConcept[tempindex] = theConcept
                     
-                        
-                        # todo get to version 2
             elif self.resource == self.resource.ValueSet:
                 theConcept = pcam.VSConcept.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                 if 'compose.include.system' in line:
@@ -292,7 +291,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('* status = #%s \n' % self.get_status())
         outfile.write('* description = "%s" \n' % self.get_description())
         
-        if (tmp := self.get_resource()) == "CodeSystem": 
+        if self.get_resource() == "CodeSystem": 
             outfile.write('* content = #%s \n' % self.get_content())
         
         # optional fields
@@ -340,13 +339,14 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_inactive(): outfile.write('* inactive = "%s" \n' % tmp)
         
         if tmp := self.get_casesensitive(): outfile.write('* caseSensitive = "%s" \n' % tmp)
-        # todo: how should we work with references like valueset or supplements 
+        # TODO how should we work with references like valueset
         #if tmp := self.get_valueset(): outfile.write('* valueSet = "%s" \n' % tmp)
         if tmp := self.get_hierarchymeaning(): outfile.write('* hierarchyMeaning = "%s" \n' % tmp)
         if tmp := self.get_compositional(): outfile.write('* compositional = "%s" \n' % tmp)
         if tmp := self.get_versionneeded(): outfile.write('* versionNeeded = "%s" \n' % tmp)
-        #if tmp := self.get_supplements(): outfile.write('* supplements = "%s" \n' % tmp)
-        if tmp := self.get_count(): outfile.write('* count = %s \n' % tmp)
+        if tmp := self.get_supplements(): outfile.write('* supplements = "%s" \n' % (tmp))
+        if self.get_resource() == "CodeSystem":
+            if tmp := self.get_count(): outfile.write('* count = %s \n' % tmp)
         if tmp := self.get_filter(): 
             i = 0
             for oneFilter in tmp:
@@ -365,70 +365,172 @@ class Fsh1(pcam.PropCsvAndMaster):
                 i += 1
         
         
-        outputClass.exportoConcepto(self, outfile)
-                        
+        outputClass.exportoConcepto(self, outfile)           
         # ToDo: implement exclude similar to include
-        # ToDo: implement simple Hierarchie for Children with the member extension
-
-        outfile.close()
+        # ToDo: implement simple Hierarchie for Children with the member extension      
 
     def exportoConcepto(self, outfile):
         conceptList = self.get_concept()
         if len(conceptList) > 0:
             tempConcept = None
-            iConcept = -1
-            j = -1
-            k = -1
-            for oneConcept in conceptList:
-                iConcept += 1
-                #for CodeSystems
+            cntCSConcept = -1
+            cntIncAndExclude = -1
+            cntVSConcept = -1
+
+            # look into the concepts and see if there are any members, so that these will be specially printed
+            vsMemberAnywhere = False
+            for oneConcept in conceptList:    
+                if hasattr(oneConcept,"member") and oneConcept.member != []:
+                    vsMemberAnywhere = True
+
+            # if there is a conceptSuppl, print them first
+            if hasattr(self,"conceptSuppl"):
+                tempList = self.conceptSuppl
+            else:
+                tempList = conceptList
+
+            for oneConcept in tempList:               
+                cntCSConcept += 1
+                # for CodeSystems
                 if self.get_resource() == 'CodeSystem':
                     if hasattr(oneConcept, 'code') and oneConcept.code:
-                        outfile.write('* concept[%s].code = #%s\n' % (iConcept,oneConcept.code))
+                        outfile.write('* concept[%s].code = #%s\n' % (cntCSConcept,oneConcept.code))
                     if hasattr(oneConcept, 'display') and oneConcept.display: 
-                        outfile.write('* concept[%s].display = "%s"\n' % (iConcept, oneConcept.display.replace('"','\\"')))
+                        outfile.write('* concept[%s].display = "%s"\n' % (cntCSConcept, oneConcept.display.replace('"','\\"')))
                     if hasattr(oneConcept, 'definition') and oneConcept.definition:
-                        outfile.write('* concept[%s].definition = "%s"\n' % (iConcept, oneConcept.definition.replace('"','\\"')))
+                        outfile.write('* concept[%s].definition = "%s"\n' % (cntCSConcept, oneConcept.definition.replace('"','\\"')))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation != []: 
                         i = 0
                         for oneDesignation in oneConcept.designation:
-                            if hasattr(oneDesignation, 'language'): outfile.write('* concept[%s].designation[%s].language = #%s \n' % (iConcept, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* concept[%s].designation[%s].use = #%s \n' % (iConcept, i, oneDesignation.use))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (iConcept, i, oneDesignation.value.replace('"','\\"')))
+                            if hasattr(oneDesignation, 'language'): outfile.write('* concept[%s].designation[%s].language = #%s \n' % (cntCSConcept, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use'): outfile.write('* concept[%s].designation[%s].use = #%s \n' % (cntCSConcept, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'value'): outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
                             i += 1
                     if hasattr(oneConcept, 'property') and oneConcept.property != []: 
                         i = 0
                         for oneProperty in oneConcept.property:
-                            if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (iConcept, i, oneProperty.code or "None"))
-                            if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
-                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (iConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
+                            if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (cntCSConcept, i, oneProperty.code or "None"))
+                            if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             i += 1
+                # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
-                    if tempConcept == None or tempConcept.system != oneConcept.system:
-                        j += 1
-                        k = -1
+                    if tempConcept == None or tempConcept.system != oneConcept.system or tempConcept.exclude != oneConcept.exclude:
+                        cntIncAndExclude += 1
+                        cntVSConcept = -1
                         tempConcept = oneConcept
-                        outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
-                        if hasattr(oneConcept, 'version'):
-                            outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
-                    
-                    if hasattr(oneConcept, 'code'):
-                        k += 1
-                        outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
-                    if hasattr(oneConcept, 'display'):
-                        outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
-                    if hasattr(oneConcept, 'designation'):
+                        if oneConcept.exclude: 
+                            incOrExclude = "exclude" 
+                        else: 
+                            incOrExclude = "include"
+
+                        outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
+                        if hasattr(oneConcept, 'version') and oneConcept.version:
+                            outfile.write('* compose.%s[%s].version = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.version))
+                    cntVSConcept += 1
+
+                    if hasattr(oneConcept, 'code') and oneConcept.code:
+                        outfile.write('* compose.%s[%s].concept[%s].code = #%s\n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.code))
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
+                        outfile.write('* compose.%s[%s].concept[%s].display = "%s"\n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.display))
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation != []:
                         i = -1
                         for oneDesignation in oneConcept.designation:
                             i += 1
-                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* compose.include[%s].concept[%s].designation[%s].use = #%s \n' % (j, k, i, oneDesignation.use))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
-                    if hasattr(oneConcept, 'filter'):
-                        k += 1
-                        if hasattr(oneDesignation.filter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
-                        if hasattr(oneDesignation.filter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
-                        if hasattr(oneDesignation.filter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
+                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].language = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
+                    if hasattr(oneConcept, 'filter') and oneConcept.filter != []:
+                        if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
+                        if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
+                        if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
+                    # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode)
+                    
+            if vsMemberAnywhere:
+                # write the extension
+                outerExtensionCnt = 0
+                outfile.write('\n')
+                outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
+                outfile.write('* compose.include.extension[0].valueCode = #groups-only\n')
+                outfile.write('\n')
+                for oneConcept in conceptList:
+                    if hasattr(oneConcept,"member") and oneConcept.member != []:
+                        outerExtensionCnt += 1
+                        outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
+                        innerExtensionCnt = 0
+                        for oneMember in oneConcept.member:
+                            innerExtensionCnt += 1
+                            outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
+                            outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
+                # write the expansion
+                outfile.write('\n')
+                outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
+                outfile.write('* expansion.parameter.valueUri = "false"\n')
+                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('\n')
+                containCnt = [-1]
+                for oneConcept in conceptList:
+                    if oneConcept.level == 0:
+                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
+                           
+
+                        
+
+    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None):
+        # looking into the concepts, split to every codesystems that is used
+        csUsedinVSinklConceptsOrClassi = {}
+        for oneCon in self.get_concept():
+            if tmp := oneCon.system:
+                if tmp not in csUsedinVSinklConceptsOrClassi.keys():
+                    csUsedinVSinklConceptsOrClassi[tmp] = []                    
+                csUsedinVSinklConceptsOrClassi[tmp].append(oneCon)
+        
+        # for every codesystem, do a instance in the SAME suppl file
+        for oneCS in csUsedinVSinklConceptsOrClassi.keys():
+            # creating a deepcopy of self
+            supplSelf = copy.deepcopy(self)
+            # creating a suppl CodeSystem
+            supplSelf.name = "suppl-"+oneCS+"-4-"+self.get_resource().lower()+"-"+self.get_name()
+            supplSelf.title = "Suppl "+oneCS+" 4 "+supplSelf.get_title()
+            supplSelf.resource = pcam.Resource.CodeSystem.value
+            supplSelf.identifier = []
+            supplSelf.content = pcam.Content.supplement.value
+            supplSelf.supplements = oneCS
+            supplSelf.concept = csUsedinVSinklConceptsOrClassi[oneCS]
+            csUsedinVSinklConceptsOrClassi[oneCS] = supplSelf
+            outputClass.exporto(supplSelf, outfileCSsuppl, outputClass, argsLang)
+
+        # state only the suppl-CodeSystem in the first ValueSet-concepts
+        self.conceptSuppl = []
+        for oneCS in csUsedinVSinklConceptsOrClassi.keys():
+            tempCon = pcam.VSConcept()
+            tempCon.system = ""
+            if tempUrl := self.globalUrl:
+                tempCon.system += tempUrl
+            tempCon.system += "CodeSystem-"+csUsedinVSinklConceptsOrClassi[oneCS].get_name()
+            self.conceptSuppl.append(tempCon)
+        # exporting the changed ValueSet
+        outputClass.exporto(self, outfileVS, outputClass, argsLang)
+
+def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
+    containCnt[oneConcept.level] += 1
+    outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
+    outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
+    outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))    
+
+    if hasattr(oneConcept,"member") and oneConcept.member != []:
+        containCnt+=[-1]
+        for oneMember in oneConcept.member:
+            writeSelfAndRecrCallMembers(oneMember, outfile, containCnt)
+        containCnt.pop(oneConcept.level+1)
+
+def strContainsAsLevels (level, containCnt):
+    ret = ""
+    for x in range(0,level+1):
+        ret += ".contains["+ str(containCnt[x]) +"]"
+    return ret
 
 class Filter(pcam.Filter):
     def __init__(self, idInFsh):
