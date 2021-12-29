@@ -222,7 +222,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         if self.get_resource() == "ValueSet":
             for oneCon in sortedConceptList:
                 theConcept = pcam.VSConcept()
-                theConcept.system = oneCon.get_parentCodeSystemName()
+                theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                 theConcept.code = oneCon.get_code()
                 theConcept.display = oneCon.get_displayName()
                 
