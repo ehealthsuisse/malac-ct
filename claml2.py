@@ -263,7 +263,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_concept(self):
         retArr = []
         for oneClass in self.get_Class():
-            theConcept = pcam.CSConcept.__new__(pcam.CSConcept)
+            theConcept = pcam.CSConcept()
             theConcept.code = oneClass.get_code()
 
             thePropertys = []

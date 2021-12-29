@@ -140,7 +140,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         return None
 
     def get_date(self):
-        return str(self.get_effectiveDate().year)+"-"+str(self.get_effectiveDate().month)+"-"+str(self.get_effectiveDate().day)
+        return str(self.get_effectiveDate())
 
     def get_publisher(self):
         if (tmp := self.get_verantw_Org()) and tmp != "":

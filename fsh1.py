@@ -149,7 +149,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             theConcept = None
             #split here for CS and VS
             if self.resource == self.resource.CodeSystem:
-                theConcept = pcam.CSConcept.__new__(pcam.CSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
+                theConcept = pcam.CSConcept() #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                 
                 # parsing index if the = and + notation is used
                 index = line.split(']')[0].split('[')[1]#.strip("'")

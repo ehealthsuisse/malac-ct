@@ -9,7 +9,7 @@ class Fsh2(Fsh1):
             theConcept = None
                         #split here for CS and VS
             if self.resource == self.resource.CodeSystem:
-                theConcept = pcam.CSConcept.__new__(pcam.CSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
+                theConcept = pcam.CSConcept() #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                 if '^' in line:
                     if oneConcept := dictConcept[line.split(' ')[1].strip('#')]:
                         if 'definition' in line:
@@ -73,7 +73,7 @@ class Fsh2(Fsh1):
                         
                         # todo get to version 2
             elif self.resource == self.resource.ValueSet:
-                theConcept = pcam.VSConcept.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
+                theConcept = pcam.VSConcept()#.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
                 if 'compose.include.system' in line:
                     finalVSSystem = line.split('"')[1].strip()
                 if 'compose.include.version' in line:

@@ -176,16 +176,11 @@ def main() -> None:
             os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
             
             # move fhir json to root, delete old file before
-            
-            
-            if os.path.exists(args.input.replace(iClass,".4.fhir.json")):
-                os.remove(args.input.replace(iClass,".4.fhir.json"))
-            if os.path.exists(os.path.join(os.path.dirname(args.input),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,".4.fhir.json").lower()))):
-                os.remove(os.path.join(os.path.dirname(args.input),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,".4.fhir.json").lower())))
-            
             file_names = os.listdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
             for file_name in file_names:
                 if ("CodeSystem-" in file_name) or ("ValueSet-" in file_name):
+                    if os.path.exists(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary",""))):
+                        os.remove(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
                     os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",file_name),
                         os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
                 else:
@@ -195,7 +190,8 @@ def main() -> None:
             os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
             os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
             print("*.4.fhir.json")
-            
+    
+    # TODO convert all .4.fhir.json to xml, not only main one
     # run converter, create from json a xml       
     if (url := args.json2xmlFHIRServer):
         import requests
