@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="valueSet">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="conceptList"/>
+      </xs:sequence>
+      <xs:attribute name="beschreibung" use="required"/>
+      <xs:attribute name="description" use="required"/>
+      <xs:attribute name="displayName" use="required" type="xs:NCName"/>
+      <xs:attribute name="effectiveDate" use="required" type="xs:date"/>
+      <xs:attribute name="gueltigkeitsbereich" use="required" type="xs:NCName"/>
+      <xs:attribute name="id" use="required"/>
+      <xs:attribute name="last_change_date" use="required" type="xs:date"/>
+      <xs:attribute name="name" use="required" type="xs:NCName"/>
+      <xs:attribute name="statusCode" use="required" type="xs:integer"/>
+      <xs:attribute name="status_date" use="required" type="xs:date"/>
+      <xs:attribute name="verantw_Org" use="required"/>
+      <xs:attribute name="version" use="required" type="xs:NMTOKEN"/>
+      <xs:attribute name="website" use="required" type="xs:anyURI"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="conceptList">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="concept"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="concept">
+    <xs:complexType>
+      <xs:attribute name="code" use="required"/>
+      <xs:attribute name="codeSystem" use="required" type="xs:NMTOKEN"/>
+      <xs:attribute name="conceptStatus" use="required" type="xs:integer"/>
+      <xs:attribute name="conceptStatusDate" use="required" type="xs:date"/>
+      <xs:attribute name="concept_beschreibung" use="required"/>
+      <xs:attribute name="deutsch" use="required"/>
+      <xs:attribute name="displayName" use="required"/>
+      <xs:attribute name="displayNameAlt"/>
+      <xs:attribute name="einheit_codiert"/>
+      <xs:attribute name="einheit_print"/>
+      <xs:attribute name="hinweise" use="required"/>
+      <xs:attribute name="level" use="required"/>
+      <xs:attribute name="orderNumber" type="xs:integer"/>
+      <xs:attribute name="parentCodeSystemName" use="required" type="xs:anyURI"/>
+      <xs:attribute name="relationships" use="required"/>
+      <xs:attribute name="type" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
