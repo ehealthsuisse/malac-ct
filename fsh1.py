@@ -492,7 +492,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             # creating a deepcopy of self
             supplSelf = copy.deepcopy(self)
             # creating a suppl CodeSystem
-            supplSelf.name = "suppl-"+oneCS+"-4-"+self.get_resource().lower()+"-"+self.get_name()
+            supplSelf.name = "suppl-"+oneCS[:28]+"-4-"+self.get_name()[:27] # fsh instance names can only be 64 chars long
             supplSelf.title = "Suppl "+oneCS+" 4 "+supplSelf.get_title()
             supplSelf.resource = pcam.Resource.CodeSystem.value
             supplSelf.identifier = []
