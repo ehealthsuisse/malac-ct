@@ -211,11 +211,13 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
     def get_concept(self):
         retArr = []
         theMemberParent = [None]*9
-        # iterate though the list, sorted with the orderNumber
+        # sort with the orderNumber or sort after code
         sortedConceptList = self.get_conceptList().get_concept()
         if sortedConceptList[0].get_orderNumber() is not None:
             sortedConceptList.sort(key=supermod.concept.get_orderNumber)
-
+        else:
+            sortedConceptList.sort(key=supermod.concept.get_code)
+        # iterate though the list
         if self.get_resource() == "ValueSet":
             for oneCon in sortedConceptList:
                 theConcept = pcam.VSConcept()

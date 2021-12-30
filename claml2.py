@@ -68,6 +68,10 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
+class Class(supermod.Class):
+    def get_sortierreihenfolge(self):
+        return get_Meta_with_name(self,'Sortierreihenfolge')
+
 class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Meta=None, Identifier=None, Title=None, Authors=None, Variants=None, ClassKinds=None, UsageKinds=None, RubricKinds=None, Modifier=None, ModifierClass=None, Class=None, **kwargs_):
         super(ClaML2Sub, self).__init__(version, Meta, Identifier, Title, Authors, Variants, ClassKinds, UsageKinds, RubricKinds, Modifier, ModifierClass, Class,  **kwargs_)
@@ -96,7 +100,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return identifiers
 
     def get_version(self):
-        return self.get_Title().get_version()
+        return self.get_Title().get_version().strip("_").strip("-").strip(" ")
 
     # replaces " " and "_" to "-", deletes up to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it 
     def get_name(self):
@@ -114,10 +118,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return tempStatus
         elif get_Meta_with_name(self,'preliminary') == "true":
             return pcam.Status.draft.value
-        elif get_Meta_with_name(self,'preliminary') == "false":
-            return pcam.Status.active.value
         else:
-            return pcam.Status.unknown.value
+            return pcam.Status.active.value
         
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
@@ -152,13 +154,28 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return tempConDetS
 
     def get_description(self):
-        tempRet = None
+        tempRet = ""
+        boolAddedSomething = False
+        if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+            tempRet += "# Description:\n"
+            tempRet += tempDescEn
+            boolAddedSomething = True
+        
         if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            tempRet = tempDesc
-            if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
-                tempRet += "\n\n"+tempDescEn
-        elif (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
-            tempRet = tempDescEn
+            if boolAddedSomething:
+                tempRet += "\n\n"
+            tempRet += "# Beschreibung:\n"
+            tempRet += tempDesc
+            boolAddedSomething = True
+
+        if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
+            if boolAddedSomething:
+                tempRet += "\n\n"
+            tempRet += "# Versions-Beschreibung:\n"
+            tempRet += tempVerDesc
+
+        if tempRet == "":
+            tempRet = None
         return tempRet
 
     def get_usecontext(self):
@@ -262,7 +279,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     # todo use get_concept also for claml3
     def get_concept(self):
         retArr = []
-        for oneClass in self.get_Class():
+        # iterate though a sorted list
+        sortedClassList = self.get_Class()
+        sortedClassList.sort(key=supermod.Class.get_code)
+        #if tmp := sortedClassList[0].get_Meta_with_name(self,'Sortierreihenfolge'):
+        #    sortedClassList.sort(key=Class.get_sortierreihenfolge)
+        for oneClass in sortedClassList:
             theConcept = pcam.CSConcept()
             theConcept.code = oneClass.get_code()
 
@@ -325,12 +347,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 thePropertys.append(theProperty)
             
             for oneMeta in oneClass.get_Meta():
-                # skip the old TS_ATTRIBUTE_* properties
-                if not oneMeta.get_name().startswith("TS_ATTRIBUTE_"):
+                # skip the old TS_ATTRIBUTE_* properties, only let TS_ATTRIBUTE_HINTS through
+                if not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                    theProperty.code = oneMeta.get_name()
-                    theProperty.value = oneMeta.get_value()
-                    theProperty.type = pcam.PropertyCodeType.string
+                    if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
+                        theProperty.code = "hints"
+                        theProperty.value = oneMeta.get_value()
+                        theProperty.type = pcam.PropertyCodeType.string
+                    elif oneMeta.get_name().startswith("Type") and oneMeta.get_value().startswith("D"):
+                        theProperty.code = "status"
+                        theProperty.value = "retired"
+                        theProperty.type = pcam.PropertyCodeType.code
+                    else:
+                        theProperty.code = oneMeta.get_name()
+                        theProperty.value = oneMeta.get_value()
+                        theProperty.type = pcam.PropertyCodeType.string
                     thePropertys.append(theProperty)
 
             if len(thePropertys) > 0:

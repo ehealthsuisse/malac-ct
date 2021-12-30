@@ -60,7 +60,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* contained ': self.contained = value
                 elif splittedLine[0] == '* extension ': self.extension = value
                 elif splittedLine[0] == '* modifierExtension ': self.modifierextension = value
-                elif '* identifier' in splittedLine[0]: 
+                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0]: 
                     if not hasattr(self,'identifier'):
                         self.identifier = []
                     self.identifier.append(value)
@@ -161,7 +161,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                     index = tempindex
                 else:
                     tempindex = index
-
                 if not re.match('\* concept\[(\d+|\+|=)+\]\.code .*', line):
                     if oneConcept := dictConcept[index]:
                         if 'display' in line:
@@ -285,16 +284,16 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
         outfile.write('* url = "%s" \n' % self.get_url())
-        outfile.write('* version = "%s" \n' % (self.get_version() or "None"))
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
         outfile.write('* status = #%s \n' % self.get_status())
-        outfile.write('* description = "%s" \n' % self.get_description())
         
         if self.get_resource() == "CodeSystem": 
             outfile.write('* content = #%s \n' % self.get_content())
         
         # optional fields
+        if tmp := self.get_version(): outfile.write('* version = "%s" \n' % tmp)
+        if tmp := self.get_description(): outfile.write('* description = "%s" \n' % tmp)
         if tmp := self.get_implicitrules(): outfile.write('* implicitRules = "%s" \n' % tmp)
         if tmp := self.get_language(): outfile.write('* language = #%s \n' % tmp)
         elif argsLang is not None: outfile.write('* language = #%s \n' % argsLang)
@@ -305,7 +304,9 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_identifier(): 
             i = 0
             for oneIdentifier in self.get_identifier():
-                outfile.write('* identifier[%s].value = "%s" \n' % (i,oneIdentifier))
+                outfile.write('* identifier[%s].use = #official \n' % (i))
+                outfile.write('* identifier[%s].system = "urn:ietf:rfc:3986" \n' % (i))
+                outfile.write('* identifier[%s].value = "urn:oid:%s" \n' % (i,oneIdentifier))
                 i += 1
         if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
@@ -446,34 +447,35 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
                     # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode)
                     
-            if vsMemberAnywhere:
-                # write the extension
-                outerExtensionCnt = 0
-                outfile.write('\n')
-                outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
-                outfile.write('* compose.include.extension[0].valueCode = #groups-only\n')
-                outfile.write('\n')
-                for oneConcept in conceptList:
-                    if hasattr(oneConcept,"member") and oneConcept.member != []:
-                        outerExtensionCnt += 1
-                        outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
-                        outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
-                        outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
-                        innerExtensionCnt = 0
-                        for oneMember in oneConcept.member:
-                            innerExtensionCnt += 1
-                            outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
-                            outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
-                # write the expansion
-                outfile.write('\n')
-                outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
-                outfile.write('* expansion.parameter.valueUri = "false"\n')
-                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
-                outfile.write('\n')
-                containCnt = [-1]
-                for oneConcept in conceptList:
-                    if oneConcept.level == 0:
-                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
+                    if vsMemberAnywhere:
+                        # write the extension
+                        outerExtensionCnt = 0
+                        outfile.write('\n')
+                        outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
+                        outfile.write('* compose.include.extension[0].valueCode = #groups-only\n')
+                        outfile.write('\n')
+                        for oneConcept in conceptList:
+                            if hasattr(oneConcept,"member") and oneConcept.member != []:
+                                outerExtensionCnt += 1
+                                outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
+                                outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
+                                outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
+                                innerExtensionCnt = 0
+                                for oneMember in oneConcept.member:
+                                    innerExtensionCnt += 1
+                                    outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
+                                    outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
+                    
+                    # write the expansion
+                    outfile.write('\n')
+                    outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
+                    outfile.write('* expansion.parameter.valueUri = "false"\n')
+                    outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                    outfile.write('\n')
+                    containCnt = [-1]
+                    for oneConcept in conceptList:
+                        if oneConcept.level == 0:
+                            writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
                            
 
                         
@@ -492,8 +494,8 @@ class Fsh1(pcam.PropCsvAndMaster):
             # creating a deepcopy of self
             supplSelf = copy.deepcopy(self)
             # creating a suppl CodeSystem
-            supplSelf.name = "suppl-"+oneCS[:28]+"-4-"+self.get_name()[:27] # fsh instance names can only be 64 chars long
-            supplSelf.title = "Suppl "+oneCS+" 4 "+supplSelf.get_title()
+            supplSelf.name = "zuppl-"+oneCS[:28]+"-4-"+self.get_name()[:27] # fsh instance names can only be 64 chars long
+            supplSelf.title = "Zuppl "+oneCS+" 4 "+supplSelf.get_title()
             supplSelf.resource = pcam.Resource.CodeSystem.value
             supplSelf.identifier = []
             supplSelf.content = pcam.Content.supplement.value
