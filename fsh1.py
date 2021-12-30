@@ -497,7 +497,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             supplSelf.resource = pcam.Resource.CodeSystem.value
             supplSelf.identifier = []
             supplSelf.content = pcam.Content.supplement.value
-            supplSelf.supplements = oneCS
+            supplSelf.supplements = "CodeSystem-"+oneCS
             supplSelf.concept = csUsedinVSinklConceptsOrClassi[oneCS]
             csUsedinVSinklConceptsOrClassi[oneCS] = supplSelf
             outputClass.exporto(supplSelf, outfileCSsuppl, outputClass, argsLang)

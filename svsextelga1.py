@@ -208,9 +208,6 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
     def get_filter(self):
         return None
 
-    def get_property(self):
-        return None
-
     def get_concept(self):
         retArr = []
         theMemberParent = [None]*9

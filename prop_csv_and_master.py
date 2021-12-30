@@ -281,7 +281,12 @@ class PropCsvAndMaster(object):
         return self.filter
 
     def get_property(self):
-        return self.get_additionalConceptPropertys(self.property)
+        tmp = []
+        if hasattr(self,"property"):
+            tmp = self.property
+        if self.get_resource() == "CodeSystem":
+            tmp = self.get_additionalConceptPropertys(tmp)
+        return tmp
 
     def get_additionalConceptPropertys(self, retArr):
         # look into the concepts and add missing properties

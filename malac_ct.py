@@ -165,7 +165,10 @@ def main() -> None:
             with open(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
-            os.rename(args.input.replace(iClass,".2.fsh"),args.input.replace(iClass,".2.fshy"))
+            tmp = os.path.dirname(args.input) 
+            for file_name in os.listdir(os.path.dirname(args.input)):
+                if ".2.fsh" in file_name:
+                    os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fsh",".2.fshy")))
             print("-------------------- start sushi --------------------")
             startSushi = time.time()
             subprocess.Popen("sushi -v", shell=True).communicate()
@@ -173,7 +176,9 @@ def main() -> None:
             endSushi = time.time()
             print("-------------------- end sushi --------------------")
             print("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.")
-            os.rename(args.input.replace(iClass,".2.fshy"),args.input.replace(iClass,".2.fsh"))
+            for file_name in os.listdir(os.path.dirname(args.input)):
+                if ".2.fshy" in file_name:
+                    os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fshy",".2.fsh")))
             
             # move fhir json to root, delete old file before
             file_names = os.listdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
