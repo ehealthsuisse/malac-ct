@@ -135,9 +135,9 @@ def main() -> None:
             else:
                 import os
                 with open(args.output, 'w', newline='', encoding='utf-8') as outfileVS:
-                    with open(os.path.join(os.path.dirname(args.output),"CodeSystem-suppl-4-"+os.path.basename(args.output).lower()), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
+                    with open(os.path.join(os.path.dirname(args.output),"CodeSystem-zuppl-4-"+os.path.basename(args.output).lower()), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
                         outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
-                        print("*"+oClass+" and CodeSystem-suppl-4-*"+oClass)
+                        print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
         # if no output class is given, than convert to all known formats
         else:
             for oClass in listClasses:
