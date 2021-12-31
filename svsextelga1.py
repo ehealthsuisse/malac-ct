@@ -98,17 +98,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         tempRet = ""
         boolAddedSomething = False
         if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
-            tempRet += "## Description:\n"
+            tempRet += "### Description:\n"
             tempRet += tempDescEn
             boolAddedSomething = True
         
         if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "## Beschreibung:\n"
+            tempRet += "### Beschreibung:\n"
             tempRet += tempBesch
             boolAddedSomething = True
-            
+
         # TODO check if there is no version description in svs
         #if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
         #    if boolAddedSomething:
