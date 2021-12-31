@@ -157,21 +157,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         tempRet = ""
         boolAddedSomething = False
         if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
-            tempRet += "# Description:\n"
+            tempRet += "## Description:\n"
             tempRet += tempDescEn
             boolAddedSomething = True
         
         if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "# Beschreibung:\n"
+            tempRet += "## Beschreibung:\n"
             tempRet += tempDesc
             boolAddedSomething = True
 
         if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "# Versions-Beschreibung:\n"
+            tempRet += "## Versions-Beschreibung:\n"
             tempRet += tempVerDesc
 
         if tempRet == "":
