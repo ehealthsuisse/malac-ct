@@ -214,8 +214,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         elif tempContent := get_Meta_with_name(self,'unvollstaendig'):
             if tempContent == "false":
                 return pcam.Content.complete.value
-            elif tempContent == "true":
-                return pcam.Content.fragment.value
+            #elif tempContent == "true":
+            #    return pcam.Content.fragment.value
         else:
             return pcam.Content.complete.value
 
