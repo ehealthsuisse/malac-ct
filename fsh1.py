@@ -452,7 +452,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         outerExtensionCnt = 0
                         outfile.write('\n')
                         outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
-                        outfile.write('* compose.include.extension[0].valueCode = #groups-only\n')
+                        outfile.write('* compose.include.extension[0].valueCode = #all-codes\n')
                         outfile.write('\n')
                         for oneConcept in conceptList:
                             if hasattr(oneConcept,"member") and oneConcept.member != []:
