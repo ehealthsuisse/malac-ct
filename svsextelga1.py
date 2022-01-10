@@ -92,7 +92,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         return super(SVSextELGA1Sub,self).get_name()
 
     def get_status(self):
-        return pcam.Status.unknown.value
+        return pcam.Status.active.value
 
     def get_description(self):
         tempRet = ""
