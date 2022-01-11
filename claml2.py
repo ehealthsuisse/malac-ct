@@ -95,17 +95,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     def get_identifier(self):
         identifiers = []
-        for oneIdentifier in self.get_Identifier(): 
+        for oneIdentifier in self.get_Identifier():
             identifiers.append(oneIdentifier.get_uid())
         return identifiers
 
     def get_version(self):
         return self.get_Title().get_version().strip("_").strip("-").strip(" ")
 
-    # replaces " " and "_" to "-", deletes up to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it 
+    # replaces " " and "_" to "-", deletes up to 7 repetitions of "-". deletes all other caracters, strips/trimms "-" on ends and lowercase it
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
-        
+
     # primär: meta.titleLong / sekundär: title.name)
     def get_title(self):
         if tempTitle := get_Meta_with_name(self,'titleLong'):
@@ -120,13 +120,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return pcam.Status.draft.value
         else:
             return pcam.Status.active.value
-        
+
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
 
     def get_date(self):
         return self.get_Title().get_date()
-        
+
     def get_publisher(self):
         if authors := self.get_Authors():
             if author := authors.get_Author()[0]:
@@ -160,7 +160,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             tempRet += "**Description:**\n"
             tempRet += tempDescEn
             boolAddedSomething = True
-        
+
         if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             if boolAddedSomething:
                 tempRet += "\n\n"
@@ -212,8 +212,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tempContent := get_Meta_with_name(self,'content'):
             return tempContent
         elif tempContent := get_Meta_with_name(self,'unvollstaendig'):
-            if tempContent == "false":
-                return pcam.Content.complete.value
+            #if tempContent == "false":
+            return pcam.Content.complete.value
             #elif tempContent == "true":
             #    return pcam.Content.fragment.value
         else:
@@ -289,10 +289,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             theConcept.code = oneClass.get_code()
 
             thePropertys = []
-            
+
             if tempKind := oneClass.get_kind():
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                theProperty.code = "kind"                
+                theProperty.code = "kind"
                 theProperty.value = tempKind
                 theProperty.type = pcam.PropertyCodeType.string
                 thePropertys.append(theProperty)
@@ -331,21 +331,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     theProperty.value = tmp
                     theProperty.type = pcam.PropertyCodeType.string
                     thePropertys.append(theProperty)
-                    
+
             for oneSuperClass in oneClass.get_SuperClass():
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                 theProperty.code = "parent"
                 theProperty.value = oneSuperClass.get_code()
                 theProperty.type = pcam.PropertyCodeType.code
                 thePropertys.append(theProperty)
-            
+
             for oneSubClass in oneClass.get_SubClass():
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                 theProperty.code = "child"
                 theProperty.value = oneSubClass.get_code()
                 theProperty.type = pcam.PropertyCodeType.code
                 thePropertys.append(theProperty)
-            
+
             for oneMeta in oneClass.get_Meta():
                 # skip the old TS_ATTRIBUTE_* properties, only let TS_ATTRIBUTE_HINTS through
                 if not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
@@ -371,7 +371,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return retArr
 
     def exporto(self, outfile, outputClass, argsLang=None):
-        #required ClaMl3 fields        
+        #required ClaMl3 fields
         title = TitleSub(self.get_name(),self.get_version(),valueOf_=self.get_title())
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
@@ -407,14 +407,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_extension(): metas.append(MetaSub('extension',tmp))
         if tmp := self.get_modifierextension(): metas.append(MetaSub('modifierextension',tmp))
         identifiers = None
-        if tmp := self.get_identifier(): 
+        if tmp := self.get_identifier():
             identifiers = []
             for oneIdentifier in tmp:
                 identifiers.append(IdentifierSub(None,oneIdentifier))
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
         if tmp := self.get_date(): title.date = tmp
         authors = None
-        if tmp := self.get_publisher(): 
+        if tmp := self.get_publisher():
             authors = AuthorsSub([AuthorSub(tmp,None,None)])
         #todo contactDetail filling
         """ if tmp := self.get_contact():
@@ -422,10 +422,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 authors = AuthorsSub()
                 for oneContact in self.get_contact():
                     authors.append() """
-        if tmp := self.get_usecontext(): 
+        if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
-        if tmp := self.get_jurisdiction(): 
+        if tmp := self.get_jurisdiction():
             for oneJurisdiction in tmp:
                 metas.append(MetaSub('jurisdiction',oneJurisdiction))
         if tmp := self.get_purpose(): metas.append(MetaSub("purpose",tmp))
@@ -442,21 +442,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         #todo supplements
         #if tmp := self.get_supplements(): csv_list.append(("supplements",self.get_supplements()))
         if tmp := self.get_count(): metas.append(MetaSub("count",tmp))
-        if tmp := self.get_filter(): 
+        if tmp := self.get_filter():
             for oneFilter in tmp:
                 metas.append(MetaSub("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
-        if tmp := self.get_property(): 
+        if tmp := self.get_property():
             for oneProperty in tmp:
                 metas.append(MetaSub("property",str(oneProperty)))
         # end list of metaelements
-        
+
         classes = []
         if tmp := self.get_concept():
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
-                
+
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
@@ -464,7 +464,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.designation)]))
-                
+
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
@@ -477,11 +477,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
                             theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))
-                
+
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
                     theClass.set_kind("noKind")
-                
+
                 classes.append(theClass)
 
         claml2 = ClaML2Sub('2.0.0',metas,identifiers,title,authors,None,claKinds,None,rubKinds,None,None,classes)
