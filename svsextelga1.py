@@ -87,7 +87,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
 
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
-        
+
     def get_title(self):
         return super(SVSextELGA1Sub,self).get_name()
 
@@ -98,14 +98,14 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         tempRet = ""
         boolAddedSomething = False
         if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
-            tempRet += "**Description:**\n"
+            tempRet += "**Description:** "
             tempRet += tempDescEn
             boolAddedSomething = True
-        
+
         if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "**Beschreibung:**\n"
+            tempRet += "**Beschreibung:** "
             tempRet += tempBesch
             boolAddedSomething = True
 
@@ -113,7 +113,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         #if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
         #    if boolAddedSomething:
         #        tempRet += "\n\n"
-        #    tempRet += "**Versions-Beschreibung:**\n"
+        #    tempRet += "**Versions-Beschreibung:** "
         #    tempRet += tempVerDesc
 
         if tempRet == "":
@@ -250,7 +250,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                 theConcept.code = oneCon.get_code()
                 theConcept.display = oneCon.get_displayName()
-                
+
                 if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                     theDesig = pcam.ConceptDesignation()
                     theDesig.language = "de-AT"
@@ -286,15 +286,15 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     theDesig.use = "relationships"
                     theDesig.value = tmp
                     theConcept.designation.append(theDesig)
-                
+
                 if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
                     theConcept.level = tmpLevel
                     theMemberParent[tmpLevel] = theConcept
                     if tmpLevel > 0:
                         theMemberParent[tmpLevel-1].member.append(theConcept)
-                
+
                 retArr.append(theConcept)
-        
+
         elif self.get_resource() == "CodeSystem":
             for oneCon in sortedConceptList:
                 theConcept = pcam.CSConcept()
@@ -342,8 +342,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     theProp.code = "relationships"
                     theProp.value = tmp
                     theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)             
-                 
+                    theConcept.property.append(theProp)
+
 
                 if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
                     theMemberParent[tmpLevel] = theConcept
@@ -360,7 +360,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         theProperty.type = pcam.PropertyCodeType.code
                         theConcept.property.append(theProperty)
 
-                retArr.append(theConcept) 
+                retArr.append(theConcept)
 
         return retArr
 
