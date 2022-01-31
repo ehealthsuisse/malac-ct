@@ -153,9 +153,9 @@ def main() -> None:
                     else:
                         import os
                         with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfileVS:
-                            with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-suppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
+                            with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
                                 outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
-                                print("*"+oClass+" and CodeSystem-suppl-4-*"+oClass)
+                                print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
             import os
@@ -195,6 +195,9 @@ def main() -> None:
             os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
             os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
             print("*.4.fhir.json")
+
+            if (args.CodeSystemSupplement4Valueset):
+                os.remove(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,".1.fsh").lower())))
     
     # TODO convert all .4.fhir.json to xml, not only main one
     # run converter, create from json a xml       
