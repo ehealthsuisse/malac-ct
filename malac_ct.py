@@ -196,7 +196,7 @@ def main() -> None:
             os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
             print("*.4.fhir.json")
 
-            if (args.CodeSystemSupplement4Valueset):
+            if (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input):
                 os.remove(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,".1.fsh").lower())))
     
     # TODO convert all .4.fhir.json to xml, not only main one
