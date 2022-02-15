@@ -389,6 +389,11 @@ class Fsh1(pcam.PropCsvAndMaster):
                 tempList = self.conceptSuppl
             else:
                 tempList = conceptList
+                # if a valueset, sort concepts first for systems and than within system for code
+                if self.get_resource() == 'ValueSet' :
+                    tempList.sort(key=pcam.VSConcept.get_code)
+                    tempList.sort(key=pcam.VSConcept.get_system)
+
 
             for oneConcept in tempList:               
                 cntCSConcept += 1
@@ -424,7 +429,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                             incOrExclude = "exclude" 
                         else: 
                             incOrExclude = "include"
-
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         if hasattr(oneConcept, 'version') and oneConcept.version:
                             outfile.write('* compose.%s[%s].version = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.version))
@@ -445,40 +449,37 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
                         if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
                         if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
-                    # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode)
-                    
-                    if vsMemberAnywhere:
-                        # write the extension
-                        outerExtensionCnt = 0
-                        outfile.write('\n')
-                        outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
-                        outfile.write('* compose.include.extension[0].valueCode = #all-codes\n')
-                        outfile.write('\n')
-                        for oneConcept in conceptList:
-                            if hasattr(oneConcept,"member") and oneConcept.member != []:
-                                outerExtensionCnt += 1
-                                outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
-                                outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
-                                outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
-                                innerExtensionCnt = 0
-                                for oneMember in oneConcept.member:
-                                    innerExtensionCnt += 1
-                                    outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
-                                    outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
-                    
-                    # write the expansion
-                    outfile.write('\n')
-                    outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
-                    outfile.write('* expansion.parameter.valueUri = "false"\n')
-                    outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
-                    outfile.write('\n')
-                    containCnt = [-1]
-                    for oneConcept in conceptList:
-                        if oneConcept.level == 0:
-                            writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
-                           
 
-                        
+            # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode)
+            if vsMemberAnywhere and self.get_resource() == 'ValueSet':
+                # write the extension
+                outerExtensionCnt = 0
+                outfile.write('\n')
+                outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
+                outfile.write('* compose.include.extension[0].valueCode = #all-codes\n')
+                outfile.write('\n')
+                for oneConcept in conceptList:
+                    if hasattr(oneConcept,"member") and oneConcept.member != []:
+                        outerExtensionCnt += 1
+                        outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
+                        innerExtensionCnt = 0
+                        for oneMember in oneConcept.member:
+                            innerExtensionCnt += 1
+                            outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
+                            outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
+            
+            # write the expansion
+            outfile.write('\n')
+            outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
+            outfile.write('* expansion.parameter.valueUri = "false"\n')
+            outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+            outfile.write('\n')
+            containCnt = [-1]
+            for oneConcept in conceptList:
+                if oneConcept.level == 0:
+                    writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)                        
 
     def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None):
         # looking into the concepts, split to every codesystems that is used
