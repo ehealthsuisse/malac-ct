@@ -3,15 +3,18 @@ import subprocess
 import sys
 import time
 
-# malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name 
+# list of accepted input formats: ClaML-> claml, valueSet -> IHE SVS, CodeSystem -> FHIR CodeSystem, ValueSet -> FHIR ValueSet 
+# dictionary with key as fileending, first element value with module and second element 
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
     ".2.fsh":["fsh2", "Fsh2"],
     ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"]
-    }
-descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
+    #".4.fhir.json":["fhir4json", "FHIR4json"],
+    #".4.fhir.xml":["fhir4xml", "FHIR4xml"]
+    }# nice2have ,IHEsvs, ArtDecor)
+descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\" and a predefined CSV a file ending \".1.csv\"."
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -25,19 +28,19 @@ def init_argparse() -> argparse.ArgumentParser:
         "-o", "--output", help='the output file, if none is given MaLaC-CT will convert into all other known formats.', required=False
     )
     parser.add_argument(
-        "-langArg", "--argumentLanguage", help='a fixed language for the output classification, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
+        "-langArg", "--argumentLanguage", help='the language element for the output classification', required=False
     )
     parser.add_argument(
         "-sushi", "--sushiConvertingToJson", action="store_true", help='Directly run sushi after MaLaC-CT. Warning: sushi has to be installed!', required=False
     )
     parser.add_argument(
-        "-gofsh", "--goFshConvertingToFsh", action="store_true", help='Directly runs gofsh before MaLaC-CT. Warning: gofsh has to be installed!', required=False
+        "-gofsh", "--goFshConvertingToFsh", action="store_true", help='Directly run gofsh before MaLaC-CT. Warning: gofsh has to be installed!', required=False
     )
     parser.add_argument(
         "-j2xServer", "--json2xmlFHIRServer", help="Directly run a json2xml convert on a given FHIR server after sushi. "+
         "the FHIR Server adress including the base path wraped into quotation marks. e.g.:"+
         '--user fhiruser:fhiruserpassword "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/"'+
-        "Warning: a fhir json has to exists, that is usually generated via sushi!", required=False
+        "Warning: a json has to exists, that is usually generated via sushi!", required=False
     )
     parser.add_argument(
         "-j2xUser", "--json2xmlFHIRServerUser", help="the FHIR server user password if needed"+
@@ -54,8 +57,9 @@ def init_argparse() -> argparse.ArgumentParser:
         "-url", "--fhirIgUrl", help="the home adress of the FHIR IG Publisher URL, to fill a predefined url in the resource", required=False
     )
     parser.add_argument(
-        "-CSSuppl4VS", "--CodeSystemSupplement4Valueset", action="store_true", help="Creates a CodeSystem supplement for a ValueSet", required=False
+        "-CSSuppl4VS", "--CodeSystemSupplement4Valueset", action="store_true", help="Creates a CodeSystem Supplement for a ValueSet", required=False
     )
+
     return parser
 
 def detectClassByEnding(filename):
@@ -64,6 +68,7 @@ def detectClassByEnding(filename):
             return listClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
+# todo: get all paths if fhir.json or xml is the output format
 def main() -> None:
     start = time.time()
     print("-------------------- MaLaC-CT started --------------------")
@@ -73,11 +78,8 @@ def main() -> None:
 
     print("converted "+args.input+" to")
 
-    # if the input is a fhir xml or a fhir json, and the output any other classification, than gofsh should be active
-    if ".4.fhir." in args.input and not ".4.fhir." in args.output and not args.goFshConvertingToFsh:
-        sys.exit("A fhir file as input needs gofsh. Exception: fhir as output. \n %s" % descriptionText)
-
-    if args.goFshConvertingToFsh:
+    # if the input is a fhir xml or a fhir json, and the output any other classification, then do that
+    if (args.goFshConvertingToFsh or ("fhir" in args.input and args.output == None) or ("fhir" in args.input and args.output != None and not "fhir" in args.output)):
         import os
 
         print("-------------------- start gofsh --------------------")
@@ -108,7 +110,7 @@ def main() -> None:
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
-    if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
+    if not("fhir" in args.input and args.output != None and "fhir" in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
         
         iModule = __import__(iClassValue[0])
@@ -157,6 +159,9 @@ def main() -> None:
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
             import os
+            # TODO dirname has to be functional if a relative path is given
+            # TODO sushi should only use one fsh-file, not all files in dir
+            # TODO different file name to title could be supported
             with open(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
@@ -182,7 +187,7 @@ def main() -> None:
                     if os.path.exists(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary",""))):
                         os.remove(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
                     os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",file_name),
-                            os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
+                        os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
                 else:
                     sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
 
@@ -194,8 +199,9 @@ def main() -> None:
             if (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input):
                 os.remove(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,".1.fsh").lower())))
     
-    # run converter for only main file, create from json the xml, it doesn't convert the supplement!
-    if (url := args.json2xmlFHIRServer) and ".4.fhir.xml" not in args.input:
+    # TODO convert all .4.fhir.json to xml, not only main one
+    # run converter, create from json a xml       
+    if (url := args.json2xmlFHIRServer):
         import requests
         import xml.dom.minidom
          
@@ -206,9 +212,9 @@ def main() -> None:
 
         with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
             if auth is None:
-                res = requests.post(url+"$convert", headers=headers, data=json_format_file)
+                res = requests.post(url+"$convert", headers=headers, data=json_format_file) # files={'upload_file': json_format_file})
             else:
-                res = requests.post(url+"$convert", headers=headers, auth=auth, data=json_format_file)
+                res = requests.post(url+"$convert", headers=headers, auth=auth, data=json_format_file) # files={'upload_file': json_format_file})
         
         import os
         if os.path.exists(args.input.replace(iClass,".4.fhir.xml")):

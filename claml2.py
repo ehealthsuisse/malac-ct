@@ -289,7 +289,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             theConcept.code = oneClass.get_code()
 
             thePropertys = []
-            retiredAlreadySet = False
 
             if tempKind := oneClass.get_kind():
                 theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
@@ -312,10 +311,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         # todo: find a solution to get the whole table into a fhir element
                         tmp += "!ignored Table!"
 
-                if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                    self.set_retired(theConcept)
-                    retiredAlreadySet = True
-               
                 if oneRubric.get_kind() == "preferredLong":
                     theConcept.display = tmp
                     usedPreferredLong = True
@@ -356,15 +351,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                     if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
-                        if oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv"):
-                            theProperty.code = "status"
-                            theProperty.value = "retired"
-                            theProperty.type = pcam.PropertyCodeType.code
-                        else:
-                            theProperty.code = "hints"
-                            theProperty.value = oneMeta.get_value()
-                            theProperty.type = pcam.PropertyCodeType.string
-                    elif oneMeta.get_name() == "Type" and oneMeta.get_value() == "D":
+                        theProperty.code = "hints"
+                        theProperty.value = oneMeta.get_value()
+                        theProperty.type = pcam.PropertyCodeType.string
+                    elif oneMeta.get_name().startswith("Type") and oneMeta.get_value().startswith("D"):
                         theProperty.code = "status"
                         theProperty.value = "retired"
                         theProperty.type = pcam.PropertyCodeType.code
@@ -473,7 +463,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.definition)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.designation)]))
 
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:

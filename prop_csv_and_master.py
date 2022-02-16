@@ -1,3 +1,4 @@
+from os import write
 import csv
 import enum
 
@@ -306,13 +307,6 @@ class PropCsvAndMaster(object):
 
     def get_concept(self):
         return self.concept
-
-    def set_retired(self, theConcept):
-        theProp = CSConcept.ConceptProperty()
-        theProp.code = "status"
-        theProp.value = "retired"
-        theProp.type = PropertyCodeType.code
-        theConcept.property.append(theProp)
 
     def exporto(self, outfile, outputClass, argsLang=None):
         csv_list = []
@@ -625,14 +619,6 @@ class VSConcept():
         self.member = [] # simple hirarchie that stores all children, needs a extension
         self.level = -1 # additional information in what level the concept can be found, just for easier writing
     
-    # created only for sorting, shouldn't be used for anything else
-    def get_system(self):
-        return self.system
-    
-    # created only for sorting, shouldn't be used for anything else
-    def get_code(self):
-        return self.code
-
     class VSConceptFilter():
         def __init__(self):
             self.property = None
@@ -660,10 +646,14 @@ class ConceptDesignation():
 
         def __str__(self) -> str:
             buildStr = ""
-            if hasattr(self, 'language'): buildStr += self.language
-            buildStr += "|"
-            if hasattr(self, 'use'): buildStr += self.use
-            buildStr += "|"
-            if hasattr(self, 'value'): buildStr += self.value
+            if hasattr(self, 'language'): buildStr = self.language
+            if hasattr(self, 'use'): 
+                if buildStr != "":
+                    buildStr += "|"
+                buildStr += self.use
+            if hasattr(self, 'value'): 
+                if buildStr != "":
+                    buildStr += "|"
+                buildStr += self.value
             return buildStr
 
