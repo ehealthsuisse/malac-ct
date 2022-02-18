@@ -300,6 +300,14 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 theConcept = pcam.CSConcept()
                 theConcept.code = oneCon.get_code()
                 theConcept.display = oneCon.get_displayName()
+                retiredAlreadySet = False
+
+                if (theConcept.display.upper().startswith("DEPRECATED") and not retiredAlreadySet):
+                    self.set_retired(theConcept)
+                    retiredAlreadySet = True
+                if (oneCon.get_type() == "D" and not retiredAlreadySet):
+                    self.set_retired(theConcept)
+                    retiredAlreadySet = True
 
                 if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                     theProp = pcam.CSConcept.ConceptProperty()
@@ -332,11 +340,15 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     theProp.type = pcam.PropertyCodeType.string
                     theConcept.property.append(theProp)
                 if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "hinweise"
-                    theProp.value = tmp
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
+                    if (tmp.upper().startswith("DEPRECATED") or tmp.upper().startswith("INAKTIV")) and not retiredAlreadySet:
+                        self.set_retired(theConcept)
+                        retiredAlreadySet = True
+                    else:
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "hinweise"
+                        theProp.value = tmp
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
                 if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
                     theProp = pcam.CSConcept.ConceptProperty()
                     theProp.code = "relationships"
