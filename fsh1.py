@@ -471,15 +471,16 @@ class Fsh1(pcam.PropCsvAndMaster):
                             outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
             
             # write the expansion
-            outfile.write('\n')
-            outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
-            outfile.write('* expansion.parameter.valueUri = "false"\n')
-            outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
-            outfile.write('\n')
-            containCnt = [-1]
-            for oneConcept in conceptList:
-                if oneConcept.level == 0:
-                    writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)                        
+            if self.get_resource() == 'ValueSet':
+                outfile.write('\n')
+                outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
+                outfile.write('* expansion.parameter.valueUri = "false"\n')
+                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('\n')
+                containCnt = [-1]
+                for oneConcept in conceptList:
+                    if oneConcept.level == 0:
+                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)                        
 
     def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None):
         # looking into the concepts, split to every codesystems that is used

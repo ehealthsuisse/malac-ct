@@ -77,7 +77,7 @@ def main() -> None:
     if ".4.fhir." in args.input and not ".4.fhir." in args.output and not args.goFshConvertingToFsh:
         sys.exit("A fhir file as input needs gofsh. Exception: fhir as output. \n %s" % descriptionText)
 
-    if args.goFshConvertingToFsh:
+    if args.goFshConvertingToFsh and ".4.fhir." in args.input:
         import os
 
         print("-------------------- start gofsh --------------------")
