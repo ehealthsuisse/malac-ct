@@ -1,0 +1,9 @@
+integration_test:
+  rules:
+    - when: manual
+  variables:
+    MALAC_CT_BRANCH: $CI_COMMIT_BRANCH
+  trigger:
+    project: elga-gmbh/termgit-dev
+    branch: $TERMGIT_TRIGGER_BRANCH
+    strategy: depend
