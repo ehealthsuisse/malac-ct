@@ -157,43 +157,63 @@ def main() -> None:
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
             import os
-            with open(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
+            import shutil
+            from pathlib import Path
+
+            # directory where sushi will be executed
+            sushi_base_dir = os.path.dirname(args.input)
+
+            # write sushi-config-yml required for sushi conversion
+            with open(os.path.join(sushi_base_dir,"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
-            # run sushi, create json, rename .2.fsh file to escape sushi and rename back
-            tmp = os.path.dirname(args.input) 
-            for file_name in os.listdir(os.path.dirname(args.input)):
-                if ".2.fsh" in file_name:
-                    os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fsh",".2.fshy")))
+
+            # input directory containing fsh files as expected / required by sushi
+            # input/fsh within sushi_base_dir
+            sushi_input_dir = os.path.join(sushi_base_dir, 'input', 'fsh')
+            # create directories if they do not yet exist
+            Path(sushi_input_dir).mkdir(parents=True, exist_ok=True)
+            # copy *.1.fsh to input/fsh
+            for created_file_name in os.listdir(sushi_base_dir):
+                if ".1.fsh" in created_file_name:
+                    shutil.copy(os.path.join(sushi_base_dir,created_file_name), sushi_input_dir)
+
+            # execute sushi
             print("-------------------- start sushi --------------------")
             startSushi = time.time()
             subprocess.Popen("sushi -v", shell=True).communicate()
-            subprocess.Popen("sushi \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\"", shell=True).communicate()
+            subprocess.Popen("sushi \"" + sushi_base_dir + "\" -o \"" + sushi_base_dir + "\"", shell=True).communicate()
             endSushi = time.time()
             print("-------------------- end sushi --------------------")
             print("sushi needed "+str(round(endSushi-startSushi,2))+" seconds.")
-            for file_name in os.listdir(os.path.dirname(args.input)):
-                if ".2.fshy" in file_name:
-                    os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fshy",".2.fsh")))
-            
-            # move fhir json to root, delete old file before
-            file_names = os.listdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
-            for file_name in file_names:
-                if ("CodeSystem-" in file_name) or ("ValueSet-" in file_name):
-                    if os.path.exists(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary",""))):
-                        os.remove(os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
-                    os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",file_name),
-                            os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
+
+            # output directory containing json files converted by sushi
+            # fsh-generated/resources within sushi_base_dir
+            sushi_output_dir = os.path.join(sushi_base_dir, 'fsh-generated', 'resources')
+            # copy fhir json created by sushi to sushi_base_dir
+            created_file_names = os.listdir(sushi_output_dir)
+            for created_file_name in created_file_names:
+                if "CodeSystem-" in created_file_name or "ValueSet-" in created_file_name:
+                    # file name with adapted file extension
+                    new_file_name = created_file_name.replace('.json', '.4.fhir.json')
+                    # rename the created json
+                    os.rename(os.path.join(sushi_output_dir, created_file_name), os.path.join(sushi_output_dir, new_file_name))
+
+                    shutil.copy(os.path.join(sushi_output_dir, new_file_name), sushi_base_dir)
                 else:
                     sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
 
-            os.rmdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
-            os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
-            os.remove(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"))
+            # remove "input" and "fsh-generated" directories as well as sushi-config-yaml
+            shutil.rmtree(os.path.join(sushi_base_dir,"input"), ignore_errors=True)
+            shutil.rmtree(os.path.join(sushi_base_dir,"fsh-generated"), ignore_errors=True)
+            os.remove(os.path.join(sushi_base_dir,"sushi-config.yaml"))
+
+            # in case of a ValueSet and the creation of zuppl-files the corresponding FSH-file will be deleted
+            if (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input):
+                # remove the corresponding zuppl-codesystem: CodeSystem-zuppl-4-[NAME-OF-THE-VALUESET-IN-LOWER-CASE].1.fsh
+                os.remove(os.path.join(sushi_base_dir, "CodeSystem-zuppl-4-" + os.path.basename(args.input).replace(iClass,".1.fsh").lower()))
+
             print("*.4.fhir.json")
 
-            if (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input):
-                os.remove(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,".1.fsh").lower())))
-    
     # run converter for only main file, create from json the xml, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer) and ".4.fhir.xml" not in args.input:
         import requests
