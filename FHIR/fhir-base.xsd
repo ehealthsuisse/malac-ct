@@ -36,7 +36,6 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hl7.org/fhir" xmlns:xhtml="http://www.w3.org/1999/xhtml" targetNamespace="http://hl7.org/fhir" elementFormDefault="qualified" version="1.0">
   <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
-  <xs:import namespace="http://www.w3.org/1999/xhtml" schemaLocation="fhir-xhtml.xsd"/>
 
   <xs:simpleType name="date-primitive">
     <xs:restriction>
@@ -451,63 +450,6 @@ Modifier extensions SHALL NOT change the meaning of any elements on Resource or 
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="Narrative">
-    <xs:annotation>
-      <xs:documentation xml:lang="en">A human-readable summary of the resource conveying the essential clinical and business information for the resource.</xs:documentation>
-      <xs:documentation xml:lang="en">If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions</xs:documentation>
-    </xs:annotation>
-    <xs:complexContent>
-      <xs:extension base="Element">
-        <xs:sequence>
-          <xs:element name="status" type="NarrativeStatus" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-              <xs:documentation xml:lang="en">The status of the narrative - whether it's entirely generated (from just the defined data or the extensions too), or whether a human authored it and it may contain additional data.</xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element ref="xhtml:div" minOccurs="1" maxOccurs="1">
-            <xs:annotation>
-              <xs:documentation xml:lang="en">The actual narrative content, a stripped down version of XHTML.</xs:documentation>
-            </xs:annotation>
-          </xs:element>
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:simpleType name="NarrativeStatus-list">
-    <xs:restriction base="code-primitive">
-      <xs:enumeration value="generated">
-        <xs:annotation>
-          <xs:documentation xml:lang="en">Generated</xs:documentation>
-        </xs:annotation>
-      </xs:enumeration>
-      <xs:enumeration value="extensions">
-        <xs:annotation>
-          <xs:documentation xml:lang="en">Extensions</xs:documentation>
-        </xs:annotation>
-      </xs:enumeration>
-      <xs:enumeration value="additional">
-        <xs:annotation>
-          <xs:documentation xml:lang="en">Additional</xs:documentation>
-        </xs:annotation>
-      </xs:enumeration>
-      <xs:enumeration value="empty">
-        <xs:annotation>
-          <xs:documentation xml:lang="en">Empty</xs:documentation>
-        </xs:annotation>
-      </xs:enumeration>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:complexType name="NarrativeStatus">
-    <xs:annotation>
-      <xs:documentation xml:lang="en">The status of a resource narrative.</xs:documentation>
-      <xs:documentation xml:lang="en">If the element is present, it must have either a @value, an @id, or extensions</xs:documentation>
-    </xs:annotation>
-    <xs:complexContent>
-       <xs:extension base="Element">
-         <xs:attribute name="value" type="NarrativeStatus-list" use="optional"/>
-       </xs:extension>
-     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="Element">
     <xs:annotation>
@@ -3622,11 +3564,6 @@ When pattern[x] is used to constrain a complex object, it means that each proper
     <xs:complexContent>
       <xs:extension base="Resource">
         <xs:sequence>
-          <xs:element name="text" type="Narrative" minOccurs="0" maxOccurs="1">
-            <xs:annotation>
-              <xs:documentation xml:lang="en">A human-readable narrative that contains a summary of the resource and can be used to represent the content of the resource to a human. The narrative need not encode all the structured data, but is required to contain sufficient detail to make it &quot;clinically safe&quot; for a human to just read the narrative. Resource definitions may define what content should be represented in the narrative to ensure clinical safety.</xs:documentation>
-            </xs:annotation>
-          </xs:element>
           <xs:element name="extension" type="Extension" minOccurs="0" maxOccurs="unbounded">
             <xs:annotation>
               <xs:documentation xml:lang="en">May be used to represent additional information that is not part of the basic definition of the resource. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.</xs:documentation>
