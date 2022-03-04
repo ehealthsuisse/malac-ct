@@ -22,7 +22,8 @@ import os
 import sys
 from lxml import etree as etree_
 
-import ??? as supermod
+import fhir4_codesystem_super as supermod
+import prop_csv_and_master as pcam
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -60,6 +61,18 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
+class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
+    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, purpose=None, copyright=None, caseSensitive=None, valueSet=None, hierarchyMeaning=None, compositional=None, versionNeeded=None, content=None, supplements=None, count=None, filter=None, property=None, concept=None, **kwargs_):
+        super(CodeSystemSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, purpose, copyright, caseSensitive, valueSet, hierarchyMeaning, compositional, versionNeeded, content, supplements, count, filter, property, concept,  **kwargs_)
+
+    def get_resource(self):
+        return pcam.Resource.CodeSystem.value
+
+    def get_content(self):
+        return super().get_content().get_value()
+
+supermod.CodeSystem.subclass = CodeSystemSub
+# end class CodeSystemSub
 
 class ElementSub(supermod.Element):
     def __init__(self, id=None, extension=None, extensiontype_=None, **kwargs_):
@@ -316,6 +329,10 @@ supermod.Annotation.subclass = AnnotationSub
 class ContactDetailSub(supermod.ContactDetail):
     def __init__(self, id=None, extension=None, name=None, telecom=None, **kwargs_):
         super(ContactDetailSub, self).__init__(id, extension, name, telecom,  **kwargs_)
+
+    # TODO
+    def __str__(self) -> str:
+        return super().__str__()
 supermod.ContactDetail.subclass = ContactDetailSub
 # end class ContactDetailSub
 
@@ -725,14 +742,6 @@ class CodeSystem_FilterSub(supermod.CodeSystem_Filter):
 supermod.CodeSystem_Filter.subclass = CodeSystem_FilterSub
 # end class CodeSystem_FilterSub
 
-
-class CodeSystemSub(supermod.CodeSystem):
-    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, purpose=None, copyright=None, caseSensitive=None, valueSet=None, hierarchyMeaning=None, compositional=None, versionNeeded=None, content=None, supplements=None, count=None, filter=None, property=None, concept=None, **kwargs_):
-        super(CodeSystemSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, purpose, copyright, caseSensitive, valueSet, hierarchyMeaning, compositional, versionNeeded, content, supplements, count, filter, property, concept,  **kwargs_)
-supermod.CodeSystem.subclass = CodeSystemSub
-# end class CodeSystemSub
-
-
 class ElementDefinition_DiscriminatorSub(supermod.ElementDefinition_Discriminator):
     def __init__(self, id=None, extension=None, modifierExtension=None, type_=None, path=None, **kwargs_):
         super(ElementDefinition_DiscriminatorSub, self).__init__(id, extension, modifierExtension, type_, path,  **kwargs_)
@@ -875,7 +884,7 @@ def get_root_tag(node):
     return tag, rootClass
 
 
-def parse(inFilename, silence=False):
+def parse(inFilename, silence=True):
     parser = None
     doc = parsexml_(inFilename, parser)
     rootNode = doc.getroot()

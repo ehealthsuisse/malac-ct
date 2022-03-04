@@ -22,7 +22,8 @@ import os
 import sys
 from lxml import etree as etree_
 
-import ??? as supermod
+import fhir4_valueset_super as supermod
+import prop_csv_and_master as pcam
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -60,6 +61,18 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
+class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
+    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, immutable=None, purpose=None, copyright=None, compose=None, expansion=None, **kwargs_):
+        super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
+
+    def get_resource(self):
+        return pcam.Resource.ValueSet.value
+
+    def get_concept(self):
+        return super().get_concept()
+
+supermod.ValueSet.subclass = ValueSetSub
+# end class ValueSetSub
 
 class ElementSub(supermod.Element):
     def __init__(self, id=None, extension=None, extensiontype_=None, **kwargs_):
@@ -725,14 +738,6 @@ class ValueSet_ComposeSub(supermod.ValueSet_Compose):
 supermod.ValueSet_Compose.subclass = ValueSet_ComposeSub
 # end class ValueSet_ComposeSub
 
-
-class ValueSetSub(supermod.ValueSet):
-    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, immutable=None, purpose=None, copyright=None, compose=None, expansion=None, **kwargs_):
-        super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
-supermod.ValueSet.subclass = ValueSetSub
-# end class ValueSetSub
-
-
 class ElementDefinition_DiscriminatorSub(supermod.ElementDefinition_Discriminator):
     def __init__(self, id=None, extension=None, modifierExtension=None, type_=None, path=None, **kwargs_):
         super(ElementDefinition_DiscriminatorSub, self).__init__(id, extension, modifierExtension, type_, path,  **kwargs_)
@@ -875,7 +880,7 @@ def get_root_tag(node):
     return tag, rootClass
 
 
-def parse(inFilename, silence=False):
+def parse(inFilename, silence=True):
     parser = None
     doc = parsexml_(inFilename, parser)
     rootNode = doc.getroot()

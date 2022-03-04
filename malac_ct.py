@@ -3,13 +3,14 @@ import subprocess
 import sys
 import time
 
-# malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name 
+# malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
     ".2.fsh":["fsh2", "Fsh2"],
-    ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"]
+    ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"],
+    ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
 
@@ -67,50 +68,50 @@ def detectClassByEnding(filename):
 def main() -> None:
     start = time.time()
     print("-------------------- MaLaC-CT started --------------------")
-    
+
     parser = init_argparse()
     args = parser.parse_args()
 
     print("converted "+args.input+" to")
 
-    # if the input is a fhir xml or a fhir json, and the output any other classification, than gofsh should be active
-    if ".4.fhir." in args.input and not ".4.fhir." in args.output and not args.goFshConvertingToFsh:
-        sys.exit("A fhir file as input needs gofsh. Exception: fhir as output. \n %s" % descriptionText)
+    # # if the input is a fhir xml or a fhir json, and the output any other classification, than gofsh should be active
+    # if ".4.fhir." in args.input and not ".4.fhir." in args.output and not args.goFshConvertingToFsh:
+    #     sys.exit("A fhir file as input needs gofsh. Exception: fhir as output. \n %s" % descriptionText)
 
-    if args.goFshConvertingToFsh and ".4.fhir." in args.input:
-        import os
+    # if args.goFshConvertingToFsh and ".4.fhir." in args.input:
+    #     import os
 
-        print("-------------------- start gofsh --------------------")
-        startGoFsh = time.time()
-        os.system("gofsh \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\\o\" -s file-per-definition")
-        endGoFsh = time.time()
-        print("-------------------- end gofsh --------------------")
-        print("gofsh needed "+str(round(endGoFsh-startGoFsh,2))+" seconds.")
+    #     print("-------------------- start gofsh --------------------")
+    #     startGoFsh = time.time()
+    #     os.system("gofsh \""+os.path.dirname(args.input)+"\" -o \""+os.path.dirname(args.input)+"\\o\" -s file-per-definition")
+    #     endGoFsh = time.time()
+    #     print("-------------------- end gofsh --------------------")
+    #     print("gofsh needed "+str(round(endGoFsh-startGoFsh,2))+" seconds.")
 
-        # move gofsh fsh to root, delete createrd files afterwards and old file before
-        if (os.path.exists(args.input.replace(".4.fhir.json",".1.fsh"))):
-            os.remove(args.input.replace(".4.fhir.json",".1.fsh"))
-        os.rename(os.path.join(os.path.dirname(args.input),"o","input","fsh",
-            os.path.basename(args.input.replace(".4.fhir.json","-Instance.fsh"))),args.input.replace(".4.fhir.json",".1.fsh"))
-        os.remove(os.path.join(os.path.dirname(args.input),"o","input","fsh","index.txt"))
-        os.rmdir(os.path.join(os.path.dirname(args.input),"o","input","fsh"))
-        os.rmdir(os.path.join(os.path.dirname(args.input),"o","input"))
-        os.remove(os.path.join(os.path.dirname(args.input),"o","sushi-config.yaml"))
-        os.rmdir(os.path.join(os.path.dirname(args.input),"o"))
-        print("*.1.fsh")
+    #     # move gofsh fsh to root, delete createrd files afterwards and old file before
+    #     if (os.path.exists(args.input.replace(".4.fhir.json",".1.fsh"))):
+    #         os.remove(args.input.replace(".4.fhir.json",".1.fsh"))
+    #     os.rename(os.path.join(os.path.dirname(args.input),"o","input","fsh",
+    #         os.path.basename(args.input.replace(".4.fhir.json","-Instance.fsh"))),args.input.replace(".4.fhir.json",".1.fsh"))
+    #     os.remove(os.path.join(os.path.dirname(args.input),"o","input","fsh","index.txt"))
+    #     os.rmdir(os.path.join(os.path.dirname(args.input),"o","input","fsh"))
+    #     os.rmdir(os.path.join(os.path.dirname(args.input),"o","input"))
+    #     os.remove(os.path.join(os.path.dirname(args.input),"o","sushi-config.yaml"))
+    #     os.rmdir(os.path.join(os.path.dirname(args.input),"o"))
+    #     print("*.1.fsh")
 
-        if (args.input.endswith(".4.fhir.json")):
-            args.input = args.input.replace(".4.fhir.json",".1.fsh")
-        elif (args.input.endswith(".4.fhir.xml")):
-            args.input = args.input.replace(".4.fhir.xml",".1.fsh")
+    #     if (args.input.endswith(".4.fhir.json")):
+    #         args.input = args.input.replace(".4.fhir.json",".1.fsh")
+    #     elif (args.input.endswith(".4.fhir.xml")):
+    #         args.input = args.input.replace(".4.fhir.xml",".1.fsh")
 
-    # look at the name of the input file and load the classification, 
+    # look at the name of the input file and load the classification,
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # if it is a fhir input and the output is also fhir, skip the true converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
-        
+
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
@@ -118,7 +119,7 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
 
-        # look at the name of the output file and load the classification, 
+        # look at the name of the output file and load the classification,
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
         if args.output != None:
             oClassValue,oClass = detectClassByEnding(args.output)
@@ -126,7 +127,7 @@ def main() -> None:
             outputClass = getattr(oModule, oClassValue[1])
 
             # open a new file and export to output file
-            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"): 
+            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"):
                 with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
                     outputClass.exporto(input, outfile, outputClass, args.argumentLanguage)
                     print("*"+oClass)
@@ -144,8 +145,8 @@ def main() -> None:
                     outputClass = getattr(oModule, listClasses[oClass][1])
 
                     # open a new file and export to output file
-                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"): 
-                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile: 
+                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"):
+                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
                             outputClass.exporto(input, outfile, outputClass, argsLang=args.argumentLanguage)
                             print("*"+oClass)
                     else:
@@ -218,18 +219,18 @@ def main() -> None:
     if (url := args.json2xmlFHIRServer) and ".4.fhir.xml" not in args.input:
         import requests
         import xml.dom.minidom
-         
+
         headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' ,  'Accept' : 'application/fhir+xml; charset=utf-8' }
         auth = None
         if (args.json2xmlFHIRServerUser and args.json2xmlFHIRServerUserPassword):
-            auth = (args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword) 
+            auth = (args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
 
         with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
             if auth is None:
                 res = requests.post(url+"$convert", headers=headers, data=json_format_file)
             else:
                 res = requests.post(url+"$convert", headers=headers, auth=auth, data=json_format_file)
-        
+
         import os
         if os.path.exists(args.input.replace(iClass,".4.fhir.xml")):
             os.remove(args.input.replace(iClass,".4.fhir.xml"))
@@ -240,14 +241,14 @@ def main() -> None:
 
         if (args.upload2FhirServer):
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
-            
+
             if ("CodeSystem-" in args.input):
                 url += "CodeSystem/"+os.path.basename(args.input.replace(iClass,"").replace("CodeSystem-","")).lower()
             elif ("ValueSet-" in args.input):
                 url += "ValueSet/"+os.path.basename(args.input.replace(iClass,"").replace("ValueSet-","")).lower()
             else:
                 sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
-            
+
             with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
                 if auth is None:
                     res = requests.put(url, headers=headers, data=json_format_file) # files={'upload_file': json_format_file})
