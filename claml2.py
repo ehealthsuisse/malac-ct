@@ -68,9 +68,9 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
-class Class(supermod.Class):
-    def get_sortierreihenfolge(self):
-        return get_Meta_with_name(self,'Sortierreihenfolge')
+#class Class(supermod.Class):
+#    def get_sortierreihenfolge(self):
+#        return get_Meta_with_name(self,'Sortierreihenfolge')
 
 class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Meta=None, Identifier=None, Title=None, Authors=None, Variants=None, ClassKinds=None, UsageKinds=None, RubricKinds=None, Modifier=None, ModifierClass=None, Class=None, **kwargs_):
@@ -315,7 +315,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
                     self.set_retired(theConcept)
                     retiredAlreadySet = True
-               
+
                 if oneRubric.get_kind() == "preferredLong":
                     theConcept.display = tmp
                     usedPreferredLong = True
@@ -360,7 +360,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theProperty.code = "status"
                             theProperty.value = "retired"
                             theProperty.type = pcam.PropertyCodeType.code
-                        else:
+                        if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
                             theProperty.code = "hints"
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
@@ -380,7 +380,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             retArr.append(theConcept)
         return retArr
 
-    def exporto(self, outfile, outputClass, argsLang=None):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         #required ClaMl3 fields
         title = TitleSub(self.get_name(),self.get_version(),valueOf_=self.get_title())
         claKinds = ClassKindsSub()

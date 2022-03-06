@@ -60,17 +60,17 @@ class Fsh2(Fsh1):
                                 theProperty.value = value
                                 theProperty.type = pcam.PropertyCodeType[splittedLine[0].split('.')[-1].strip()[5:].lower()]
                 else:
-                                # a detection of two # (without a ^) in a line to give a syserr that nested hierarchy is not supported 
+                                # a detection of two # (without a ^) in a line to give a syserr that nested hierarchy is not supported
                     if len(line.split('#')) > 2:
                         sys.exit('nested hierarchy per "* #this #that" is not supported, only the use of a multiparent hierarchy per propertys is supported.')
-                                # go on with parsing main data of the concept 
+                                # go on with parsing main data of the concept
                     theConcept.code = line.split(' ')[1].strip('#')
                     if '"' in line:
                         theConcept.display = line.split('"')[1]
                     theConcept.designation = []
                     theConcept.property = []
                     dictConcept[theConcept.code] = theConcept
-                        
+
                         # todo get to version 2
             elif self.resource == self.resource.ValueSet:
                 theConcept = pcam.VSConcept()#.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
@@ -131,7 +131,7 @@ class Fsh2(Fsh1):
     def parse(inFilename):
         return Fsh2(inFilename)
 
-    def exportoConcepto(self, outfile):
+    def exportoConcepto(self, outfile, incHierarchyExt4VS):
         conceptList = self.get_concept()
         if len(conceptList) > 0:
             tempConcept = None
@@ -140,20 +140,20 @@ class Fsh2(Fsh1):
             for oneConcept in conceptList:
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
-                    if hasattr(oneConcept, 'display'): 
+                    if hasattr(oneConcept, 'display'):
                         outfile.write('* #%s "%s"\n' % (oneConcept.code, oneConcept.display.replace('"','\\"')))
                     else:
                         outfile.write('* #%s\n' % (oneConcept.code))
                     if hasattr(oneConcept, 'definition'):
                         outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
-                    if hasattr(oneConcept, 'designation'): 
+                    if hasattr(oneConcept, 'designation'):
                         i = 0
                         for oneDesignation in oneConcept.designation:
                             if hasattr(oneDesignation, 'language'): outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
                             if hasattr(oneDesignation, 'use'): outfile.write('* #%s ^designation[%s].use = #%s \n' % (oneConcept.code, i, oneDesignation.use))
                             if hasattr(oneDesignation, 'value'): outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
-                    if hasattr(oneConcept, 'property'): 
+                    if hasattr(oneConcept, 'property'):
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
@@ -167,7 +167,7 @@ class Fsh2(Fsh1):
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
                         if hasattr(oneConcept, 'version'):
                             outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
-                    
+
                     if hasattr(oneConcept, 'code'):
                         k += 1
                         outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
@@ -186,6 +186,6 @@ class Fsh2(Fsh1):
                             if hasattr(oneFilter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
                             if hasattr(oneFilter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
                             if hasattr(oneFilter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
-                        
+
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension

@@ -278,7 +278,7 @@ class Fsh1(pcam.PropCsvAndMaster):
     def parse(inFilename):
         return Fsh1(inFilename)
 
-    def exporto(self, outfile, outputClass, argsLang=None):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # mandatory fields
         outfile.write('Instance: %s \n' % self.get_name())
         outfile.write('InstanceOf: %s \n' % self.get_resource())
@@ -366,11 +366,11 @@ class Fsh1(pcam.PropCsvAndMaster):
                 i += 1
         
         
-        outputClass.exportoConcepto(self, outfile)           
+        outputClass.exportoConcepto(self, outfile, incHierarchyExt4VS)           
         # ToDo: implement exclude similar to include
         # ToDo: implement simple Hierarchie for Children with the member extension      
 
-    def exportoConcepto(self, outfile):
+    def exportoConcepto(self, outfile, incHierarchyExt4VS):
         conceptList = self.get_concept()
         if len(conceptList) > 0:
             tempConcept = None
@@ -450,8 +450,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
                         if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
 
-            # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode)
-            if vsMemberAnywhere and self.get_resource() == 'ValueSet':
+            # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode) and the args param is set
+            if vsMemberAnywhere and self.get_resource() == 'ValueSet' and incHierarchyExt4VS:
                 # write the extension
                 outerExtensionCnt = 0
                 outfile.write('\n')
@@ -482,7 +482,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     if oneConcept.level == 0:
                         writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)                        
 
-    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None):
+    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):  
         # looking into the concepts, split to every codesystems that is used
         csUsedinVSinklConceptsOrClassi = {}
         for oneCon in self.get_concept():
@@ -516,7 +516,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             tempCon.system += "CodeSystem-"+csUsedinVSinklConceptsOrClassi[oneCS].get_name()
             self.conceptSuppl.append(tempCon)
         # exporting the changed ValueSet
-        outputClass.exporto(self, outfileVS, outputClass, argsLang)
+        outputClass.exporto(self, outfileVS, outputClass, argsLang, incHierarchyExt4VS)
 
 def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1

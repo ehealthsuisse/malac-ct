@@ -3,8 +3,10 @@ import subprocess
 import sys
 import time
 
-# malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name 
+# malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
+# TODO check if fhir.json and fhir.xml has to be in listClasses for input check
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
+    ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
@@ -12,6 +14,7 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
+versionNumber = "1.1.0+20220218-beta"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -56,6 +59,12 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-CSSuppl4VS", "--CodeSystemSupplement4Valueset", action="store_true", help="Creates a CodeSystem supplement for a ValueSet", required=False
     )
+    parser.add_argument(
+        "-appndProcTermTo", "--appendProcessedTerminologyTo", action='append', help="Appends the processed terminology to a given csv", required=False
+    )
+    parser.add_argument(
+        "-incHierarchyExt4VS", "--includeHierarchyExtension4ValueSet", action='store_true', help="Includes the hierarchy extension wenn creating ValueSets", required=False
+    )
     return parser
 
 def detectClassByEnding(filename):
@@ -66,8 +75,8 @@ def detectClassByEnding(filename):
 
 def main() -> None:
     start = time.time()
-    print("-------------------- MaLaC-CT started --------------------")
-    
+    print("-------------------- MaLaC-CT "+versionNumber+" started --------------------")
+
     parser = init_argparse()
     args = parser.parse_args()
 
@@ -104,21 +113,30 @@ def main() -> None:
         elif (args.input.endswith(".4.fhir.xml")):
             args.input = args.input.replace(".4.fhir.xml",".1.fsh")
 
-    # look at the name of the input file and load the classification, 
+    # look at the name of the input file and load the classification,
     iClassValue,iClass = detectClassByEnding(args.input)
 
-    # if it is a fhir input and the output is also fhir, skip the true converting
+    # if it is a fhir input and the output is also fhir, skip the real malac-ct converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
-        
+
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
         # serialize the input file
         inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
+        # sort the input
+        if args.input.startswith("CodeSystem-"):
+            input.sortConceptsExpandStyle()
 
-        # look at the name of the output file and load the classification, 
+        # append to all processedTerminology lists
+        if args.appendProcessedTerminologyTo:
+            input.processedTerminologies = args.appendProcessedTerminologyTo[0]
+            for csv2AppendTo in args.appendProcessedTerminologyTo:
+                input.appendMetaDataTo(csv2AppendTo)
+
+        # look at the name of the output file and load the classification,
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
         if args.output != None:
             oClassValue,oClass = detectClassByEnding(args.output)
@@ -126,15 +144,15 @@ def main() -> None:
             outputClass = getattr(oModule, oClassValue[1])
 
             # open a new file and export to output file
-            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"): 
+            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"):
                 with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
-                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage)
+                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                     print("*"+oClass)
             else:
                 import os
                 with open(args.output, 'w', newline='', encoding='utf-8') as outfileVS:
                     with open(os.path.join(os.path.dirname(args.output),"CodeSystem-zuppl-4-"+os.path.basename(args.output).lower()), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
-                        outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
+                        outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                         print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
         # if no output class is given, than convert to all known formats
         else:
@@ -144,15 +162,15 @@ def main() -> None:
                     outputClass = getattr(oModule, listClasses[oClass][1])
 
                     # open a new file and export to output file
-                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"): 
-                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile: 
-                            outputClass.exporto(input, outfile, outputClass, argsLang=args.argumentLanguage)
+                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"):
+                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                            outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                             print("*"+oClass)
                     else:
                         import os
                         with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfileVS:
                             with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
-                                outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage)
+                                outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                                 print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
@@ -160,7 +178,7 @@ def main() -> None:
             with open(os.path.join(os.path.dirname(args.input),"sushi-config.yaml"), 'w', newline='', encoding='utf-8') as f:
                 f.writelines("\n".join(["FSHOnly: true","canonical: https://gitlab.com/elga-gmbh/malac-ct","name: MaLaC-CT","status: active", "fhirVersion: 4.0.1"]))
             # run sushi, create json, rename .2.fsh file to escape sushi and rename back
-            tmp = os.path.dirname(args.input) 
+            tmp = os.path.dirname(args.input)
             for file_name in os.listdir(os.path.dirname(args.input)):
                 if ".2.fsh" in file_name:
                     os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fsh",".2.fshy")))
@@ -174,7 +192,7 @@ def main() -> None:
             for file_name in os.listdir(os.path.dirname(args.input)):
                 if ".2.fshy" in file_name:
                     os.rename(os.path.join(os.path.dirname(args.input),file_name),os.path.join(os.path.dirname(args.input),file_name.replace(".2.fshy",".2.fsh")))
-            
+
             # move fhir json to root, delete old file before
             file_names = os.listdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
             for file_name in file_names:
@@ -184,7 +202,7 @@ def main() -> None:
                     os.rename(os.path.join(os.path.dirname(args.input),"input","vocabulary",file_name),
                             os.path.join(os.path.dirname(args.input),file_name.replace(".json",".4.fhir.json").replace("input","").replace("vocabulary","")))
                 else:
-                    sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
+                    sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s")
 
             os.rmdir(os.path.join(os.path.dirname(args.input),"input","vocabulary"))
             os.rmdir(os.path.join(os.path.dirname(args.input),"input"))
@@ -193,23 +211,23 @@ def main() -> None:
 
             if (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input):
                 os.remove(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,".1.fsh").lower())))
-    
+
     # run converter for only main file, create from json the xml, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer) and ".4.fhir.xml" not in args.input:
         import requests
         import xml.dom.minidom
-         
+
         headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' ,  'Accept' : 'application/fhir+xml; charset=utf-8' }
         auth = None
         if (args.json2xmlFHIRServerUser and args.json2xmlFHIRServerUserPassword):
-            auth = (args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword) 
+            auth = (args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
 
         with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
             if auth is None:
                 res = requests.post(url+"$convert", headers=headers, data=json_format_file)
             else:
                 res = requests.post(url+"$convert", headers=headers, auth=auth, data=json_format_file)
-        
+
         import os
         if os.path.exists(args.input.replace(iClass,".4.fhir.xml")):
             os.remove(args.input.replace(iClass,".4.fhir.xml"))
@@ -220,14 +238,14 @@ def main() -> None:
 
         if (args.upload2FhirServer):
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
-            
+
             if ("CodeSystem-" in args.input):
                 url += "CodeSystem/"+os.path.basename(args.input.replace(iClass,"").replace("CodeSystem-","")).lower()
             elif ("ValueSet-" in args.input):
                 url += "ValueSet/"+os.path.basename(args.input.replace(iClass,"").replace("ValueSet-","")).lower()
             else:
                 sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
-            
+
             with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
                 if auth is None:
                     res = requests.put(url, headers=headers, data=json_format_file) # files={'upload_file': json_format_file})

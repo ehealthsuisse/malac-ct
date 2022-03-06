@@ -238,7 +238,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             retArr.append(theConcept)
         return retArr
 
-    def exporto(self, outfile, outputClass, argsLang=None):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         #required ClaMl3 fields        
         claml3 = ClaML3Sub('3.0.0')
         if tmp := self.get_language():
