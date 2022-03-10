@@ -63,6 +63,12 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                 if 'type' == headingList[i] and row[i] == "D" and not retiredAlreadySet:
                                     self.set_retired(theConcept)
                                     retiredAlreadySet = True
+                                if 'type' == headingList[i] and row[i] == "A":
+                                    theProp = pcam.CSConcept.ConceptProperty()
+                                    theProp.code = "notSelectable"
+                                    theProp.value = True
+                                    theProp.type = pcam.PropertyCodeType.boolean
+                                    theConcept.property.append(theProp)
                                 if 'relationships' == headingList[i] and row[i] != "":
                                     theProp = pcam.CSConcept.ConceptProperty()
                                     theProp.code = "relationships"
@@ -282,6 +288,10 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                     # overruled following # for same behaivor like termpub csv, deprecation status is never set in type
                     if oneProp.code == "status" and oneProp.value == "retired":
                         conceptRow.append("D")
+                        foundIt = True
+                        break
+                    elif oneProp.code == "notSelectable" and oneProp.value == "True":
+                        conceptRow.append("A")
                         foundIt = True
                         break
                     elif oneProp.code == "child":

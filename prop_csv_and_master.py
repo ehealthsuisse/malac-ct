@@ -1,5 +1,4 @@
 import enum
-import fileinput
 
 class PropCsvAndMaster(object):
     def __init__(self, inFile = None):
@@ -186,11 +185,12 @@ class PropCsvAndMaster(object):
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
-        for line in fileinput.FileInput(csvFilename, encoding="utf8"):
-            for listline in csvlist:
-                if line.split(',')[0] == listline.split(',')[0]:
-                    csvlist.remove(listline)
-            csvlist.append(line)
+        with open(csvFilename, "r", encoding="utf8") as csvfile:
+            for line in csvfile:
+                for listline in csvlist:
+                    if line.split(',')[0] == listline.split(',')[0]:
+                        csvlist.remove(listline)
+                csvlist.append(line)
 
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
             for line in csvlist:

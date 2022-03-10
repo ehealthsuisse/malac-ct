@@ -385,16 +385,16 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return retArr
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        #required ClaMl3 fields
+        # required ClaMl3 fields
         title = TitleSub(self.get_name(),self.get_version(),valueOf_=self.get_title())
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
         rubKinds = RubricKindsSub()
-        # todo, rubricKinds should be added when some are gathered
+        # TODO rubricKinds should be added when some are gathered
         rubKinds.add_RubricKind(RubricKindSub("preferred"))
 
-        #optional ClaMl3 fields
-        #madatory FHIR fields
+        # optional ClaMl3 fields
+        # madatory FHIR R4 fields
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('url',self.get_url()))
@@ -406,10 +406,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas.append(MetaSub('status', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
 
-        #conditional and mandatory FHIR fields
+        # conditional and mandatory FHIR R4 fields
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
-        #optional FHIR fields
+        # optional FHIR fields
         if tmp := self.get_language():
             metas.append(MetaSub('language',tmp))
         elif argsLang is not None:
@@ -448,12 +448,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_lockeddate(): metas.append(MetaSub("lockedDate",tmp))
         if tmp := self.get_inactive(): metas.append(MetaSub("inactive",tmp))
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
-        #todo valueset
+        # TODO valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
         if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
-        #todo supplements
+        # TODO supplements
         #if tmp := self.get_supplements(): csv_list.append(("supplements",self.get_supplements()))
         if tmp := self.get_count(): metas.append(MetaSub("count",tmp))
         if tmp := self.get_filter():
