@@ -317,7 +317,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         tmp += "!ignored Table!"
 
                 if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                    self.set_retired(theConcept)
+                    theProp = pcam.CSConcept.ConceptProperty()
+                    theProp.code = "status"
+                    theProp.value = "retired"
+                    theProp.type = pcam.PropertyCodeType.code
+                    thePropertys.append(theProp)
                     retiredAlreadySet = True
 
                 if oneRubric.get_kind() == "preferredLong":
@@ -356,27 +360,40 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 thePropertys.append(theProperty)
 
             for oneMeta in oneClass.get_Meta():
-                # skip the old TS_ATTRIBUTE_* properties, only let TS_ATTRIBUTE_HINTS through
-                if not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
+                # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
+                if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS") and not oneMeta.get_name() == "Level":
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                     if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
-                        if oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv"):
-                            theProperty.code = "status"
-                            theProperty.value = "retired"
-                            theProperty.type = pcam.PropertyCodeType.code
+                        if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = "status"
+                            theProp.value = "retired"
+                            theProp.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProp)
+                            retiredAlreadySet = True
                         if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
                             theProperty.code = "hints"
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
-                    elif oneMeta.get_name() == "Type" and oneMeta.get_value() == "D":
-                        theProperty.code = "status"
-                        theProperty.value = "retired"
-                        theProperty.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProperty)
+                    elif oneMeta.get_name() == "Type":
+                        if not retiredAlreadySet and oneMeta.get_value() == "D":
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = "status"
+                            theProp.value = "retired"
+                            theProp.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProp)
+                            retiredAlreadySet = True
+                    elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "True":
+                        theProperty.code = oneMeta.get_name()
+                        theProperty.value = oneMeta.get_value()
+                        theProperty.type = pcam.PropertyCodeType.boolean
+                        thePropertys.append(theProperty)
                     else:
                         theProperty.code = oneMeta.get_name()
                         theProperty.value = oneMeta.get_value()
                         theProperty.type = pcam.PropertyCodeType.string
-                    thePropertys.append(theProperty)
+                        thePropertys.append(theProperty)
 
             if len(thePropertys) > 0:
                 theConcept.property = thePropertys
@@ -487,7 +504,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                        elif oneProperty.type == pcam.PropertyCodeType.code:
+                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
                             theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))

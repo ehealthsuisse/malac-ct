@@ -236,6 +236,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 theConcept.code = oneCon.get_code()
                 theConcept.display = oneCon.get_displayName()
 
+                if oneCon.get_type() == "A":
+                    theConcept.abstract = True
                 if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                     theDesig = pcam.ConceptDesignation()
                     theDesig.language = "de-AT"
@@ -293,6 +295,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 if (oneCon.get_type() == "D" and not retiredAlreadySet):
                     self.set_retired(theConcept)
                     retiredAlreadySet = True
+                if oneCon.get_type() == "A":
+                    theProp = pcam.CSConcept.ConceptProperty()
+                    theProp.code = "notSelectable"
+                    theProp.value = True
+                    theProp.type = pcam.PropertyCodeType.boolean
+                    theConcept.property.append(theProp)
 
                 if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                     theDesig = pcam.ConceptDesignation()
@@ -530,6 +538,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             elif self.get_resource() == "ValueSet":
                 if oneConcept.member != []:
                     type_ = "S"
+                elif oneConcept.abstract:
+                    type_ = "A"
                 else:
                     type_ = "L"
 

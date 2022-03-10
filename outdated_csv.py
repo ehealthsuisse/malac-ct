@@ -6,7 +6,6 @@ import prop_csv_and_master as pcam
 class OutdatedCsv(pcam.PropCsvAndMaster):
     def __init__(self, inFile=None):
         super().__init__()
-        self.ordernumber = None
 
         # open the file in read mode
         if inFile is not None:
@@ -107,6 +106,8 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 if 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
                                 if 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
+                                if 'type' == headingList[i] and row[i] == "A":
+                                    theConcept.abstract = True
                                 if 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = "relationships"
@@ -301,7 +302,9 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                 if foundIt == False:
                     conceptRow.append("L")
             elif self.get_resource() == "ValueSet":
-                if oneConcept.member != []:
+                if oneConcept.abstract:
+                    conceptRow.append("A")
+                elif oneConcept.member != []:
                     conceptRow.append("S")
                 else:
                     conceptRow.append("L")

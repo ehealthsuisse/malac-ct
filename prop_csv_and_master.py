@@ -161,6 +161,9 @@ class PropCsvAndMaster(object):
                                     tempFilter.op = filterElements[1]
                                     tempFilter.value = filterElements[2]
                                     tempConcept.filter = tempFilter # this is not a list!
+                                if 'abstract' == headingList[i]:
+                                    if row[i].lower() == "true" or "yes" or "1":
+                                        tempConcept.abstract = True
                                 if 'exclude' == headingList[i]:
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
@@ -393,12 +396,12 @@ class PropCsvAndMaster(object):
     def get_concept(self):
         return self.concept
 
-    def set_retired(self, theConcept):
+    def set_retired(self, theCSConcept):
         theProp = CSConcept.ConceptProperty()
         theProp.code = "status"
         theProp.value = "retired"
         theProp.type = PropertyCodeType.code
-        theConcept.property.append(theProp)
+        theCSConcept.property.append(theProp)
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         csv_list = []
@@ -565,6 +568,9 @@ class PropCsvAndMaster(object):
                         csv_header.append('filter')
                         csv_line.append(conceptFilter[headerFilterIterator])
                         headerFilterIterator += 1
+                    if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
+                        csv_header.append('abstract')
+                        csv_line.append(tmp)
                     if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                         csv_header.append('exclude')
                         csv_line.append(tmp)
@@ -713,6 +719,7 @@ class VSConcept():
         self.exclude = False
         self.member = [] # simple hirarchie that stores all children, needs a extension
         self.level = -1 # additional information in what level the concept can be found, just for easier writing concepts
+        self.abstract = False
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):

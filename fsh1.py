@@ -15,8 +15,8 @@ class Fsh1(pcam.PropCsvAndMaster):
             self.name = file.readline().split(':')[1].strip().strip('"')
             self.resource = pcam.Resource[file.readline().split(':')[1].strip().strip('"')]
             file.readline()
-            
-            # preparing lists and some variables 
+
+            # preparing lists and some variables
             lstFilter =  []
             lstProperty = []
             dictConcept = {}
@@ -40,7 +40,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
                 # more mandatory fields
                 if splittedLine[0] == '* status ':self.status = pcam.Status[value]
-                
+
                 #self.content = file.readline().split('=')[1].strip().strip('#')
 
                 elif splittedLine[0] == '* content ' and self.resource == self.resource.CodeSystem:
@@ -53,29 +53,29 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* description ':self.description = value
                 elif splittedLine[0] == '* implicitRules ': self.implicitrules = value
                 elif splittedLine[0] == '* language ': self.language = value
-                
+
                 #self.__getattribute__(splittedLine[0]) = value
-                
+
                 elif splittedLine[0] == '* text ': self.text = value
                 elif splittedLine[0] == '* contained ': self.contained = value
                 elif splittedLine[0] == '* extension ': self.extension = value
                 elif splittedLine[0] == '* modifierExtension ': self.modifierextension = value
-                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0]: 
+                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0]:
                     if not hasattr(self,'identifier'):
                         self.identifier = []
                     self.identifier.append(value)
                 elif splittedLine[0] == '* experimental ': self.experimental = value
                 elif splittedLine[0] == '* date ': self.date = value
                 elif splittedLine[0] == '* publisher ': self.publisher = value
-                elif '* contact' in splittedLine[0]: 
+                elif '* contact' in splittedLine[0]:
                     if not hasattr(self,'contact'):
                         self.contact = []
                     self.contact.append(value)
-                elif '* useContext' in splittedLine[0]: 
+                elif '* useContext' in splittedLine[0]:
                     if not hasattr(self,'useContext'):
                         self.usecontext = []
                     self.usecontext.append(value)
-                elif '* jurisdiction' in splittedLine[0]: 
+                elif '* jurisdiction' in splittedLine[0]:
                     if not hasattr(self,'jurisdiction'):
                         self.jurisdiction = []
                     self.jurisdiction.append(value)
@@ -134,7 +134,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         theProperty.type = pcam.PropertyCodeType[value]
 
                 #processing the body with the concepts
-                else: 
+                else:
                     self.parseConcepts(dictConcept, line, splittedLine, value)
 
             if lstFilter != []:
@@ -150,13 +150,13 @@ class Fsh1(pcam.PropCsvAndMaster):
             #split here for CS and VS
             if self.resource == self.resource.CodeSystem:
                 theConcept = pcam.CSConcept() #alternative construktor to create an new object without calling __init__, for minimal memory allocation
-                
+
                 # parsing index if the = and + notation is used
                 index = line.split(']')[0].split('[')[1]#.strip("'")
                 global tempindex
                 if index == "=":
                     index = tempindex
-                elif index == "+": 
+                elif index == "+":
                     tempindex = int(tempindex)+1
                     index = tempindex
                 else:
@@ -213,14 +213,15 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 theProperty.value = value
                                 theProperty.type = pcam.PropertyCodeType(splittedLine[0].split('.')[-1].strip().replace("value",""))
                 else:
-                    # parsing main data of the concept 
+                    # parsing main data of the concept
                     theConcept.code = value
                     theConcept.designation = []
                     theConcept.property = []
                     dictConcept[tempindex] = theConcept
-                    
+
             elif self.resource == self.resource.ValueSet:
                 theConcept = pcam.VSConcept.__new__(pcam.VSConcept) #alternative construktor to create an new object without calling __init__, for minimal memory allocation
+                # make includes possible include arrays like ..include[2]..
                 if 'compose.include.system' in line:
                     finalVSSystem = line.split('"')[1].strip()
                 if 'compose.include.version' in line:
@@ -287,10 +288,10 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
         outfile.write('* status = #%s \n' % self.get_status())
-        
-        if self.get_resource() == "CodeSystem": 
+
+        if self.get_resource() == "CodeSystem":
             outfile.write('* content = #%s \n' % self.get_content())
-        
+
         # optional fields
         if tmp := self.get_version(): outfile.write('* version = "%s" \n' % tmp)
         if tmp := self.get_description(): outfile.write('* description = "%s" \n' % tmp)
@@ -301,7 +302,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_contained(): outfile.write('* contained = "%s" \n' % tmp)
         if tmp := self.get_extension(): outfile.write('* extension = "%s" \n' % tmp)
         if tmp := self.get_modifierextension(): outfile.write('* modifierExtension = "%s" \n' % tmp)
-        if tmp := self.get_identifier(): 
+        if tmp := self.get_identifier():
             i = 0
             for oneIdentifier in self.get_identifier():
                 outfile.write('* identifier[%s].use = #official \n' % (i))
@@ -313,7 +314,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
         # todo make the contact write also possible for claml2&3
         if tmp := self.get_contact():
-            i = 0 
+            i = 0
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
@@ -322,7 +323,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 if tmpValue := oneContact.telecom[0].value:
                     outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
                 i += 1
-        if tmp := self.get_usecontext(): 
+        if tmp := self.get_usecontext():
             i = 0
             for oneUseContext in tmp:
                 outfile.write('* useContext[%s] = "%s" \n' % (i,oneUseContext))
@@ -334,11 +335,11 @@ class Fsh1(pcam.PropCsvAndMaster):
                 i += 1
         if tmp := self.get_purpose(): outfile.write('* purpose = "%s" \n' % tmp)
         if tmp := self.get_copyright(): outfile.write('* copyright = "%s" \n' % tmp)
-        
+
         if tmp := self.get_immutable(): outfile.write('* immutable = "%s" \n' % tmp)
         if tmp := self.get_lockeddate(): outfile.write('* lockedDate = "%s" \n' % tmp)
         if tmp := self.get_inactive(): outfile.write('* inactive = "%s" \n' % tmp)
-        
+
         if tmp := self.get_casesensitive(): outfile.write('* caseSensitive = "%s" \n' % tmp)
         # TODO how should we work with references like valueset
         #if tmp := self.get_valueset(): outfile.write('* valueSet = "%s" \n' % tmp)
@@ -348,7 +349,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_supplements(): outfile.write('* supplements = "%s" \n' % (tmp))
         if self.get_resource() == "CodeSystem":
             if tmp := self.get_count(): outfile.write('* count = %s \n' % tmp)
-        if tmp := self.get_filter(): 
+        if tmp := self.get_filter():
             i = 0
             for oneFilter in tmp:
                 if hasattr(oneFilter, 'code') and oneFilter.code: outfile.write('* filter[%s].code = #%s \n' % (i, oneFilter.code))
@@ -356,7 +357,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 if hasattr(oneFilter, 'operator') and oneFilter.operator: outfile.write('* filter[%s].operator = #%s \n' % (i, oneFilter.operator))
                 if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* filter[%s].value = #%s \n' % (i, oneFilter.value))
                 i += 1
-        if tmp := self.get_property(): 
+        if tmp := self.get_property():
             i = 0
             for oneProperty in tmp:
                 if hasattr(oneProperty, 'code'): outfile.write('* property[%s].code = #%s \n' % (i, oneProperty.code or "None") )
@@ -364,11 +365,11 @@ class Fsh1(pcam.PropCsvAndMaster):
                 if hasattr(oneProperty, 'description') and oneProperty.description: outfile.write('* property[%s].description = "%s" \n' % (i, oneProperty.description))
                 if hasattr(oneProperty, 'type') and oneProperty.type: outfile.write('* property[%s].type = #%s \n' % (i, oneProperty.type.name))
                 i += 1
-        
-        
-        outputClass.exportoConcepto(self, outfile, incHierarchyExt4VS)           
+
+
+        outputClass.exportoConcepto(self, outfile, incHierarchyExt4VS)
         # ToDo: implement exclude similar to include
-        # ToDo: implement simple Hierarchie for Children with the member extension      
+        # ToDo: implement simple Hierarchie for Children with the member extension
 
     def exportoConcepto(self, outfile, incHierarchyExt4VS):
         conceptList = self.get_concept()
@@ -380,7 +381,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
             # look into the concepts and see if there are any members, so that these will be specially printed
             vsMemberAnywhere = False
-            for oneConcept in conceptList:    
+            for oneConcept in conceptList:
                 if hasattr(oneConcept,"member") and oneConcept.member != []:
                     vsMemberAnywhere = True
 
@@ -395,24 +396,24 @@ class Fsh1(pcam.PropCsvAndMaster):
                     tempList.sort(key=pcam.VSConcept.get_system)
 
 
-            for oneConcept in tempList:               
+            for oneConcept in tempList:
                 cntCSConcept += 1
                 # for CodeSystems
                 if self.get_resource() == 'CodeSystem':
                     if hasattr(oneConcept, 'code') and oneConcept.code:
                         outfile.write('* concept[%s].code = #%s\n' % (cntCSConcept,oneConcept.code))
-                    if hasattr(oneConcept, 'display') and oneConcept.display: 
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* concept[%s].display = "%s"\n' % (cntCSConcept, oneConcept.display.replace('"','\\"')))
                     if hasattr(oneConcept, 'definition') and oneConcept.definition:
                         outfile.write('* concept[%s].definition = "%s"\n' % (cntCSConcept, oneConcept.definition.replace('"','\\"')))
-                    if hasattr(oneConcept, 'designation') and oneConcept.designation != []: 
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation != []:
                         i = 0
                         for oneDesignation in oneConcept.designation:
                             if hasattr(oneDesignation, 'language'): outfile.write('* concept[%s].designation[%s].language = #%s \n' % (cntCSConcept, i, oneDesignation.language))
                             if hasattr(oneDesignation, 'use'): outfile.write('* concept[%s].designation[%s].use = #%s \n' % (cntCSConcept, i, oneDesignation.use))
                             if hasattr(oneDesignation, 'value'): outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
                             i += 1
-                    if hasattr(oneConcept, 'property') and oneConcept.property != []: 
+                    if hasattr(oneConcept, 'property') and oneConcept.property != []:
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (cntCSConcept, i, oneProperty.code or "None"))
@@ -425,9 +426,9 @@ class Fsh1(pcam.PropCsvAndMaster):
                         cntIncAndExclude += 1
                         cntVSConcept = -1
                         tempConcept = oneConcept
-                        if oneConcept.exclude: 
-                            incOrExclude = "exclude" 
-                        else: 
+                        if oneConcept.exclude:
+                            incOrExclude = "exclude"
+                        else:
                             incOrExclude = "include"
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -469,7 +470,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             innerExtensionCnt += 1
                             outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
                             outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
-            
+
             # write the expansion
             if self.get_resource() == 'ValueSet':
                 outfile.write('\n')
@@ -480,17 +481,17 @@ class Fsh1(pcam.PropCsvAndMaster):
                 containCnt = [-1]
                 for oneConcept in conceptList:
                     if oneConcept.level == 0:
-                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)                        
+                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
 
-    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):  
+    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # looking into the concepts, split to every codesystems that is used
         csUsedinVSinklConceptsOrClassi = {}
         for oneCon in self.get_concept():
             if tmp := oneCon.system:
                 if tmp not in csUsedinVSinklConceptsOrClassi.keys():
-                    csUsedinVSinklConceptsOrClassi[tmp] = []                    
+                    csUsedinVSinklConceptsOrClassi[tmp] = []
                 csUsedinVSinklConceptsOrClassi[tmp].append(oneCon)
-        
+
         # for every codesystem, do a instance in the SAME suppl file
         for oneCS in csUsedinVSinklConceptsOrClassi.keys():
             # creating a deepcopy of self
@@ -521,8 +522,12 @@ class Fsh1(pcam.PropCsvAndMaster):
 def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
+    # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
+    # That given, a fsh valueset cant be used for input, if having abstract codes
+    if oneConcept.abstract:
+        outfile.write('* expansion%s.abstract = "True"\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
-    outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))    
+    outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
 
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
