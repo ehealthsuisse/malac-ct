@@ -369,7 +369,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         return retArr
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        if tmp := self.get_description() and len(tmp := self.get_description().split("**")) >= 5:
+        if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
             if "Beschreibung:" in tmp:
                 beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
             if "Description:" in tmp:
