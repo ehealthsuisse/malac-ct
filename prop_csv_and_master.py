@@ -218,6 +218,8 @@ class PropCsvAndMaster(object):
             if line[0] == name:
                 return line[1]
 
+        sys.exit('CodeSystem OID to Name was not found. A outdated csv needs a terminologies list for gaining OIDs of the CodeSystems, given with "-appndProcTermTo".\n')
+
     def buildConceptDictWithKey(self, stringKey):
         tmpDict = {}
         for oneCon in self.get_concept():

@@ -110,24 +110,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             boolAddedSomething = True
 
         # TODO check if there is no version description in svs
-        #if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
-        #    if boolAddedSomething:
-        #        tempRet += "\n\n"
-        #    tempRet += "**Versions-Beschreibung:** "
-        #    tempRet += tempVerDesc
 
         if tempRet == "":
             tempRet = None
-        return tempRet
-
-
-        tempRet = None
-        if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
-            tempRet = tempBesch
-            if (tempDesc := super(SVSextELGA1Sub,self).get_description()) and not tempDesc == "":
-                tempRet += "\n\n"+tempDesc
-        elif (tempDesc := super(SVSextELGA1Sub,self).get_description()) and not tempDesc == "":
-            tempRet = tempDesc
         return tempRet
 
     def get_content(self):
@@ -310,11 +295,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     retiredAlreadySet = True
 
                 if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "deutsch"
-                    theProp.value = tmpDeutsch
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
+                    theDesig = pcam.ConceptDesignation()
+                    theDesig.language = "de-AT"
+                    theDesig.value = tmpDeutsch
+                    theConcept.designation.append(theDesig)
                 if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                     theProp = pcam.CSConcept.ConceptProperty()
                     theProp.code = "displayNameAlt"
@@ -376,6 +360,187 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
 
         return retArr
 
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        if len(tmp := self.get_description().split("**")) >= 5:
+            if "Beschreibung:" in tmp:
+                beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
+            if "Description:" in tmp:
+                description = tmp[tmp.index("Description:")+1].strip()
+        else:
+            beschreibung = description = self.get_description()
+
+        displayName = self.get_title()
+        effectiveDate = last_change_date = status_date = self.get_date() or ""
+        gueltigkeitsbereich = "empfohlen"
+
+        if (tmp := self.get_identifier()[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+            id = tmp
+        else:
+            id = self.gainOidFromName(self.get_ressource()+"-"+self.get_name())
+
+        name = self.get_name()
+        statusCode = "1"
+        verantw_Org = self.get_publisher() or ""
+        version = self.get_version()
+
+        foundIt = False
+        for oneConcept in self.get_contact():
+            if oneConcept.telecom[0].system == pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value:
+                website = oneConcept.telecom[0].value
+                foundIt = True
+        if not foundIt:
+            website = ""
+
+        concepts = []
+        orderNumber = 0
+        tmpDict = self.buildConceptDictWithKey("code")
+        for oneConcept in self.get_concept():
+            # code can directly be appended, see concepts.append
+
+            # creating codeSystem
+            codeSystem = None
+            if self.get_resource() == "CodeSystem":
+                codeSystem = self.get_identifier()[0] or ""
+            elif self.get_resource() == "ValueSet":
+                codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
+
+            # creating concept_beschreibung
+            concept_beschreibung = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "concept_beschreibung":
+                        concept_beschreibung = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "concept_beschreibung":
+                        concept_beschreibung = oneDesig.value
+
+            # creating deutsch
+            deutsch = None
+            foundIt = False
+            for oneDesig in oneConcept.designation:
+                if oneDesig.language == "de-AT":
+                    deutsch = oneDesig.value
+                    foundIt = True
+            if not foundIt:
+                deutsch = oneConcept.display
+
+            # displayName can directly be appended, see concepts.append
+
+            # creating displayNameAlt
+            displayNameAlt = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "displayNameAlt":
+                        displayNameAlt = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "alt":
+                        displayNameAlt = oneDesig.value
+
+            # creating einheit_codiert
+            einheit_codiert = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "einheit_codiert":
+                        einheit_codiert = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "einheit_codiert":
+                        einheit_codiert = oneDesig.value
+
+            # creating einheit_print
+            einheit_print = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "einheit_print":
+                        einheit_print = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "einheit_print":
+                        einheit_print = oneDesig.value
+
+            # creating hinweise
+            hinweise = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "hinweise":
+                        hinweise = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "hinweise":
+                        hinweise = oneDesig.value
+
+            # creating level
+            level = None
+            if self.get_resource() == "CodeSystem":
+                level = 0
+                key = oneConcept.code
+                thereIsAParent = True
+                while thereIsAParent:
+                    # if there is a parent, than it will be set once to True
+                    thereIsAParent = False
+                    for oneProp in tmpDict[key].property:
+                        if oneProp.code == "parent":
+                            thereIsAParent = True
+                            level = level+1
+                            key = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                level = oneConcept.level
+
+            # creating orderNumber
+            orderNumber += 1
+
+            # creating parentCodeSystemName
+            parentCodeSystemName = None
+            if self.get_resource() == "ValueSet":
+                parentCodeSystemName = oneConcept.system
+
+            # creating relationships
+            relationships = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "relationships":
+                        relationships = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "relationships":
+                        relationships = oneDesig.value
+
+            # creating type
+            type_ = None
+            if self.get_resource() == "CodeSystem":
+                foundIt = False
+                for oneProp in oneConcept.property:
+                    # overruled following # for same behaivor like termpub csv, deprecation status is never set in type
+                    if oneProp.code == "status" and oneProp.value == "retired":
+                        type_= "D"
+                        foundIt = True
+                        break
+                    elif oneProp.code == "notSelectable" and oneProp.value == "True":
+                        type_ = "A"
+                        foundIt = True
+                        break
+                    elif oneProp.code == "child":
+                        type_ = "S"
+                        foundIt = True
+                        break
+                if foundIt == False:
+                    type_ = "L"
+            elif self.get_resource() == "ValueSet":
+                if oneConcept.member != []:
+                    type_ = "S"
+                else:
+                    type_ = "L"
+
+            concepts.append(conceptSub(oneConcept.code or "",codeSystem or "", 1, self.get_date() or "",
+              concept_beschreibung or "", deutsch or "", oneConcept.display or "", displayNameAlt,
+              einheit_codiert, einheit_print, hinweise or "", level, orderNumber,
+              parentCodeSystemName or "", relationships or "", type_ or ""))
+
+        conceptList = conceptListSub(concepts)
+        svsExtElga1 = SVSextELGA1Sub(beschreibung,description,displayName,effectiveDate,gueltigkeitsbereich,id,last_change_date,name,statusCode,status_date,verantw_Org,version,website,conceptList)
+        svsExtElga1.export(outfile, 0)
 supermod.SVSextELGA1.subclass = SVSextELGA1Sub
 # end class valueSetSub
 
