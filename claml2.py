@@ -18,6 +18,7 @@
 #   generateDS-2.39.2
 #
 
+import datetime
 import os
 import sys
 import re
@@ -128,22 +129,25 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return self.get_Title().get_date()
 
     def get_publisher(self):
+        tmpAuthors = ""
         if authors := self.get_Authors():
-            if author := authors.get_Author()[0]:
-                return author.get_name()
-        return None
+            for author in authors.get_Author():
+                if tmpAuthors != "":
+                    tmpAuthors += " & "
+                tmpAuthors += author.get_name()
+        return tmpAuthors or None
 
     def get_contact(self):
         tempConDetS = []
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
-                oneConDet = pcam.ContactDetail()
-                oneConDet.name = oneAuthor.get_name()
                 if tempValueOf := oneAuthor.get_valueOf_():
+                    oneConDet = pcam.ContactDetail()
+                    oneConDet.name = oneAuthor.get_name()
                     oneConPoi = pcam.ContactDetail.ConcactPoint()
                     oneConPoi.value = tempValueOf
                     oneConDet.telecom = [oneConPoi]
-                tempConDetS.append(oneConDet)
+                    tempConDetS.append(oneConDet)
         if (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ConcactPoint()
@@ -422,16 +426,16 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             for oneIdentifier in tmp:
                 identifiers.append(IdentifierSub(None,oneIdentifier))
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
-        if tmp := self.get_date(): title.date = tmp
+        if tmp := self.get_date(): title.date = datetime.datetime.strptime(tmp, '%Y-%m-%d')
         authors = None
         if tmp := self.get_publisher():
-            authors = AuthorsSub([AuthorSub(tmp,None,None)])
-        #todo contactDetail filling
-        """ if tmp := self.get_contact():
+            authors = AuthorsSub([AuthorSub(tmp)])
+        if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
-                for oneContact in self.get_contact():
-                    authors.append() """
+            for oneContact in tmp:
+                oneAuthor = AuthorSub(oneContact.name or None, oneContact.telecom[0].value or None)
+                authors.get_Author().append(oneAuthor)
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))

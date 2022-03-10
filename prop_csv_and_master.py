@@ -457,6 +457,7 @@ class PropCsvAndMaster(object):
             for csvelement in csvline:
                 # write and change all ',' to ';'
                 outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
+                #outfile.write((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"")
                 newline = False
             outfile.write("\n")
 
@@ -491,27 +492,26 @@ class PropCsvAndMaster(object):
                             else:
                                 csv_line.append('')
                             headerPropertyIterator += 1
-                        # todo: change to method invocation, for other formats like claml
-                        elif hasattr(oneConcept, csv_header_element):
-                            csv_line.append(getattr(oneConcept,csv_header_element))
+                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                         else:
                             csv_line.append('')
 
                     #adding not existing columns because we just got some values
-                    if 'code' not in csv_header and hasattr(oneConcept,'code'):
+                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
                         csv_header.append('code')
-                        csv_line.append(oneConcept.code)
-                    if 'display' not in csv_header and hasattr(oneConcept,'display'):
+                        csv_line.append(tmp)
+                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                         csv_header.append('display')
-                        csv_line.append(oneConcept.display)
-                    if 'definition' not in csv_header and hasattr(oneConcept,'definition'):
+                        csv_line.append(tmp)
+                    if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
                         csv_header.append('definition')
-                        csv_line.append(oneConcept.definition)
-                    while hasattr(oneConcept,'designation') and headerDesignationIterator < len(conceptDesig := oneConcept.designation):
+                        csv_line.append(tmp)
+                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
-                    while hasattr(oneConcept,'property') and headerPropertyIterator < len(conceptProps := oneConcept.property):
+                    while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
                         csv_header.append('property')
                         csv_line.append(conceptProps[headerPropertyIterator])
                         headerPropertyIterator += 1
@@ -520,57 +520,52 @@ class PropCsvAndMaster(object):
                 elif self.get_resource() == 'ValueSet':
                     #adding values to already existing columns, if value empty than a empty string is added
                     headerDesignationIterator = 0
-                    csv_header_filter_count = 0
+                    headerFilterIterator = 0
                     for csv_header_element in csv_header:
-                        if hasattr(oneConcept, csv_header_element):
-                            csv_line.append(getattr(oneConcept,csv_header_element))
-                        else:
-                            csv_line.append('')
 
                         if csv_header_element == "designation":
-                            headerDesignationIterator += 1
-                            if headerDesignationIterator <= len(oneConcept.designation):
+                            if headerDesignationIterator < len(oneConcept.designation):
                                 csv_line.append(oneConcept.designation[headerDesignationIterator])
                             else:
                                 csv_line.append('')
+                            headerDesignationIterator += 1
 
-                        if csv_header_element == "filter":
-                            csv_header_filter_count += 1
-                            if csv_header_filter_count <= len(oneConcept.filter):
-                                csv_line.append(oneConcept.filter[csv_header_filter_count])
+                        elif csv_header_element == "filter":
+                            if headerFilterIterator < len(oneConcept.filter):
+                                csv_line.append(oneConcept.filter[headerFilterIterator])
                             else:
                                 csv_line.append('')
+                            headerFilterIterator += 1
+
+                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        else:
+                            csv_line.append('')
 
                     #adding not existing columns because we just got some values
-                    if 'system' not in csv_header and hasattr(oneConcept,'system'):
+                    if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
                         csv_header.append('system')
-                        csv_line.append(oneConcept.system)
-                    if 'version' not in csv_header and hasattr(oneConcept,'version'):
+                        csv_line.append(tmp)
+                    if 'version' not in csv_header and (tmp := oneConcept.version):#hasattr(oneConcept,'version'):
                         csv_header.append('version')
-                        csv_line.append(oneConcept.version)
-                    if 'code' not in csv_header and hasattr(oneConcept,'code'):
+                        csv_line.append(tmp)
+                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
                         csv_header.append('code')
-                        csv_line.append(oneConcept.code)
-                    if 'display' not in csv_header and hasattr(oneConcept,'display'):
+                        csv_line.append(tmp)
+                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                         csv_header.append('display')
-                        csv_line.append(oneConcept.display)
-                    if hasattr(self,'designation'):
-                        countOfDesignations = 0
-                        for oneDesignation in oneConcept.designation:
-                            countOfDesignations += 1
-                            if csv_header.count('designation') < countOfDesignations:
-                                csv_header.append('designation')
-                            csv_line.append(oneDesignation)
-                    countOfFilter = 0
-                    if hasattr(self,'filter'):
-                        for oneFilter in oneConcept.filter:
-                            countOfFilter += 1
-                            if csv_header.count('filter') < countOfFilter:
-                                csv_header.append('filter')
-                            csv_line.append(oneFilter)
-                    if 'exclude' not in csv_header and hasattr(oneConcept,'exclude'):
+                        csv_line.append(tmp)
+                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                        csv_header.append('designation')
+                        csv_line.append(conceptDesig[headerDesignationIterator])
+                        headerDesignationIterator += 1
+                    while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
+                        csv_header.append('filter')
+                        csv_line.append(conceptFilter[headerFilterIterator])
+                        headerFilterIterator += 1
+                    if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                         csv_header.append('exclude')
-                        csv_line.append(oneConcept.exclude)
+                        csv_line.append(tmp)
 
                 csv_list.append(csv_line)
 
@@ -581,6 +576,7 @@ class PropCsvAndMaster(object):
             newline = True
             for csvelement in csvline:
                 outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
+                #outfile.write((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"")
                 newline = False
 
         outfile.close()
@@ -627,10 +623,10 @@ class ContactDetail():
         if temp := self.name:
             tempStr += temp
         tempStr += "|"
-        if temp := self.telecom[0].system:
+        if (temp := self.telecom[0]) and (temp := self.telecom[0].system):
             tempStr += temp
         tempStr += "|"
-        if temp := self.telecom[0].value:
+        if (temp := self.telecom[0]) and (temp := self.telecom[0].value):
             tempStr += temp
         return tempStr
 

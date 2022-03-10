@@ -53,7 +53,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     if row[i].startswith("DEPRECATED") or row[i].startswith("inaktiv") and not retiredAlreadySet:
                                         self.set_retired(theConcept)
                                         retiredAlreadySet = True
-                                    else:
+                                    elif row[i] != "DEPRECATED" or row[i] != "inaktiv" and not retiredAlreadySet:
                                         theProp = pcam.CSConcept.ConceptProperty()
                                         theProp.code = "hints"
                                         theProp.value = row[i]
@@ -69,6 +69,14 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     theProp.value = row[i]
                                     theProp.type = pcam.PropertyCodeType.string
                                     theConcept.property.append(theProp)
+                                # following "parentCode" cant come from the termpub csv, because this column is never filled there, only as a malac export it is filled
+                                #if 'parentCode' == headingList[i] and row[i] != "":
+                                #    for partOfRow in row[i].split(","):
+                                #        theProp = pcam.CSConcept.ConceptProperty()
+                                #        theProp.code = "parent"
+                                #        theProp.value = partOfRow.strip()
+                                #        theProp.type = pcam.PropertyCodeType.code
+                                #        theConcept.property.append(theProp)
 
                             elif self.resource == self.resource.ValueSet:
                                 if 'parentCodeSystemName' == headingList[i]: theConcept.system = row[i]
@@ -191,11 +199,16 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
             # writing csv-displayName
             conceptRow.append(oneConcept.display or "")
 
-            # writing csv-parentCodeSystemName
+            # writing csv-parentCode as empty in CS / csv-parentCodeSystemName in VS
             if self.get_resource() == "CodeSystem":
-                # for same behaivor like termpub csv, there should be in CS a fixed ""-value
-                #conceptRow.append("")
-                conceptRow.append(self.get_name() or "")
+                #tmpString = ""
+                #for oneProp in oneConcept.property:
+                #    if oneProp.code == "parent":
+                #        if tmpString != "":
+                #            tmpString += ", "
+                #        tmpString += oneProp.value
+                #conceptRow.append(tmpString)
+                conceptRow.append("")
             elif self.get_resource() == "ValueSet":
                 conceptRow.append(oneConcept.system or "")
 
