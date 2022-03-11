@@ -18,6 +18,7 @@
 #   generateDS-2.39.2
 #
 
+import datetime
 import os
 import sys
 import re
@@ -68,9 +69,9 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
-class Class(supermod.Class):
-    def get_sortierreihenfolge(self):
-        return get_Meta_with_name(self,'Sortierreihenfolge')
+#class Class(supermod.Class):
+#    def get_sortierreihenfolge(self):
+#        return get_Meta_with_name(self,'Sortierreihenfolge')
 
 class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Meta=None, Identifier=None, Title=None, Authors=None, Variants=None, ClassKinds=None, UsageKinds=None, RubricKinds=None, Modifier=None, ModifierClass=None, Class=None, **kwargs_):
@@ -125,25 +126,31 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'experimental')
 
     def get_date(self):
-        return self.get_Title().get_date()
+        if not (tmp := self.get_Title().get_date()):
+            if not (tmp := get_Meta_with_name(self,'last_change_date')[0:10]):
+                tmp = get_Meta_with_name(self,'insert_ts')[0:10]
+        return tmp
 
     def get_publisher(self):
+        tmpAuthors = ""
         if authors := self.get_Authors():
-            if author := authors.get_Author()[0]:
-                return author.get_name()
-        return None
+            for author in authors.get_Author():
+                if tmpAuthors != "":
+                    tmpAuthors += " & "
+                tmpAuthors += author.get_name()
+        return tmpAuthors or None
 
     def get_contact(self):
         tempConDetS = []
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
-                oneConDet = pcam.ContactDetail()
-                oneConDet.name = oneAuthor.get_name()
                 if tempValueOf := oneAuthor.get_valueOf_():
+                    oneConDet = pcam.ContactDetail()
+                    oneConDet.name = oneAuthor.get_name()
                     oneConPoi = pcam.ContactDetail.ConcactPoint()
                     oneConPoi.value = tempValueOf
                     oneConDet.telecom = [oneConPoi]
-                tempConDetS.append(oneConDet)
+                    tempConDetS.append(oneConDet)
         if (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ConcactPoint()
@@ -313,9 +320,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         tmp += "!ignored Table!"
 
                 if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                    self.set_retired(theConcept)
+                    theProp = pcam.CSConcept.ConceptProperty()
+                    theProp.code = "status"
+                    theProp.value = "retired"
+                    theProp.type = pcam.PropertyCodeType.code
+                    thePropertys.append(theProp)
                     retiredAlreadySet = True
-               
+
                 if oneRubric.get_kind() == "preferredLong":
                     theConcept.display = tmp
                     usedPreferredLong = True
@@ -352,27 +363,40 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 thePropertys.append(theProperty)
 
             for oneMeta in oneClass.get_Meta():
-                # skip the old TS_ATTRIBUTE_* properties, only let TS_ATTRIBUTE_HINTS through
-                if not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
+                # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
+                if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS") and not oneMeta.get_name() == "Level":
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                     if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
-                        if oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv"):
-                            theProperty.code = "status"
-                            theProperty.value = "retired"
-                            theProperty.type = pcam.PropertyCodeType.code
-                        else:
+                        if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = "status"
+                            theProp.value = "retired"
+                            theProp.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProp)
+                            retiredAlreadySet = True
+                        if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
                             theProperty.code = "hints"
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
-                    elif oneMeta.get_name() == "Type" and oneMeta.get_value() == "D":
-                        theProperty.code = "status"
-                        theProperty.value = "retired"
-                        theProperty.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProperty)
+                    elif oneMeta.get_name() == "Type":
+                        if not retiredAlreadySet and oneMeta.get_value() == "D":
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = "status"
+                            theProp.value = "retired"
+                            theProp.type = pcam.PropertyCodeType.code
+                            thePropertys.append(theProp)
+                            retiredAlreadySet = True
+                    elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "True":
+                        theProperty.code = oneMeta.get_name()
+                        theProperty.value = oneMeta.get_value()
+                        theProperty.type = pcam.PropertyCodeType.boolean
+                        thePropertys.append(theProperty)
                     else:
                         theProperty.code = oneMeta.get_name()
                         theProperty.value = oneMeta.get_value()
                         theProperty.type = pcam.PropertyCodeType.string
-                    thePropertys.append(theProperty)
+                        thePropertys.append(theProperty)
 
             if len(thePropertys) > 0:
                 theConcept.property = thePropertys
@@ -380,17 +404,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             retArr.append(theConcept)
         return retArr
 
-    def exporto(self, outfile, outputClass, argsLang=None):
-        #required ClaMl3 fields
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        # required ClaMl3 fields
         title = TitleSub(self.get_name(),self.get_version(),valueOf_=self.get_title())
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
         rubKinds = RubricKindsSub()
-        # todo, rubricKinds should be added when some are gathered
+        # TODO rubricKinds should be added when some are gathered
         rubKinds.add_RubricKind(RubricKindSub("preferred"))
 
-        #optional ClaMl3 fields
-        #madatory FHIR fields
+        # optional ClaMl3 fields
+        # madatory FHIR R4 fields
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('url',self.get_url()))
@@ -402,10 +426,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas.append(MetaSub('status', self.get_status()))
         metas.append(MetaSub('description',self.get_description()))
 
-        #conditional and mandatory FHIR fields
+        # conditional and mandatory FHIR R4 fields
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
-        #optional FHIR fields
+        # optional FHIR fields
         if tmp := self.get_language():
             metas.append(MetaSub('language',tmp))
         elif argsLang is not None:
@@ -422,16 +446,16 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             for oneIdentifier in tmp:
                 identifiers.append(IdentifierSub(None,oneIdentifier))
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
-        if tmp := self.get_date(): title.date = tmp
+        if tmp := self.get_date(): title.date = datetime.datetime.strptime(tmp, '%Y-%m-%d')
         authors = None
         if tmp := self.get_publisher():
-            authors = AuthorsSub([AuthorSub(tmp,None,None)])
-        #todo contactDetail filling
-        """ if tmp := self.get_contact():
+            authors = AuthorsSub([AuthorSub(tmp)])
+        if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
-                for oneContact in self.get_contact():
-                    authors.append() """
+            for oneContact in tmp:
+                oneAuthor = AuthorSub(oneContact.name or None, oneContact.telecom[0].value or None)
+                authors.get_Author().append(oneAuthor)
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
@@ -444,12 +468,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_lockeddate(): metas.append(MetaSub("lockedDate",tmp))
         if tmp := self.get_inactive(): metas.append(MetaSub("inactive",tmp))
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
-        #todo valueset
+        # TODO valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
         if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
-        #todo supplements
+        # TODO supplements
         #if tmp := self.get_supplements(): csv_list.append(("supplements",self.get_supplements()))
         if tmp := self.get_count(): metas.append(MetaSub("count",tmp))
         if tmp := self.get_filter():
@@ -483,7 +507,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                        elif oneProperty.type == pcam.PropertyCodeType.code:
+                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
                             theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))
