@@ -126,7 +126,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'experimental')
 
     def get_date(self):
-        return self.get_Title().get_date()
+        if not (tmp := self.get_Title().get_date()):
+            if not (tmp := get_Meta_with_name(self,'last_change_date')[0:10]):
+                tmp = get_Meta_with_name(self,'insert_ts')[0:10]
+        return tmp
 
     def get_publisher(self):
         tmpAuthors = ""

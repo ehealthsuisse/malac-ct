@@ -385,7 +385,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         if (tmp := self.get_identifier()[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
-            id = self.gainOidFromName(self.get_ressource()+"-"+self.get_name())
+            id = self.gainOidFromName(self.get_resource()+"-"+self.get_name())
 
         name = self.get_name()
         statusCode = "1"
