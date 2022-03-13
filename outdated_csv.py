@@ -226,7 +226,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                 foundIt = False
                 for oneDesig in oneConcept.designation:
                     if hasattr(oneDesig,"use") and oneDesig.use == "concept_beschreibung":
-                        conceptRow.append(oneConcept.definition)
+                        conceptRow.append(oneDesig.value)
                         foundIt = True
                 if foundIt == False:
                     conceptRow.append("")

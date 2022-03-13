@@ -220,8 +220,8 @@ class PropCsvAndMaster(object):
         for line in self.processedTerminologies:
             if line[0] == name:
                 return line[1]
-
-        sys.exit('CodeSystem OID to Name was not found. A outdated csv needs a terminologies list for gaining OIDs of the CodeSystems, given with "-appndProcTermTo".\n')
+        print('Error: For "%s" as CodeSystem-Name the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the name will be used instead.\n' % name)
+        return name
 
     def buildConceptDictWithKey(self, stringKey):
         tmpDict = {}
