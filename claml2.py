@@ -387,7 +387,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theProp.type = pcam.PropertyCodeType.code
                             thePropertys.append(theProp)
                             retiredAlreadySet = True
-                    elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "True":
+                    elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                         theProperty.code = oneMeta.get_name()
                         theProperty.value = oneMeta.get_value()
                         theProperty.type = pcam.PropertyCodeType.boolean

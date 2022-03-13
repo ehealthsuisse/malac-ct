@@ -291,7 +291,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                         conceptRow.append("D")
                         foundIt = True
                         break
-                    elif oneProp.code == "notSelectable" and oneProp.value == "True":
+                    elif oneProp.code == "notSelectable" and oneProp.value == "true":
                         conceptRow.append("A")
                         foundIt = True
                         break
@@ -331,7 +331,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                 foundIt = False
                 for oneDesig in oneConcept.designation:
                     if hasattr(oneDesig,"use") and oneDesig.use == "einheit_print":
-                        conceptRow.append(oneProp.value or "")
+                        conceptRow.append(oneDesig.value or "")
                         foundIt = True
                         break
                 if foundIt == False:
@@ -342,7 +342,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                 foundIt = False
                 for oneDesig in oneConcept.designation:
                     if hasattr(oneDesig,"use") and oneDesig.use == "einheit_codiert":
-                        conceptRow.append(oneProp.value or "")
+                        conceptRow.append(oneDesig.value or "")
                         foundIt = True
                         break
                 if foundIt == False:

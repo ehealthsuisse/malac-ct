@@ -419,6 +419,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (cntCSConcept, i, oneProperty.code or "None"))
                             if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Boolean": outfile.write('* concept[%s].property[%s].value%s = %s \n' % (cntCSConcept, i, oneProperty.type.value, str(oneProperty.value).lower().replace('"','\\"')))
                             i += 1
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
@@ -525,7 +526,7 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
     # That given, a fsh valueset cant be used for input, if having abstract codes
     if oneConcept.abstract:
-        outfile.write('* expansion%s.abstract = "True"\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
+        outfile.write('* expansion%s.abstract = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
     outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
 

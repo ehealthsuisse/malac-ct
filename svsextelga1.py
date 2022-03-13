@@ -526,7 +526,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         type_= "D"
                         foundIt = True
                         break
-                    elif oneProp.code == "notSelectable" and oneProp.value == "True":
+                    elif oneProp.code == "notSelectable" and oneProp.value == "true":
                         type_ = "A"
                         foundIt = True
                         break
