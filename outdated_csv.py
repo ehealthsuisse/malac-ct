@@ -311,7 +311,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
 
             # writing csv-relationships
             foundIt = False
-            if self.get_resource() == "Codesystem":
+            if self.get_resource() == "CodeSystem":
                 for oneProp in oneConcept.property:
                     if oneProp.code == "relationships":
                         conceptRow.append(oneProp.value or "")

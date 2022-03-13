@@ -334,6 +334,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     theConcept.display = tmp
                 elif oneRubric.get_kind() == "definition":
                     theConcept.definition = tmp
+                elif oneRubric.get_kind() == "note":
+                    theConcept.definition = tmp
                 elif oneRubric.get_kind() == "designation":
                     splittedValue = tmp.split('|')
                     theDesignation = pcam.ConceptDesignation.__new__(pcam.ConceptDesignation)
@@ -364,7 +366,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
             for oneMeta in oneClass.get_Meta():
                 # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
-                if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS") and not oneMeta.get_name() == "Level":
+                if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and not oneMeta.get_name() == "Level":
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                     if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
                         if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
@@ -379,6 +381,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
                             thePropertys.append(theProperty)
+                    elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
+                        theDesignation = pcam.ConceptDesignation()
+                        theDesignation.language = "de-AT"
+                        theDesignation.value = oneMeta.get_value()
+                        theConcept.designation.append(theDesignation)
                     elif oneMeta.get_name() == "Type":
                         if not retiredAlreadySet and oneMeta.get_value() == "D":
                             theProp = pcam.CSConcept.ConceptProperty()
@@ -393,7 +400,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         theProperty.type = pcam.PropertyCodeType.boolean
                         thePropertys.append(theProperty)
                     else:
-                        theProperty.code = oneMeta.get_name()
+                        theProperty.code = oneMeta.get_name()[0].lower()+oneMeta.get_name()[1:]
                         theProperty.value = oneMeta.get_value()
                         theProperty.type = pcam.PropertyCodeType.string
                         thePropertys.append(theProperty)
