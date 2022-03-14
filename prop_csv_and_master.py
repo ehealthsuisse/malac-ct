@@ -405,7 +405,7 @@ class PropCsvAndMaster(object):
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
-        with open(outfile.name, 'w', newline='', encoding='cp1252') as outfile:
+        with open(outfile.name, 'wb') as outfile:
 
             csv_list = []
             # start list of metaelements
@@ -465,9 +465,9 @@ class PropCsvAndMaster(object):
                 for csvelement in csvline:
                     # write and change all ',' to ';'
                     #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
-                    outfile.write((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"")
+                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
                     newline = False
-                outfile.write("\n")
+                outfile.write(("\n").encode('cp1252',errors='replace'))
 
             csv_header = []
 
@@ -583,11 +583,11 @@ class PropCsvAndMaster(object):
             csv_list.insert(0,csv_header)
 
             for csvline in csv_list:
-                outfile.write("\n")
+                outfile.write(("\n").encode('cp1252',errors='replace'))
                 newline = True
                 for csvelement in csvline:
                     #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
-                    outfile.write((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"")
+                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
                     newline = False
 
 class Resource(enum.Enum):
