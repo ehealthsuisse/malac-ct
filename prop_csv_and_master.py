@@ -1,4 +1,5 @@
 import enum
+from unittest import skip
 
 class PropCsvAndMaster(object):
     def __init__(self, inFile = None):
@@ -184,7 +185,7 @@ class PropCsvAndMaster(object):
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource()+"-"+self.get_name()+","+self.get_identifier()[0]+","+self.get_version()+"\n")
+            csvfile.write(self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
@@ -219,7 +220,8 @@ class PropCsvAndMaster(object):
         # search for the Name in the list and return oid
         for line in self.processedTerminologies:
             if line[0] == name:
-                return line[1]
+                if line[1]:
+                    return line[1]
         print('Error: For "%s" as CodeSystem-Name the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the name will be used instead.\n' % name)
         return name
 
