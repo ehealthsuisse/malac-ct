@@ -242,7 +242,8 @@ class PropCsvAndMaster(object):
 
         # sort all the child properties inside the concepts
         for key in conDict:
-            conDict[key].property = conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
+            if hasattr(conDict[key],"property") and conDict[key].property:
+                conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
 
         # find all the concepts with no parent, sorted after key
         allLvl0 = []
@@ -265,7 +266,7 @@ class PropCsvAndMaster(object):
         sortedConcepts.append(oneConcept)
         for oneProp in oneConcept.property:
             if oneProp.code == "child":
-                self.storeSelfAndRecrCallChildren(conDict[oneProp.value])
+                self.storeSelfAndRecrCallChildren(conDict[oneProp.value], conDict, sortedConcepts)
 
     def get_resource(self):
         return self.resource.value
@@ -700,9 +701,9 @@ class CSConcept():
         # only used for sort
         def get_value_if_code_is_child(self):
             if self.code == "child":
-                return self.value
+                return str(self.value)
             else:
-                return 0
+                return str(0)
 
         def __str__(self) -> str:
             buildStr = ""

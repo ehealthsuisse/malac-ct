@@ -285,131 +285,135 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     # todo use get_concept also for claml3
     def get_concept(self):
-        retArr = []
-        # iterate though a sorted list
-        sortedClassList = self.get_Class()
-        sortedClassList.sort(key=supermod.Class.get_code)
-        #if tmp := sortedClassList[0].get_Meta_with_name(self,'Sortierreihenfolge'):
-        #    sortedClassList.sort(key=Class.get_sortierreihenfolge)
-        for oneClass in sortedClassList:
-            theConcept = pcam.CSConcept()
-            theConcept.code = oneClass.get_code()
+        if hasattr(self, "concept") and self.concept:
+            return self.concept
+        else:
+            retArr = []
+            # iterate though a sorted list
+            sortedClassList = self.get_Class()
+            sortedClassList.sort(key=supermod.Class.get_code)
+            #if tmp := sortedClassList[0].get_Meta_with_name(self,'Sortierreihenfolge'):
+            #    sortedClassList.sort(key=Class.get_sortierreihenfolge)
+            for oneClass in sortedClassList:
+                theConcept = pcam.CSConcept()
+                theConcept.code = oneClass.get_code()
 
-            thePropertys = []
-            retiredAlreadySet = False
+                thePropertys = []
+                retiredAlreadySet = False
 
-            if tempKind := oneClass.get_kind():
-                theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                theProperty.code = "kind"
-                theProperty.value = tempKind
-                theProperty.type = pcam.PropertyCodeType.string
-                thePropertys.append(theProperty)
-
-            usedPreferredLong = False
-            for oneRubric in oneClass.get_Rubric():
-                tmp = ""
-                if (tmp := oneRubric.get_Label()[0].get_valueOf_().strip()) == "":
-                    for onePara in oneRubric.get_Label()[0].get_Para():
-                        tmp += onePara.get_valueOf_()+" "
-                    for oneFragment in oneRubric.get_Label()[0].get_Fragment():
-                        tmp += oneFragment.get_valueOf_()+" "
-                    for oneReference in oneRubric.get_Label()[0].get_Reference():
-                        tmp += oneReference.get_valueOf_()+" "
-                    for oneTable in oneRubric.get_Label()[0].get_Table():
-                        # todo: find a solution to get the whole table into a fhir element
-                        tmp += "!ignored Table!"
-
-                if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "status"
-                    theProp.value = "retired"
-                    theProp.type = pcam.PropertyCodeType.code
-                    thePropertys.append(theProp)
-                    retiredAlreadySet = True
-
-                if oneRubric.get_kind() == "preferredLong":
-                    theConcept.display = tmp
-                    usedPreferredLong = True
-                elif not usedPreferredLong and oneRubric.get_kind() == "preferred":
-                    theConcept.display = tmp
-                elif oneRubric.get_kind() == "definition":
-                    theConcept.definition = tmp
-                elif oneRubric.get_kind() == "note":
-                    theConcept.definition = tmp
-                elif oneRubric.get_kind() == "designation":
-                    splittedValue = tmp.split('|')
-                    theDesignation = pcam.ConceptDesignation.__new__(pcam.ConceptDesignation)
-                    theDesignation.language = splittedValue[0]
-                    theDesignation.use = splittedValue[1]
-                    theDesignation.value = splittedValue[2]
-                    theConcept.designation.append(theDesignation)
-                else:
+                if tempKind := oneClass.get_kind():
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                    theProperty.code = oneRubric.get_kind()
-                    theProperty.value = tmp
+                    theProperty.code = "kind"
+                    theProperty.value = tempKind
                     theProperty.type = pcam.PropertyCodeType.string
                     thePropertys.append(theProperty)
 
-            for oneSuperClass in oneClass.get_SuperClass():
-                theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                theProperty.code = "parent"
-                theProperty.value = oneSuperClass.get_code()
-                theProperty.type = pcam.PropertyCodeType.code
-                thePropertys.append(theProperty)
+                usedPreferredLong = False
+                for oneRubric in oneClass.get_Rubric():
+                    tmp = ""
+                    if (tmp := oneRubric.get_Label()[0].get_valueOf_().strip()) == "":
+                        for onePara in oneRubric.get_Label()[0].get_Para():
+                            tmp += onePara.get_valueOf_()+" "
+                        for oneFragment in oneRubric.get_Label()[0].get_Fragment():
+                            tmp += oneFragment.get_valueOf_()+" "
+                        for oneReference in oneRubric.get_Label()[0].get_Reference():
+                            tmp += oneReference.get_valueOf_()+" "
+                        for oneTable in oneRubric.get_Label()[0].get_Table():
+                            # todo: find a solution to get the whole table into a fhir element
+                            tmp += "!ignored Table!"
 
-            for oneSubClass in oneClass.get_SubClass():
-                theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                theProperty.code = "child"
-                theProperty.value = oneSubClass.get_code()
-                theProperty.type = pcam.PropertyCodeType.code
-                thePropertys.append(theProperty)
+                    if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "status"
+                        theProp.value = "retired"
+                        theProp.type = pcam.PropertyCodeType.code
+                        thePropertys.append(theProp)
+                        retiredAlreadySet = True
 
-            for oneMeta in oneClass.get_Meta():
-                # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
-                if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and not oneMeta.get_name() == "Level":
-                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                    if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
-                        if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
-                            theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = "status"
-                            theProp.value = "retired"
-                            theProp.type = pcam.PropertyCodeType.code
-                            thePropertys.append(theProp)
-                            retiredAlreadySet = True
-                        if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
-                            theProperty.code = "hints"
-                            theProperty.value = oneMeta.get_value()
-                            theProperty.type = pcam.PropertyCodeType.string
-                            thePropertys.append(theProperty)
-                    elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
-                        theDesignation = pcam.ConceptDesignation()
-                        theDesignation.language = "de-AT"
-                        theDesignation.value = oneMeta.get_value()
+                    if oneRubric.get_kind() == "preferredLong":
+                        theConcept.display = tmp
+                        usedPreferredLong = True
+                    elif not usedPreferredLong and oneRubric.get_kind() == "preferred":
+                        theConcept.display = tmp
+                    elif oneRubric.get_kind() == "definition":
+                        theConcept.definition = tmp
+                    elif oneRubric.get_kind() == "note":
+                        theConcept.definition = tmp
+                    elif oneRubric.get_kind() == "designation":
+                        splittedValue = tmp.split('|')
+                        theDesignation = pcam.ConceptDesignation.__new__(pcam.ConceptDesignation)
+                        theDesignation.language = splittedValue[0]
+                        theDesignation.use = splittedValue[1]
+                        theDesignation.value = splittedValue[2]
                         theConcept.designation.append(theDesignation)
-                    elif oneMeta.get_name() == "Type":
-                        if not retiredAlreadySet and oneMeta.get_value() == "D":
-                            theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = "status"
-                            theProp.value = "retired"
-                            theProp.type = pcam.PropertyCodeType.code
-                            thePropertys.append(theProp)
-                            retiredAlreadySet = True
-                    elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
-                        theProperty.code = oneMeta.get_name()
-                        theProperty.value = oneMeta.get_value()
-                        theProperty.type = pcam.PropertyCodeType.boolean
-                        thePropertys.append(theProperty)
                     else:
-                        theProperty.code = oneMeta.get_name()[0].lower()+oneMeta.get_name()[1:]
-                        theProperty.value = oneMeta.get_value()
+                        theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                        theProperty.code = oneRubric.get_kind()
+                        theProperty.value = tmp
                         theProperty.type = pcam.PropertyCodeType.string
                         thePropertys.append(theProperty)
 
-            if len(thePropertys) > 0:
-                theConcept.property = thePropertys
+                for oneSuperClass in oneClass.get_SuperClass():
+                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty.code = "parent"
+                    theProperty.value = oneSuperClass.get_code()
+                    theProperty.type = pcam.PropertyCodeType.code
+                    thePropertys.append(theProperty)
 
-            retArr.append(theConcept)
-        return retArr
+                for oneSubClass in oneClass.get_SubClass():
+                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty.code = "child"
+                    theProperty.value = oneSubClass.get_code()
+                    theProperty.type = pcam.PropertyCodeType.code
+                    thePropertys.append(theProperty)
+
+                for oneMeta in oneClass.get_Meta():
+                    # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
+                    if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and not oneMeta.get_name() == "Level":
+                        theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                        if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
+                            if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
+                                theProp = pcam.CSConcept.ConceptProperty()
+                                theProp.code = "status"
+                                theProp.value = "retired"
+                                theProp.type = pcam.PropertyCodeType.code
+                                thePropertys.append(theProp)
+                                retiredAlreadySet = True
+                            if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
+                                theProperty.code = "hints"
+                                theProperty.value = oneMeta.get_value()
+                                theProperty.type = pcam.PropertyCodeType.string
+                                thePropertys.append(theProperty)
+                        elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
+                            theDesignation = pcam.ConceptDesignation()
+                            theDesignation.language = "de-AT"
+                            theDesignation.value = oneMeta.get_value()
+                            theConcept.designation.append(theDesignation)
+                        elif oneMeta.get_name() == "Type":
+                            if not retiredAlreadySet and oneMeta.get_value() == "D":
+                                theProp = pcam.CSConcept.ConceptProperty()
+                                theProp.code = "status"
+                                theProp.value = "retired"
+                                theProp.type = pcam.PropertyCodeType.code
+                                thePropertys.append(theProp)
+                                retiredAlreadySet = True
+                        elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
+                            theProperty.code = oneMeta.get_name()
+                            theProperty.value = oneMeta.get_value()
+                            theProperty.type = pcam.PropertyCodeType.boolean
+                            thePropertys.append(theProperty)
+                        else:
+                            theProperty.code = oneMeta.get_name()[0].lower()+oneMeta.get_name()[1:]
+                            theProperty.value = oneMeta.get_value()
+                            theProperty.type = pcam.PropertyCodeType.string
+                            thePropertys.append(theProperty)
+
+                if len(thePropertys) > 0:
+                    theConcept.property = thePropertys
+
+                retArr.append(theConcept)
+                self.concept = retArr
+            return retArr
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # required ClaMl3 fields

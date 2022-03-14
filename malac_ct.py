@@ -127,7 +127,7 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
         # sort the input
-        if args.input.startswith("CodeSystem-"):
+        if "CodeSystem-" in args.input:
             input.sortConceptsExpandStyle()
 
         # append to all processedTerminology lists

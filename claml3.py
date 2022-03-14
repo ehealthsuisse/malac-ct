@@ -198,45 +198,49 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'modifierExtension')
 
     def get_concept(self):
-        retArr = []
-        for oneClass in self.get_Classification()[0].get_class():
-            theConcept = None
-            theConcept = pcam.CSConcept
-            theConcept.code = oneClass.get_code()
-            for oneRubric in oneClass.get_Rubric():
-                if oneRubric.get_kind() == "preferred":
-                    theConcept.display = oneRubric.get_Label()[0].get_valueOf_()
-                elif oneRubric.get_kind() == "definition":
-                    theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
-                elif oneRubric.get_kind() == "designation":
-                    splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
-                    theDesignation = None
-                    theDesignation = pcam.ConceptDesignation
-                    theDesignation.language = splittedValue[0]
-                    theDesignation.use = splittedValue[1]
-                    theDesignation.value = splittedValue[2]
-                    theConcept.designation.append(theDesignation)
-            for oneSuperClass in oneClass.get_SuperClass():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = "parent"
-                theProperty.value = oneSuperClass.get_code()
-                theConcept.property.append(theProperty)
-            for oneSubClass in oneClass.get_SubClass():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = "child"
-                theProperty.value = oneSubClass.get_code()
-                theConcept.property.append(theProperty)
-            for oneMeta in oneClass.get_Meta():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = oneMeta.get_name()
-                theProperty.value = oneMeta.get_value()
-                theConcept.property.append(theProperty)
+        if hasattr(self, "concept") and self.concept:
+            return self.concept
+        else:
+            retArr = []
+            for oneClass in self.get_Classification()[0].get_class():
+                theConcept = None
+                theConcept = pcam.CSConcept
+                theConcept.code = oneClass.get_code()
+                for oneRubric in oneClass.get_Rubric():
+                    if oneRubric.get_kind() == "preferred":
+                        theConcept.display = oneRubric.get_Label()[0].get_valueOf_()
+                    elif oneRubric.get_kind() == "definition":
+                        theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
+                    elif oneRubric.get_kind() == "designation":
+                        splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
+                        theDesignation = None
+                        theDesignation = pcam.ConceptDesignation
+                        theDesignation.language = splittedValue[0]
+                        theDesignation.use = splittedValue[1]
+                        theDesignation.value = splittedValue[2]
+                        theConcept.designation.append(theDesignation)
+                for oneSuperClass in oneClass.get_SuperClass():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = "parent"
+                    theProperty.value = oneSuperClass.get_code()
+                    theConcept.property.append(theProperty)
+                for oneSubClass in oneClass.get_SubClass():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = "child"
+                    theProperty.value = oneSubClass.get_code()
+                    theConcept.property.append(theProperty)
+                for oneMeta in oneClass.get_Meta():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = oneMeta.get_name()
+                    theProperty.value = oneMeta.get_value()
+                    theConcept.property.append(theProperty)
 
-            retArr.append(theConcept)
-        return retArr
+                retArr.append(theConcept)
+            self.concept = retArr
+            return retArr
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         #required ClaMl3 fields
