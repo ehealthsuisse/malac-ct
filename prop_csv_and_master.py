@@ -382,18 +382,19 @@ class PropCsvAndMaster(object):
     def get_additionalConceptPropertys(self, retArr):
         # look into the concepts and add missing properties
         for oneConcept in self.get_concept():
-            for oneCProperty in oneConcept.property:
-                foundFullMatch = False
-                #foundTypeMismatch = False # if needed in the future
-                for oneProperty in retArr:
-                    if oneCProperty.code == oneProperty.code and oneCProperty.type == oneProperty.type:
-                        foundFullMatch = True
-                    #elif oneCProperty.code == oneProperty.code and oneCProperty.type != oneProperty.type:
-                    #    foundTypeMismatch = True
-                if not foundFullMatch:# and not foundTypeMismatch:
-                    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
-                #elif not foundFullMatch and foundTypeMismatch:
-                #    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
+            if hasattr(oneConcept,"property"):
+                for oneCProperty in oneConcept.property:
+                    foundFullMatch = False
+                    #foundTypeMismatch = False # if needed in the future
+                    for oneProperty in retArr:
+                        if oneCProperty.code == oneProperty.code and oneCProperty.type == oneProperty.type:
+                            foundFullMatch = True
+                        #elif oneCProperty.code == oneProperty.code and oneCProperty.type != oneProperty.type:
+                        #    foundTypeMismatch = True
+                    if not foundFullMatch:# and not foundTypeMismatch:
+                        retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
+                    #elif not foundFullMatch and foundTypeMismatch:
+                    #    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
         return retArr
 
     def get_concept(self):
