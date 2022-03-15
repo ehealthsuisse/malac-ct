@@ -505,6 +505,21 @@ class Fsh1(pcam.PropCsvAndMaster):
             supplSelf.content = pcam.Content.supplement.value
             supplSelf.supplements = "CodeSystem-"+oneCS
             supplSelf.concept = csUsedinVSinklConceptsOrClassi[oneCS]
+            # convert designations with use to properties
+            for oneCon in supplSelf.concept:
+                if hasattr(oneCon,"designation"):
+                    oneCon.property = []
+                    tmpDesignation = []
+                    for oneDesig in oneCon.designation:
+                        if hasattr(oneDesig,"use") and oneDesig.use:
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = oneDesig.use
+                            theProp.value = oneDesig.value
+                            theProp.type = pcam.PropertyCodeType.string
+                            oneCon.property.append(theProp)
+                        else:
+                            tmpDesignation.append(oneDesig)
+                    oneCon.designation = tmpDesignation
             csUsedinVSinklConceptsOrClassi[oneCS] = supplSelf
             outputClass.exporto(supplSelf, outfileCSsuppl, outputClass, argsLang)
 
