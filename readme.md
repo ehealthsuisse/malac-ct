@@ -18,4 +18,4 @@ This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT
 ## How to expand
 The easy expandability is given by descending from the prop_csv_and_master.py . All the getter, the parse and the exporto function should be implemented, to convert your new classification. Don't forget to add the new classification to the malac_ct.py argument handling!
 ## Class Diagramm
-![Class Diagramm](class_diagramm.png "Class_Diagramm")
+![Class Diagramm](class_diagram.png "Class_Diagram")
