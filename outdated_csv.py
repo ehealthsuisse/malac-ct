@@ -50,7 +50,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 if 'hints' == headingList[i] and row[i] != "":
                                     if row[i].startswith("DEPRECATED") or row[i].startswith("inaktiv") and not retiredAlreadySet:
-                                        self.set_retired(theConcept)
+                                        self.set_statusToRetired(theConcept)
                                         retiredAlreadySet = True
                                     elif row[i] != "DEPRECATED" or row[i] != "inaktiv" and not retiredAlreadySet:
                                         theProp = pcam.CSConcept.ConceptProperty()
@@ -60,7 +60,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                         theConcept.property.append(theProp)
                                 if 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
                                 if 'type' == headingList[i] and row[i] == "D" and not retiredAlreadySet:
-                                    self.set_retired(theConcept)
+                                    self.set_statusToRetired(theConcept)
                                     retiredAlreadySet = True
                                 if 'type' == headingList[i] and row[i] == "A":
                                     theProp = pcam.CSConcept.ConceptProperty()
@@ -192,7 +192,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
 
         # needed for writing the orderNuber if its a valueset
         runningOrderNumber = 0
-        tmpDict = self.buildConceptDictWithKey("code")
+        tmpDict = self.buildConceptDictWithAttr("code")
         for oneConcept in self.get_concept():
             # writing csv-code
             conceptRow = [oneConcept.code or ""]

@@ -168,7 +168,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 oneProperty.description = oneMeta.get_value().split('|')[2]
                 oneProperty.type = oneMeta.get_value().split('|')[3]
                 retArr.append(oneProperty)
-        return self.get_additionalConceptPropertys(retArr)
+        return self.appendAdditionalConceptProperties(retArr)
 
     def get_immutable(self):
         return get_Meta_with_name(self,'immutable')

@@ -4,6 +4,9 @@ import prop_csv_and_master as pcam
 
 class Fsh2(Fsh1):
 
+    def parse(inFilename):
+        return Fsh2(inFilename)
+
     def parseConcepts(self, dictConcept, line, splittedLine, value):
         if '* #' in splittedLine[0]:
             theConcept = None
@@ -127,9 +130,6 @@ class Fsh2(Fsh1):
                         theFilter.op = value
                     elif '.value' in line:
                         theFilter.value = value
-
-    def parse(inFilename):
-        return Fsh2(inFilename)
 
     def exportoConcepto(self, outfile, incHierarchyExt4VS):
         conceptList = self.get_concept()

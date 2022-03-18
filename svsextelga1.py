@@ -293,10 +293,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     retiredAlreadySet = False
 
                     if (theConcept.display.upper().startswith("DEPRECATED") and not retiredAlreadySet):
-                        self.set_retired(theConcept)
+                        self.set_statusToRetired(theConcept)
                         retiredAlreadySet = True
                     if (oneCon.get_type() == "D" and not retiredAlreadySet):
-                        self.set_retired(theConcept)
+                        self.set_statusToRetired(theConcept)
                         retiredAlreadySet = True
                     if oneCon.get_type() == "A":
                         theProp = pcam.CSConcept.ConceptProperty()
@@ -336,7 +336,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         theConcept.property.append(theProp)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         if (tmp.upper().startswith("DEPRECATED") or tmp.upper().startswith("INAKTIV")) and not retiredAlreadySet:
-                            self.set_retired(theConcept)
+                            self.set_statusToRetired(theConcept)
                             retiredAlreadySet = True
                         else:
                             theProp = pcam.CSConcept.ConceptProperty()
@@ -405,7 +405,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
 
         concepts = []
         orderNumber = 0
-        tmpDict = self.buildConceptDictWithKey("code")
+        tmpDict = self.buildConceptDictWithAttr("code")
         for oneConcept in self.get_concept():
             # code can directly be appended, see concepts.append
 
