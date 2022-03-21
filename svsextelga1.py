@@ -110,24 +110,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             boolAddedSomething = True
 
         # TODO check if there is no version description in svs
-        #if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
-        #    if boolAddedSomething:
-        #        tempRet += "\n\n"
-        #    tempRet += "**Versions-Beschreibung:** "
-        #    tempRet += tempVerDesc
 
         if tempRet == "":
             tempRet = None
-        return tempRet
-
-
-        tempRet = None
-        if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
-            tempRet = tempBesch
-            if (tempDesc := super(SVSextELGA1Sub,self).get_description()) and not tempDesc == "":
-                tempRet += "\n\n"+tempDesc
-        elif (tempDesc := super(SVSextELGA1Sub,self).get_description()) and not tempDesc == "":
-            tempRet = tempDesc
         return tempRet
 
     def get_content(self):
@@ -235,147 +220,341 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         return None
 
     def get_concept(self):
-        retArr = []
-        theMemberParent = [None]*9
-        # sort with the orderNumber or sort after code
-        sortedConceptList = self.get_conceptList().get_concept()
-        if sortedConceptList[0].get_orderNumber() is not None:
-            sortedConceptList.sort(key=supermod.concept.get_orderNumber)
+        if hasattr(self, "concept") and self.concept:
+            return self.concept
         else:
-            sortedConceptList.sort(key=supermod.concept.get_code)
-        # iterate though the list
-        if self.get_resource() == "ValueSet":
-            for oneCon in sortedConceptList:
-                theConcept = pcam.VSConcept()
-                theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
-                theConcept.code = oneCon.get_code()
-                theConcept.display = oneCon.get_displayName()
+            retArr = []
+            theMemberParent = [None]*9
+            # sort with the orderNumber or sort after code
+            sortedConceptList = self.get_conceptList().get_concept()
+            if sortedConceptList[0].get_orderNumber() is not None:
+                sortedConceptList.sort(key=supermod.concept.get_orderNumber)
+            else:
+                sortedConceptList.sort(key=supermod.concept.get_code)
+            # iterate though the list
+            if self.get_resource() == "ValueSet":
+                for oneCon in sortedConceptList:
+                    theConcept = pcam.VSConcept()
+                    theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                    theConcept.code = oneCon.get_code()
+                    theConcept.display = oneCon.get_displayName()
 
-                if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.language = "de-AT"
-                    theDesig.value = tmpDeutsch
-                    theConcept.designation.append(theDesig)
-                if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "alt"
-                    theDesig.value = tmpDisAlt
-                    theConcept.designation.append(theDesig)
-                if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "concept_beschreibung"
-                    theDesig.value = tmp
-                    theConcept.designation.append(theDesig)
-                if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "einheit_codiert"
-                    theDesig.value = tmp
-                    theConcept.designation.append(theDesig)
-                if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "einheit_print"
-                    theDesig.value = tmp
-                    theConcept.designation.append(theDesig)
-                if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "hinweise"
-                    theDesig.value = tmp
-                    theConcept.designation.append(theDesig)
-                if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
-                    theDesig = pcam.ConceptDesignation()
-                    theDesig.use = "relationships"
-                    theDesig.value = tmp
-                    theConcept.designation.append(theDesig)
+                    if oneCon.get_type() == "A":
+                        theConcept.abstract = True
+                    if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.language = "de-AT"
+                        theDesig.value = tmpDeutsch
+                        theConcept.designation.append(theDesig)
+                    if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "alt"
+                        theDesig.value = tmpDisAlt
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "concept_beschreibung"
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "einheit_codiert"
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "einheit_print"
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "hinweise"
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = "relationships"
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
 
-                if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
-                    theConcept.level = tmpLevel
-                    theMemberParent[tmpLevel] = theConcept
-                    if tmpLevel > 0:
-                        theMemberParent[tmpLevel-1].member.append(theConcept)
+                    if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
+                        theConcept.level = tmpLevel
+                        theMemberParent[tmpLevel] = theConcept
+                        if tmpLevel > 0:
+                            theMemberParent[tmpLevel-1].member.append(theConcept)
 
-                retArr.append(theConcept)
+                    retArr.append(theConcept)
 
-        elif self.get_resource() == "CodeSystem":
-            for oneCon in sortedConceptList:
-                theConcept = pcam.CSConcept()
-                theConcept.code = oneCon.get_code()
-                theConcept.display = oneCon.get_displayName()
-                retiredAlreadySet = False
+            elif self.get_resource() == "CodeSystem":
+                for oneCon in sortedConceptList:
+                    theConcept = pcam.CSConcept()
+                    theConcept.code = oneCon.get_code()
+                    theConcept.display = oneCon.get_displayName()
+                    retiredAlreadySet = False
 
-                if (theConcept.display.upper().startswith("DEPRECATED") and not retiredAlreadySet):
-                    self.set_retired(theConcept)
-                    retiredAlreadySet = True
-                if (oneCon.get_type() == "D" and not retiredAlreadySet):
-                    self.set_retired(theConcept)
-                    retiredAlreadySet = True
-
-                if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "deutsch"
-                    theProp.value = tmpDeutsch
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
-                if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "displayNameAlt"
-                    theProp.value = tmpDisAlt
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
-                if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "concept_beschreibung"
-                    theProp.value = tmp
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
-                if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "einheit_codiert"
-                    theProp.value = tmp
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
-                if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "einheit_print"
-                    theProp.value = tmp
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
-                if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
-                    if (tmp.upper().startswith("DEPRECATED") or tmp.upper().startswith("INAKTIV")) and not retiredAlreadySet:
+                    if (theConcept.display.upper().startswith("DEPRECATED") and not retiredAlreadySet):
                         self.set_retired(theConcept)
                         retiredAlreadySet = True
-                    else:
+                    if (oneCon.get_type() == "D" and not retiredAlreadySet):
+                        self.set_retired(theConcept)
+                        retiredAlreadySet = True
+                    if oneCon.get_type() == "A":
                         theProp = pcam.CSConcept.ConceptProperty()
-                        theProp.code = "hinweise"
+                        theProp.code = "notSelectable"
+                        theProp.value = True
+                        theProp.type = pcam.PropertyCodeType.boolean
+                        theConcept.property.append(theProp)
+
+                    if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.language = "de-AT"
+                        theDesig.value = tmpDeutsch
+                        theConcept.designation.append(theDesig)
+                    if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "displayNameAlt"
+                        theProp.value = tmpDisAlt
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "concept_beschreibung"
                         theProp.value = tmp
                         theProp.type = pcam.PropertyCodeType.string
                         theConcept.property.append(theProp)
-                if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
-                    theProp = pcam.CSConcept.ConceptProperty()
-                    theProp.code = "relationships"
-                    theProp.value = tmp
-                    theProp.type = pcam.PropertyCodeType.string
-                    theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "einheit_codiert"
+                        theProp.value = tmp
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "einheit_print"
+                        theProp.value = tmp
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
+                        if (tmp.upper().startswith("DEPRECATED") or tmp.upper().startswith("INAKTIV")) and not retiredAlreadySet:
+                            self.set_retired(theConcept)
+                            retiredAlreadySet = True
+                        else:
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = "hinweise"
+                            theProp.value = tmp
+                            theProp.type = pcam.PropertyCodeType.string
+                            theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "relationships"
+                        theProp.value = tmp
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
 
 
-                if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
-                    theMemberParent[tmpLevel] = theConcept
-                    if tmpLevel > 0:
-                        theProperty = pcam.CSConcept.ConceptProperty()
-                        theProperty.code = "child"
-                        theProperty.value = oneCon.get_code()
-                        theProperty.type = pcam.PropertyCodeType.code
-                        theMemberParent[tmpLevel-1].property.append(theProperty)
+                    if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
+                        theMemberParent[tmpLevel] = theConcept
+                        if tmpLevel > 0:
+                            theProperty = pcam.CSConcept.ConceptProperty()
+                            theProperty.code = "child"
+                            theProperty.value = oneCon.get_code()
+                            theProperty.type = pcam.PropertyCodeType.code
+                            theMemberParent[tmpLevel-1].property.append(theProperty)
 
-                        theProperty = pcam.CSConcept.ConceptProperty()
-                        theProperty.code = "parent"
-                        theProperty.value = theMemberParent[tmpLevel-1].code
-                        theProperty.type = pcam.PropertyCodeType.code
-                        theConcept.property.append(theProperty)
+                            theProperty = pcam.CSConcept.ConceptProperty()
+                            theProperty.code = "parent"
+                            theProperty.value = theMemberParent[tmpLevel-1].code
+                            theProperty.type = pcam.PropertyCodeType.code
+                            theConcept.property.append(theProperty)
 
-                retArr.append(theConcept)
+                    retArr.append(theConcept)
+            self.concept = retArr
+            return retArr
 
-        return retArr
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        beschreibung = description = ""
+        if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
+            if "Beschreibung:" in tmp:
+                beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
+            if "Description:" in tmp:
+                description = tmp[tmp.index("Description:")+1].strip()
+        else:
+            beschreibung = description = self.get_description()
 
+        displayName = self.get_title()
+        effectiveDate = last_change_date = status_date = self.get_date() or ""
+        gueltigkeitsbereich = "empfohlen"
+
+        if (tmp := self.get_identifier()[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+            id = tmp
+        else:
+            id = self.gainOidFromName(self.get_resource()+"-"+self.get_name())
+
+        name = self.get_name()
+        statusCode = "1"
+        verantw_Org = self.get_publisher() or ""
+        version = self.get_version()
+
+        foundIt = False
+        for oneConcept in self.get_contact():
+            if oneConcept.telecom[0].system == pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value:
+                website = oneConcept.telecom[0].value
+                foundIt = True
+        if not foundIt:
+            website = ""
+
+        concepts = []
+        orderNumber = 0
+        tmpDict = self.buildConceptDictWithKey("code")
+        for oneConcept in self.get_concept():
+            # code can directly be appended, see concepts.append
+
+            # creating codeSystem
+            codeSystem = None
+            if self.get_resource() == "CodeSystem":
+                codeSystem = self.get_identifier()[0] or ""
+            elif self.get_resource() == "ValueSet":
+                codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
+
+            # creating concept_beschreibung
+            concept_beschreibung = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "concept_beschreibung":
+                        concept_beschreibung = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "concept_beschreibung":
+                        concept_beschreibung = oneDesig.value
+
+            # creating deutsch
+            deutsch = None
+            foundIt = False
+            for oneDesig in oneConcept.designation:
+                if oneDesig.language == "de-AT":
+                    deutsch = oneDesig.value
+                    foundIt = True
+            if not foundIt:
+                deutsch = oneConcept.display
+
+            # displayName can directly be appended, see concepts.append
+
+            # creating displayNameAlt
+            displayNameAlt = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "displayNameAlt":
+                        displayNameAlt = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "alt":
+                        displayNameAlt = oneDesig.value
+
+            # creating einheit_codiert
+            einheit_codiert = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "einheit_codiert":
+                        einheit_codiert = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "einheit_codiert":
+                        einheit_codiert = oneDesig.value
+
+            # creating einheit_print
+            einheit_print = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "einheit_print":
+                        einheit_print = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "einheit_print":
+                        einheit_print = oneDesig.value
+
+            # creating hinweise
+            hinweise = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "hinweise":
+                        hinweise = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "hinweise":
+                        hinweise = oneDesig.value
+
+            # creating level
+            level = None
+            if self.get_resource() == "CodeSystem":
+                level = 0
+                key = oneConcept.code
+                thereIsAParent = True
+                while thereIsAParent:
+                    # if there is a parent, than it will be set once to True
+                    thereIsAParent = False
+                    for oneProp in tmpDict[key].property:
+                        if oneProp.code == "parent":
+                            thereIsAParent = True
+                            level = level+1
+                            key = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                level = oneConcept.level
+
+            # creating orderNumber
+            orderNumber += 1
+
+            # creating parentCodeSystemName
+            parentCodeSystemName = None
+            if self.get_resource() == "ValueSet":
+                parentCodeSystemName = oneConcept.system
+
+            # creating relationships
+            relationships = None
+            if self.get_resource() == "CodeSystem":
+                for oneProp in oneConcept.property:
+                    if oneProp.code == "relationships":
+                        relationships = oneProp.value
+            elif self.get_resource() == "ValueSet":
+                for oneDesig in oneConcept.designation:
+                    if oneDesig.use == "relationships":
+                        relationships = oneDesig.value
+
+            # creating type
+            type_ = None
+            if self.get_resource() == "CodeSystem":
+                foundIt = False
+                for oneProp in oneConcept.property:
+                    # overruled following # for same behaivor like termpub csv, deprecation status is never set in type
+                    if oneProp.code == "status" and oneProp.value == "retired":
+                        type_= "D"
+                        foundIt = True
+                        break
+                    elif oneProp.code == "notSelectable" and oneProp.value == "true":
+                        type_ = "A"
+                        foundIt = True
+                        break
+                    elif oneProp.code == "child":
+                        type_ = "S"
+                        foundIt = True
+                        break
+                if foundIt == False:
+                    type_ = "L"
+            elif self.get_resource() == "ValueSet":
+                if oneConcept.member != []:
+                    type_ = "S"
+                elif oneConcept.abstract:
+                    type_ = "A"
+                else:
+                    type_ = "L"
+
+            concepts.append(conceptSub(oneConcept.code or "",codeSystem or "", 1, self.get_date() or "",
+              concept_beschreibung or "", deutsch or "", oneConcept.display or "", displayNameAlt,
+              einheit_codiert, einheit_print, hinweise or "", level, orderNumber,
+              parentCodeSystemName or "", relationships or "", type_ or ""))
+
+        conceptList = conceptListSub(concepts)
+        svsExtElga1 = SVSextELGA1Sub(beschreibung,description,displayName,effectiveDate,gueltigkeitsbereich,id,last_change_date,name,statusCode,status_date,verantw_Org,version,website,conceptList)
+        svsExtElga1.export(outfile, 0)
 supermod.SVSextELGA1.subclass = SVSextELGA1Sub
 # end class valueSetSub
 

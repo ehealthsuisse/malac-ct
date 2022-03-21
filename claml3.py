@@ -84,14 +84,14 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
 
     def get_identifier(self):
         identifiers = []
-        for oneIdentifier in self.get_Classification()[0].get_Identifier(): 
+        for oneIdentifier in self.get_Classification()[0].get_Identifier():
             identifiers.append(oneIdentifier.get_uid())
         return identifiers
 
     def get_version(self):
         return self.get_Classification()[0].get_Title()[0].get_version()
 
-    # todo: only override functions that are different to claml2 
+    # todo: only override functions that are different to claml2
     def get_name(self):
         return self.get_Classification()[0].get_Title()[0].get_name()
 
@@ -100,13 +100,13 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
 
     def get_status(self):
         return self.get_Classification()[0].get_Identifier()[0].get_status()
-        
+
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
 
     def get_date(self):
         return self.get_Classification()[0].get_Identifier()[0].get_date()
-        
+
     def get_publisher(self):
         return self.get_Classification()[0].get_Authors().get_Author()[0].get_name()
 
@@ -198,48 +198,52 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'modifierExtension')
 
     def get_concept(self):
-        retArr = []
-        for oneClass in self.get_Classification()[0].get_class():
-            theConcept = None
-            theConcept = pcam.CSConcept
-            theConcept.code = oneClass.get_code()
-            for oneRubric in oneClass.get_Rubric():
-                if oneRubric.get_kind() == "preferred":
-                    theConcept.display = oneRubric.get_Label()[0].get_valueOf_()
-                elif oneRubric.get_kind() == "definition":
-                    theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
-                elif oneRubric.get_kind() == "designation":
-                    splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
-                    theDesignation = None
-                    theDesignation = pcam.ConceptDesignation
-                    theDesignation.language = splittedValue[0]
-                    theDesignation.use = splittedValue[1]
-                    theDesignation.value = splittedValue[2]
-                    theConcept.designation.append(theDesignation)
-            for oneSuperClass in oneClass.get_SuperClass():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = "parent"
-                theProperty.value = oneSuperClass.get_code()
-                theConcept.property.append(theProperty)
-            for oneSubClass in oneClass.get_SubClass():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = "child"
-                theProperty.value = oneSubClass.get_code()
-                theConcept.property.append(theProperty)
-            for oneMeta in oneClass.get_Meta():
-                theProperty = None
-                theProperty = pcam.CSConcept.ConceptProperty
-                theProperty.code = oneMeta.get_name()
-                theProperty.value = oneMeta.get_value()
-                theConcept.property.append(theProperty)
+        if hasattr(self, "concept") and self.concept:
+            return self.concept
+        else:
+            retArr = []
+            for oneClass in self.get_Classification()[0].get_class():
+                theConcept = None
+                theConcept = pcam.CSConcept
+                theConcept.code = oneClass.get_code()
+                for oneRubric in oneClass.get_Rubric():
+                    if oneRubric.get_kind() == "preferred":
+                        theConcept.display = oneRubric.get_Label()[0].get_valueOf_()
+                    elif oneRubric.get_kind() == "definition":
+                        theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
+                    elif oneRubric.get_kind() == "designation":
+                        splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
+                        theDesignation = None
+                        theDesignation = pcam.ConceptDesignation
+                        theDesignation.language = splittedValue[0]
+                        theDesignation.use = splittedValue[1]
+                        theDesignation.value = splittedValue[2]
+                        theConcept.designation.append(theDesignation)
+                for oneSuperClass in oneClass.get_SuperClass():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = "parent"
+                    theProperty.value = oneSuperClass.get_code()
+                    theConcept.property.append(theProperty)
+                for oneSubClass in oneClass.get_SubClass():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = "child"
+                    theProperty.value = oneSubClass.get_code()
+                    theConcept.property.append(theProperty)
+                for oneMeta in oneClass.get_Meta():
+                    theProperty = None
+                    theProperty = pcam.CSConcept.ConceptProperty
+                    theProperty.code = oneMeta.get_name()
+                    theProperty.value = oneMeta.get_value()
+                    theConcept.property.append(theProperty)
 
-            retArr.append(theConcept)
-        return retArr
+                retArr.append(theConcept)
+            self.concept = retArr
+            return retArr
 
-    def exporto(self, outfile, outputClass, argsLang=None):
-        #required ClaMl3 fields        
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        #required ClaMl3 fields
         claml3 = ClaML3Sub('3.0.0')
         if tmp := self.get_language():
             lang = self.get_language()
@@ -273,25 +277,25 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         if tmp := self.get_contained(): metas.append(MetaSub('contained',tmp))
         if tmp := self.get_extension(): metas.append(MetaSub('extension',tmp))
         if tmp := self.get_modifierextension(): metas.append(MetaSub('modifierextension',tmp))
-        if tmp := self.get_identifier(): 
+        if tmp := self.get_identifier():
             for oneIdentifier in tmp:
                 mainIdent.set_uid(oneIdentifier)
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
-        if tmp := self.get_date(): 
+        if tmp := self.get_date():
             mainIdent.set_date(datetime.datetime.strptime(tmp, '%Y-%m-%d'))
         authors = None
-        if tmp := self.get_publisher(): 
-            authors = AuthorsSub(None,AuthorSub(tmp,None,None))
-        #todo contactDetail filling
-        """ if tmp := self.get_contact():
+        if tmp := self.get_publisher():
+            authors = AuthorsSub(Author=[AuthorSub(tmp)])
+        if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
-                for oneContact in self.get_contact():
-                    authors.append() """
-        if tmp := self.get_usecontext(): 
+            for oneContact in tmp:
+                oneAuthor = AuthorSub(oneContact.name or None, None, oneContact.telecom[0].value or None)
+                authors.get_Author().append(oneAuthor)
+        if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
-        if tmp := self.get_jurisdiction(): 
+        if tmp := self.get_jurisdiction():
             for oneJurisdiction in tmp:
                 metas.append(MetaSub('jurisdiction',oneJurisdiction))
         if tmp := self.get_purpose(): metas.append(MetaSub("purpose",tmp))
@@ -308,14 +312,14 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         #todo supplements
         #if tmp := self.get_supplements(): csv_list.append(("supplements",tmp))
         if tmp := self.get_count(): metas.append(MetaSub("count",tmp))
-        if tmp := self.get_filter(): 
+        if tmp := self.get_filter():
             for oneFilter in tmp:
                 metas.append(MetaSub("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
-        if tmp := self.get_property(): 
+        if tmp := self.get_property():
             for oneProperty in tmp:
                 metas.append(MetaSub("property",str(oneProperty)))
         # end list of metaelements
-        
+
         classes = []
         if tmp := self.get_concept():
             for oneConcept in tmp:
@@ -329,7 +333,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 if hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=oneConcept.designation)]))
-                
+
                 if hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "parent":
