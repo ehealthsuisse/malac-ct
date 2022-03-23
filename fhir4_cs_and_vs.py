@@ -25,6 +25,9 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         else:
             sys.exit('Filename does not comply with convention: either "CodeSystem" or "ValueSet"')
 
+    def get_resource(self):
+        return super(self.f4superclass, self).get_resource()
+
     def get_url(self):
         return super(self.f4superclass, self).get_url().get_value()
 
@@ -82,10 +85,22 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
     def get_identifier(self):
         f4_identifier_list = super(self.f4superclass, self).get_identifier()
         identifier_list = []
-        for f4_identifier in f4_identifier_list:
-            if f4_identifier.get_value():
-                identifier_list.append(f4_identifier.get_value())
+        for one_f4_identifier in f4_identifier_list:
+            if one_f4_identifier.get_value():
+                identifier_list.append(one_f4_identifier.get_value())
         return identifier_list
+
+    def get_experimental(self):
+        return super(self.f4superclass, self).get_experimental().get_value()
+
+    def get_date(self):
+        return super(self.f4superclass, self).get_date().get_value()
+
+    def get_publisher(self):
+        return super(self.f4superclass, self).get_publisher().get_value()
+
+    def get_contact(self):
+        return super(self.f4superclass, self).get_contact()
 
 f4cs.supermod.CodeSystem.subclass = FHIR4CsAndVs
 f4vs.supermod.ValueSet.subclass = FHIR4CsAndVs
