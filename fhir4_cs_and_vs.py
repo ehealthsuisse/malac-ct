@@ -1,4 +1,5 @@
 import sys
+import prop_csv_and_master as pcam
 import fhir4_codesystem as f4cs
 import fhir4_valueset as f4vs
 
@@ -26,10 +27,13 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
             sys.exit('Filename does not comply with convention: either "CodeSystem" or "ValueSet"')
 
     def get_resource(self):
-        return super(self.f4superclass, self).get_resource()
+        return self.f4superclass.get_resource()
 
     def get_url(self):
-        return super(self.f4superclass, self).get_url().get_value()
+        if tmp := super(self.f4superclass, self).get_url():
+            return tmp.get_value()
+        else:
+            return None
 
     def get_version(self):
         return super(self.f4superclass, self).get_version().get_value()
@@ -47,10 +51,15 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         return super(self.f4superclass, self).get_description().get_value()
 
     def get_implicitrules(self):
-        return super(self.f4superclass, self).get_implicitRules().get_value()
+        if tmp := super(self.f4superclass, self).get_implicitRules():
+            return tmp.get_value()
+        else:
+            return None
 
     def get_language(self):
-        return super(self.f4superclass, self).get_language().get_value()
+        if tmp := super(self.f4superclass, self).get_language():
+            return tmp.get_value()
+        return None
 
     # within fhir-base.xsd "text" has been removed from DomainResource
     #
@@ -91,16 +100,32 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         return identifier_list
 
     def get_experimental(self):
-        return super(self.f4superclass, self).get_experimental().get_value()
+        if tmp := super(self.f4superclass, self).get_experimental():
+            return tmp.get_value()
+        return None
 
     def get_date(self):
         return super(self.f4superclass, self).get_date().get_value()
 
     def get_publisher(self):
-        return super(self.f4superclass, self).get_publisher().get_value()
+        if tmp := super(self.f4superclass, self).get_publisher():
+            return tmp.get_value()
+        return None
 
     def get_contact(self):
-        return super(self.f4superclass, self).get_contact()
+        contact_list = super(self.f4superclass, self).get_contact()
+        contact_detail_list = []
+        for one_contact in contact_list:
+            the_contact_detail = pcam.ContactDetail()
+            if tmp := one_contact.get_name():
+                the_contact_detail.name = tmp.get_value()
+            for one_contact_point in one_contact.get_telecom():
+                the_contact_point = pcam.ContactDetail.ConcactPoint()
+                if tmp := one_contact_point.get_value():
+                    the_contact_point.value = tmp.get_value()
+                the_contact_detail.telecom.append(the_contact_point)
+            contact_detail_list.append(the_contact_detail)
+        return contact_detail_list
 
 f4cs.supermod.CodeSystem.subclass = FHIR4CsAndVs
 f4vs.supermod.ValueSet.subclass = FHIR4CsAndVs
