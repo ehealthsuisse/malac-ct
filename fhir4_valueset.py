@@ -24,6 +24,7 @@ from lxml import etree as etree_
 
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
+import fhir4_cs_and_vs_mixin as f4csvsmixin
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -61,7 +62,7 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
+class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsvAndMaster):
     def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, immutable=None, purpose=None, copyright=None, compose=None, expansion=None, **kwargs_):
         super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
 
@@ -69,8 +70,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         return pcam.Resource.ValueSet.value
 
     def get_lockeddate(self):
-        if tmp := self.get_lockedDate():
-            return tmp.get_value()
+        if tmp := self.get_compose():
+            if tmp := self.get_compose().get_lockedDate():
+                return tmp.get_value()
         return None
 
     def get_concept(self):
