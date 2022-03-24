@@ -57,7 +57,7 @@ class FHIR4CsAndVsMixin:
     # TODO currently, only value may be retrieved - even if there is more information available
     # see http://www.hl7.org/fhir/datatypes.html#Identifier
     def get_identifier(self):
-        identifier_list = self.get_identifier()
+        identifier_list = super().get_identifier()
         the_identifier_list = []
         for one_f4_identifier in identifier_list:
             if tmp := one_f4_identifier.get_value():
@@ -65,12 +65,12 @@ class FHIR4CsAndVsMixin:
         return the_identifier_list
 
     def get_version(self):
-        if tmp := self.get_version():
+        if tmp := super().get_version():
             return tmp.get_value()
         return None
 
     def get_name(self):
-        if tmp := self.get_name():
+        if tmp := super().get_name():
             return tmp.get_value()
         return None
 

@@ -62,11 +62,11 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsvAndMaster):
+class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
     def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, immutable=None, purpose=None, copyright=None, compose=None, expansion=None, **kwargs_):
         super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
 
-    def get_resource():
+    def get_resource(self):
         return pcam.Resource.ValueSet.value
 
     def get_immutable(self):
@@ -84,6 +84,26 @@ class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsv
         if tmp := self.get_compose():
             if tmp := self.get_compose().get_inactive():
                 return tmp.get_value()
+        return None
+
+    # TODO currently, only value may be retrieved - even if there is more information available
+    # see http://www.hl7.org/fhir/datatypes.html#Identifier
+    def get_identifier(self):
+        identifier_list = super().get_identifier()
+        the_identifier_list = []
+        for one_f4_identifier in identifier_list:
+            if tmp := one_f4_identifier.get_value():
+                the_identifier_list.append(tmp.get_value())
+        return the_identifier_list
+
+    def get_version(self):
+        if tmp := super().get_version():
+            return tmp.get_value()
+        return None
+
+    def get_name(self):
+        if tmp := super().get_name():
+            return tmp.get_value()
         return None
 
 supermod.ValueSet.subclass = ValueSetSub

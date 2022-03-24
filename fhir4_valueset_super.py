@@ -176,7 +176,7 @@ except ModulenotfoundExp_ as exp:
     except ModulenotfoundExp_ as exp:
         class GeneratedsSuperSuper(object):
             pass
-    
+
     class GeneratedsSuper(GeneratedsSuperSuper):
         __hash__ = object.__hash__
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -686,8 +686,8 @@ except ModulenotfoundExp_ as exp:
                     self.gds_elementtree_node_.sourceline)
             else:
                 return ""
-    
-    
+
+
     def getSubclassFromModule_(module, class_):
         '''Get the subclass of a class from a specific module.'''
         name = class_.__name__ + 'Sub'
@@ -1279,7 +1279,7 @@ class Element(GeneratedsSuper):
     """Element -- Base definition for all elements in a resource.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     extension -- May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -1429,7 +1429,7 @@ class Meta(Element):
     profile -- A list of profiles (references to [[[StructureDefinition]]] resources) that this resource claims to conform to. The URL is a reference to [[[StructureDefinition.url]]].
     security -- Security labels applied to this resource. These tags connect specific resources to the overall security policy and infrastructure.
     tag -- Tags applied to this resource. Tags are intended to be used to identify and relate resources to process and workflow, and applications are not required to consider the tags when interpreting the meaning of a resource.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -1642,7 +1642,7 @@ class Address(Element):
     postalCode -- A postal code designating a region defined by the postal service.
     country -- Country - a nation as commonly understood or generally accepted.
     period -- Time period when address was/is in use.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -1887,7 +1887,7 @@ class Address(Element):
 class AddressUse(Element):
     """AddressUse -- The use of an address.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2006,7 +2006,7 @@ class AddressUse(Element):
 class AddressType(Element):
     """AddressType -- The type of an address (physical / postal).
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2128,7 +2128,7 @@ class Contributor(Element):
     type -- The type of contributor.
     name -- The name of the individual or organization responsible for the contribution.
     contact -- Contact details to assist a user in finding and communicating with the contributor.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2268,7 +2268,7 @@ class Contributor(Element):
 class ContributorType(Element):
     """ContributorType -- The type of contributor.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2395,7 +2395,7 @@ class Attachment(Element):
     hash -- The calculated hash of the data using SHA-1. Represented using base64.
     title -- A label or set of text to display in place of the data.
     creation -- The date that the attachment was first created.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2610,7 +2610,7 @@ class DataRequirement(Element):
     dateFilter -- Date filters specify additional constraints on the data in terms of the applicable date range for specific elements. Each date filter specifies an additional constraint on the data, i.e. date filters are AND'ed, not OR'ed.
     limit -- Specifies a maximum number of results that are required (uses the _count search parameter).
     sort -- Specifies the order of the results to be returned.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -2880,7 +2880,7 @@ class DataRequirement_CodeFilter(Element):
     searchParam -- A token parameter that refers to a search parameter defined on the specified type of the DataRequirement, and which searches on elements of type code, Coding, or CodeableConcept.
     valueSet -- The valueset for the code filter. The valueSet and code elements are additive. If valueSet is specified, the filter will return only those data items for which the value of the code-valued element specified in the path is a member of the specified valueset.
     code -- The codes for the code filter. If values are given, the filter will return only those data items for which the code-valued attribute specified by the path has a value that is one of the specified codes. If codes are specified in addition to a value set, the filter returns items matching a code in the value set or one of the specified codes.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3038,7 +3038,7 @@ class DataRequirement_DateFilter(Element):
     The value of the filter. If period is specified, the filter will return only those data items that fall within the bounds determined by the Period, inclusive of the period boundaries. If dateTime is specified, the filter will return only those data items that are equal to the specified dateTime. If a Duration is specified, the filter will return only those data items that fall within Duration before now.
     path -- The date-valued attribute of the filter. The specified path SHALL be a FHIRPath resolveable on the specified type of the DataRequirement, and SHALL consist only of identifiers, constant indexers, and .resolve(). The path is allowed to contain qualifiers (.) to traverse sub-elements, as well as indexers ([x]) to traverse multiple-cardinality sub-elements (see the [Simple FHIRPath Profile](fhirpath.html#simple) for full details). Note that the index must be an integer constant. The path must resolve to an element of type date, dateTime, Period, Schedule, or Timing.
     searchParam -- A date parameter that refers to a search parameter defined on the specified type of the DataRequirement, and which searches on elements of type date, dateTime, Period, Schedule, or Timing.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3201,7 +3201,7 @@ class DataRequirement_Sort(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     path -- The attribute of the sort. The specified path must be resolvable from the type of the required data. The path is allowed to contain qualifiers (.) to traverse sub-elements, as well as indexers ([x]) to traverse multiple-cardinality sub-elements. Note that the index must be an integer constant.
     direction -- The direction of the sort, ascending or descending.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3317,7 +3317,7 @@ class DataRequirement_Sort(Element):
 class SortDirection(Element):
     """SortDirection -- The possible sort directions, ascending or descending.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3438,7 +3438,7 @@ class Money(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     value -- Numerical value (with implicit precision).
     currency -- ISO 4217 Currency Code.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3561,7 +3561,7 @@ class HumanName(Element):
     prefix -- Part of the name that is acquired as a title due to academic, legal, employment or nobility status, etc. and that appears at the start of the name.
     suffix -- Part of the name that is acquired as a title due to academic, legal, employment or nobility status, etc. and that appears at the end of the name.
     period -- Indicates the period of time when this name was valid for the named person.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3779,7 +3779,7 @@ class HumanName(Element):
 class NameUse(Element):
     """NameUse -- The use of a human name.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -3903,7 +3903,7 @@ class ContactPoint(Element):
     use -- Identifies the purpose for the contact point.
     rank -- Specifies a preferred order in which to use a set of contacts. ContactPoints with lower rank values are more preferred than those with higher rank values.
     period -- Time period when the contact point was/is in use.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4064,7 +4064,7 @@ class ContactPoint(Element):
 class ContactPointSystem(Element):
     """ContactPointSystem -- Telecommunications form for contact point.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4183,7 +4183,7 @@ class ContactPointSystem(Element):
 class ContactPointUse(Element):
     """ContactPointUse -- Use of contact point.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4308,7 +4308,7 @@ class Identifier(Element):
     value -- The portion of the identifier typically relevant to the user and which is unique within the context of the system.
     period -- Time period during which identifier is/was valid for use.
     assigner -- Organization that issued/manages the identifier.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4484,7 +4484,7 @@ class Identifier(Element):
 class IdentifierUse(Element):
     """IdentifierUse -- Identifies the purpose for this identifier, if known .
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4608,7 +4608,7 @@ class Coding(Element):
     code -- A symbol in syntax defined by the system. The symbol may be a predefined code or an expression in a syntax defined by the coding system (e.g. post-coordination).
     display -- A representation of the meaning of the code in the system, following the rules of the system.
     userSelected -- Indicates that this coding was chosen by a user directly - e.g. off a pick list of available items (codes or displays).
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -4776,7 +4776,7 @@ class SampledData(Element):
     upperLimit -- The upper limit of detection of the measured points. This is needed if any of the data points have the value "U" (higher than detection limit).
     dimensions -- The number of sample points at each time point. If this value is greater than one, then the dimensions will be interlaced - all the sample points for a point in time will be recorded at once.
     data -- A series of data points which are decimal values separated by a single space (character u20). The special values "E" (error), "L" (below detection limit) and "U" (above detection limit) can also be used in place of a decimal value.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5074,7 +5074,7 @@ class Ratio(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     numerator -- The value of the numerator.
     denominator -- The value of the denominator.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5197,7 +5197,7 @@ class Reference(Element):
     The type is the Canonical URL of Resource Definition that is the type this reference refers to. References are URLs that are relative to http://hl7.org/fhir/StructureDefinition/ e.g. "Patient" is a reference to http://hl7.org/fhir/StructureDefinition/Patient. Absolute URLs are only allowed for logical models (and can only be used in references in logical models, not resources).
     identifier -- An identifier for the target resource. This is used when there is no way to reference the other resource directly, either because the entity it represents is not available through a FHIR server, or because there is no way for the author of the resource to convert a known identifier to an actual location. There is no requirement that a Reference.identifier point to something that is actually exposed as a FHIR instance, but it SHALL point to a business concept that would be expected to be exposed as a FHIR instance, and that instance would need to be of a FHIR resource type allowed by the reference.
     display -- Plain text narrative that identifies the resource in addition to the resource reference.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5348,7 +5348,7 @@ class TriggerDefinition(Element):
     name -- A formal name for the event. This may be an absolute URI that identifies the event formally (e.g. from a trigger registry), or a simple relative URI that identifies the event in a local context.
     data -- The triggering data of the event (if this is a data trigger). If more than one data is requirement is specified, then all the data requirements must be true.
     condition -- A boolean-valued expression that is evaluated in the context of the container of the trigger definition and returns whether or not the trigger fires.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5563,7 +5563,7 @@ class TriggerDefinition(Element):
 class TriggerType(Element):
     """TriggerType -- The type of trigger.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5691,7 +5691,7 @@ class Quantity(Element):
     unit -- A human-readable form of the unit.
     system -- The identification of the system that provides the coded form of the unit.
     code -- A computer processable form of the unit in some unit representation system.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5867,7 +5867,7 @@ class Quantity(Element):
 class QuantityComparator(Element):
     """QuantityComparator -- How the Quantity should be understood and represented.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -5988,7 +5988,7 @@ class Period(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     start -- The start of the period. The boundary is inclusive.
     end -- The end of the period. If the end of the period is missing, it means no end was known or planned at the time the instance was created. The start may be in the past, and the end date in the future, which means that period is expected/planned to end at that time.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6104,7 +6104,7 @@ class Period(Element):
 class Duration(Quantity):
     """Duration -- A length of time.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6189,7 +6189,7 @@ class Range(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     low -- The low limit. The boundary is inclusive.
     high -- The high limit. The boundary is inclusive.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6314,7 +6314,7 @@ class RelatedArtifact(Element):
     url -- A url for the artifact that can be followed to access the actual content.
     document -- The document being referenced, represented as an attachment. This is exclusive with the resource element.
     resource -- The related resource, such as a library, value set, profile, or other knowledge resource.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6505,7 +6505,7 @@ class RelatedArtifact(Element):
 class RelatedArtifactType(Element):
     """RelatedArtifactType -- The type of relationship to the related artifact.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6627,7 +6627,7 @@ class Annotation(Element):
     The individual responsible for making the annotation.
     time -- Indicates when this particular annotation was made.
     text -- The text of the annotation in markdown format.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6775,7 +6775,7 @@ class ContactDetail(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     name -- The name of an individual to contact.
     telecom -- The contact details for the individual (if a name was provided) or the organization.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -6902,7 +6902,7 @@ class UsageContext(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     A value that defines the context specified in this context of use. The interpretation of the value is defined by the code.
     code -- A code that identifies the type of context being specified by this usage context.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7069,7 +7069,7 @@ class Expression(Element):
     language -- The media type of the language for the expression.
     expression -- An expression in the specified language that returns a value.
     reference -- A URI that defines where the expression is found.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7230,7 +7230,7 @@ class Expression(Element):
 class ExpressionLanguage(Element):
     """ExpressionLanguage -- The media type of the expression language.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7356,7 +7356,7 @@ class Signature(Element):
     targetFormat -- A mime type that indicates the technical format of the target resources signed by the signature.
     sigFormat -- A mime type that indicates the technical format of the signature. Important mime types are application/signature+xml for X ML DigSig, application/jose for JWS, and image/* for a graphical image of a signature, etc.
     data -- The base64 encoding of the Signature content. When signature is not recorded electronically this element would be empty.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7556,7 +7556,7 @@ class Signature(Element):
 class UnitsOfTime(Element):
     """UnitsOfTime -- A unit of time (units from UCUM).
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7675,7 +7675,7 @@ class UnitsOfTime(Element):
 class EventTiming(Element):
     """EventTiming -- Real world event relating to the schedule.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7796,7 +7796,7 @@ class CodeableConcept(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     coding -- A reference to a code defined by a terminology system.
     text -- A human language representation of the concept as seen/selected/uttered by the user who entered the data and/or which represents the intended meaning of the user.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -7928,7 +7928,7 @@ class ParameterDefinition(Element):
     documentation -- A brief discussion of what the parameter is for and how it is used by the module.
     type -- The type of the parameter.
     profile -- If specified, this indicates a profile that the input data must conform to, or that the output data will conform to.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8119,7 +8119,7 @@ class ParameterDefinition(Element):
 class PropertyRepresentation(Element):
     """PropertyRepresentation -- How a property is represented when serialized.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8238,7 +8238,7 @@ class PropertyRepresentation(Element):
 class ConstraintSeverity(Element):
     """ConstraintSeverity -- SHALL applications comply with this constraint?
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8357,7 +8357,7 @@ class ConstraintSeverity(Element):
 class AggregationMode(Element):
     """AggregationMode -- How resource references can be aggregated.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8476,7 +8476,7 @@ class AggregationMode(Element):
 class ReferenceVersionRules(Element):
     """ReferenceVersionRules -- Whether a reference needs to be version specific or version independent, or whether either can be used.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8595,7 +8595,7 @@ class ReferenceVersionRules(Element):
 class SlicingRules(Element):
     """SlicingRules -- How slices are interpreted when evaluating an instance.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8714,7 +8714,7 @@ class SlicingRules(Element):
 class BindingStrength(Element):
     """BindingStrength -- Indication of the degree of conformance expectations associated with a binding.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8833,7 +8833,7 @@ class BindingStrength(Element):
 class DiscriminatorType(Element):
     """DiscriminatorType -- How an element value is interpreted when discrimination is evaluated.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -8955,7 +8955,7 @@ class Resource(GeneratedsSuper):
     meta -- The metadata about the resource. This is content that is maintained by the infrastructure. Changes to the content might not always be associated with version changes to the resource.
     implicitRules -- A reference to a set of rules that were followed when the resource was constructed, and which must be understood when processing the content. Often, this is a reference to an implementation guide that defines the special rules along with other profiles etc.
     language -- The base language in which the resource is written.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9110,7 +9110,7 @@ class Resource(GeneratedsSuper):
 
 class PublicationStatus(Element):
     """PublicationStatus -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9228,7 +9228,7 @@ class PublicationStatus(Element):
 
 class SearchParamType(Element):
     """SearchParamType -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9346,7 +9346,7 @@ class SearchParamType(Element):
 
 class AdministrativeGender(Element):
     """AdministrativeGender -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9464,7 +9464,7 @@ class AdministrativeGender(Element):
 
 class FHIRVersion(Element):
     """FHIRVersion -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9582,7 +9582,7 @@ class FHIRVersion(Element):
 
 class NoteType(Element):
     """NoteType -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9700,7 +9700,7 @@ class NoteType(Element):
 
 class RemittanceOutcome(Element):
     """RemittanceOutcome -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9818,7 +9818,7 @@ class RemittanceOutcome(Element):
 
 class ConceptMapEquivalence(Element):
     """ConceptMapEquivalence -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -9936,7 +9936,7 @@ class ConceptMapEquivalence(Element):
 
 class DocumentReferenceStatus(Element):
     """DocumentReferenceStatus -- If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10057,7 +10057,7 @@ class DomainResource(Resource):
     extension -- May be used to represent additional information that is not part of the basic definition of the resource. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.
     modifierExtension -- May be used to represent additional information that is not part of the basic definition of the resource and that modifies the understanding of the element that contains it and/or the understanding of the containing element's descendants. Usually modifier elements provide negation or qualification. To make the use of extensions safe and manageable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer is allowed to define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension. Applications processing a resource are required to check for modifier extensions.
     Modifier extensions SHALL NOT change the meaning of any elements on Resource or DomainResource (including cannot change the meaning of modifierExtension itself).
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10206,7 +10206,7 @@ class DomainResource(Resource):
 class Age(Quantity):
     """Age -- A duration of time during which an organism (or a process) has existed.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10289,7 +10289,7 @@ class Age(Quantity):
 class Distance(Quantity):
     """Distance -- A length - a value with a unit that is a physical distance.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10372,7 +10372,7 @@ class Distance(Quantity):
 class Count(Quantity):
     """Count -- A measured amount (or an amount that can potentially be measured). Note that measured amounts include amounts that are not precisely quantified, including amounts involving arbitrary units and floating currencies.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10457,7 +10457,7 @@ class BackboneElement(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     modifierExtension -- May be used to represent additional information that is not part of the basic definition of the element and that modifies the understanding of the element in which it is contained and/or the understanding of the containing element's descendants. Usually modifier elements provide negation or qualification. To make the use of extensions safe and manageable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension. Applications processing a resource are required to check for modifier extensions.
     Modifier extensions SHALL NOT change the meaning of any elements on Resource or DomainResource (including cannot change the meaning of modifierExtension itself).
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -10583,7 +10583,7 @@ class Extension(Element):
     """Extension -- Optional Extension Element - found in all resources.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     Value of extension - must be one of a constrained set of the data types (see [Extensibility](extensibility.html) for a list).
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -11446,7 +11446,7 @@ class decimal(Element):
     """decimal -- A rational number with implicit precision
     Do not use an IEEE type floating point type, instead use something that works like a true decimal, with inbuilt precision (e.g. Java BigInteger)
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -11549,7 +11549,7 @@ class positiveInt(Element):
     >
     0)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -11660,7 +11660,7 @@ class id(Element):
     """id -- Any combination of letters, numerals, "-" and ".", with a length limit of 64 characters.  (This might be an integer, an unprefixed OID, UUID or any other identifier pattern that meets these constraints.)  Ids are case-insensitive.
     RFC 4122
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -11776,7 +11776,7 @@ class id(Element):
 class time(Element):
     """time -- A time during the day, with no date specified
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -11890,7 +11890,7 @@ class markdown(Element):
     """markdown -- A string that may contain Github Flavored Markdown syntax for optional processing by a mark down presentation engine
     Systems are not required to have markdown support, so the text should be readable without markdown processing. The markdown syntax is GFM - see https://github.github.com/gfm/
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12004,7 +12004,7 @@ class unsignedInt(Element):
     >
     = 0)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12116,7 +12116,7 @@ class base64Binary(Element):
     """base64Binary -- A stream of bytes
     A stream of bytes, base64 encoded
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12221,7 +12221,7 @@ class base64Binary(Element):
 class boolean(Element):
     """boolean -- Value of "true" or "false"
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12332,7 +12332,7 @@ class instant(Element):
     """instant -- An instant in time - known at least to the second
     Note: This is intended for where precisely observed times are required, typically system logs etc., and not human-reported times - for them, see date and dateTime (which can be as precise as instant, but is not required to be) below. Time zone is always required
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12444,7 +12444,7 @@ class instant(Element):
 class url(Element):
     """url -- A URI that is a literal reference
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12557,7 +12557,7 @@ class uuid(Element):
     """uuid -- A UUID, represented as a URI
     See The Open Group, CDE 1.1 Remote Procedure Call specification, Appendix A.
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12670,7 +12670,7 @@ class uri(Element):
     """uri -- String of characters used to identify a name or a resource
     see http://en.wikipedia.org/wiki/Uniform_resource_identifier
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12779,7 +12779,7 @@ class canonical(Element):
     """canonical -- A URI that is a reference to a canonical URL on a FHIR resource
     see [Canonical References](references.html#canonical)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -12893,7 +12893,7 @@ class oid(Element):
     RFC 3001. See also ISO/IEC 8824:1990
     €
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13006,7 +13006,7 @@ class integer(Element):
     """integer -- A whole number
     32 bit number; for values larger than this, use decimal
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13116,7 +13116,7 @@ class string(Element):
     """string -- A sequence of Unicode characters
     Note that FHIR strings SHALL NOT exceed 1MB in size
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13225,7 +13225,7 @@ class string(Element):
 class code(Element):
     """code -- A string which has at least one character and no leading or trailing whitespace and where there is no whitespace other than single spaces in the contents
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13338,7 +13338,7 @@ class code(Element):
 class dateTime(Element):
     """dateTime -- A date, date-time or partial date (e.g. just year or year + month).  If hours and minutes are specified, a time zone SHALL be populated. The format is a union of the schema types gYear, gYearMonth, date and dateTime. Seconds must be provided due to schema type constraints but may be zero-filled and may be ignored.                 Dates SHALL be valid dates.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13443,7 +13443,7 @@ class dateTime(Element):
 class date(Element):
     """date -- A date or partial date (e.g. just year or year + month). There is no time zone. The format is a union of the schema types gYear, gYearMonth and date.  Dates SHALL be valid dates.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13555,7 +13555,7 @@ class ValueSet_Contains(BackboneElement):
     display -- The recommended display for this item in the expansion.
     designation -- Additional representations for this item - other languages, aliases, specialized purposes, used for particular purposes, etc. These are relevant when the conditions of the expansion do not fix to a single correct representation.
     contains -- Other codes and entries contained under this entry in the hierarchy.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13780,7 +13780,7 @@ class ValueSet_Parameter(BackboneElement):
     """ValueSet.Parameter -- A ValueSet resource instance specifies a set of codes drawn from one or more code systems, intended for use in a particular context. Value sets link between [[[CodeSystem]]] definitions and their use in [coded elements](terminologies.html).
     The value of the parameter.
     name -- Name of the input parameter to the $expand operation; may be a server-assigned name for additional default or other server-supplied parameters used to control the expansion process.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -13991,7 +13991,7 @@ class ValueSet_Expansion(BackboneElement):
     offset -- If paging is being used, the offset at which this resource starts.  I.e. this resource is a partial view into the expansion. If paging is not being used, this element SHALL NOT be present.
     parameter -- A parameter that controlled the expansion process. These parameters may be used by users of expanded value sets to check whether the expansion is suitable for a particular purpose, or to pick the correct expansion.
     contains -- The codes that are contained in the value set expansion.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14187,7 +14187,7 @@ class ValueSet_Filter(BackboneElement):
     property -- A code that identifies a property or a filter defined in the code system.
     op -- The kind of operation to perform as a part of the filter criteria.
     value -- The match value may be either a code defined by the system, or a string value, which is a regex match on the literal string of the property value  (if the filter represents a property defined in CodeSystem) or of the system filter value (if the filter represents a filter defined in CodeSystem) when the operation is 'regex', or one of the values (true and false), when the operation is 'exists'.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14318,7 +14318,7 @@ class ValueSet_Filter(BackboneElement):
 class FilterOperator(Element):
     """FilterOperator -- The kind of operation to perform as a part of a property based filter.
     If the element is present, it must have either a @value, an @id, or extensions
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14439,7 +14439,7 @@ class ValueSet_Designation(BackboneElement):
     language -- The language this designation is defined for.
     use -- A code that represents types of uses of designations.
     value -- The text value for this designation.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14572,7 +14572,7 @@ class ValueSet_Concept(BackboneElement):
     code -- Specifies a code for the concept to be included or excluded.
     display -- The text to display to the user for this concept in the context of this valueset. If no display is provided, then applications using the value set use the display specified for the code by the system.
     designation -- Additional representations for this concept when used in this value set - other languages, aliases, specialized purposes, used for particular purposes, etc.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14716,7 +14716,7 @@ class ValueSet_Include(BackboneElement):
     concept -- Specifies a concept to be included or excluded.
     filter -- Select concepts by specify a matching criterion based on the properties (including relationships) defined by the system, or on filters defined by the system. If multiple filters are specified, they SHALL all be true.
     valueSet -- Selects the concepts found in this value set (based on its value set definition). This is an absolute URI that is a reference to ValueSet.url.  If multiple value sets are specified this includes the union of the contents of all of the referenced value sets.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -14907,7 +14907,7 @@ class ValueSet_Compose(BackboneElement):
     inactive -- Whether inactive codes - codes that are not approved for current use - are in the value set. If inactive = true, inactive codes are to be included in the expansion, if inactive = false, the inactive codes will not be included in the expansion. If absent, the behavior is determined by the implementation, or by the applicable $expand parameters (but generally, inactive codes would be expected to be included).
     include -- Include one or more codes from a code system or other value set(s).
     exclude -- Exclude one or more codes from the value set based on code system filters and/or other value sets.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -15089,7 +15089,7 @@ class ValueSet(DomainResource):
     copyright -- A copyright statement relating to the value set and/or its contents. Copyright statements are generally legal restrictions on the use and publishing of the value set.
     compose -- A set of criteria that define the contents of the value set by including or excluding codes selected from the specified code system(s) that the value set draws from. This is also known as the Content Logical Definition (CLD).
     expansion -- A value set can also be "expanded", where the value set is turned into a simple collection of enumerated codes. This element holds the expansion, if it has been performed.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -15483,7 +15483,7 @@ class ElementDefinition_Discriminator(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     type -- How the element value is interpreted when discrimination is evaluated.
     path -- A FHIRPath expression, using [the simple subset of FHIRPath](fhirpath.html#simple), that is used to identify the element on which discrimination is based.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -15602,7 +15602,7 @@ class ElementDefinition_Binding(BackboneElement):
     strength -- Indicates the degree of conformance expectations associated with this binding - that is, the degree to which the provided value set must be adhered to in the instances.
     description -- Describes the intended use of this particular set of codes.
     valueSet -- Refers to the value set that identifies the set of codes the binding refers to.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -15737,7 +15737,7 @@ class ElementDefinition_Slicing(BackboneElement):
     description -- A human-readable text description of how the slicing works. If there is no discriminator, this is required to be present to provide whatever information is possible about how the slices can be differentiated.
     ordered -- If the matching elements have to occur in the same order as defined in the profile.
     rules -- Whether additional slices are allowed or not. When the slices are ordered, profile authors can also say that additional slices are only allowed at the end.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -15894,7 +15894,7 @@ class ElementDefinition_Example(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     The actual value for the element, which must be one of the types allowed for this element.
     label -- Describes the purpose of this example amoung the set of examples.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -16751,7 +16751,7 @@ class ElementDefinition_Type(BackboneElement):
     targetProfile -- Used when the type is "Reference" or "canonical", and identifies a profile structure or implementation Guide that applies to the target of the reference this element refers to. If any profiles are specified, then the content must conform to at least one of them. The URL can be a local reference - to a contained StructureDefinition, or a reference to another StructureDefinition or Implementation Guide by a canonical URL. When an implementation guide is specified, the target resource SHALL conform to at least one profile defined in the implementation guide.
     aggregation -- If the type is a reference to another resource, how the resource is or can be aggregated - is it a contained resource, or a reference, and if the context is a bundle, is it included in the bundle.
     versioning -- Whether this reference needs to be version specific or version independent, or whether either can be used.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -16942,7 +16942,7 @@ class ElementDefinition_Base(BackboneElement):
     path -- The Path that identifies the base element - this matches the ElementDefinition.path for that element. Across FHIR, there is only one base definition of any element - that is, an element definition on a [[[StructureDefinition]]] without a StructureDefinition.base.
     min -- Minimum cardinality of the base element identified by the path.
     max -- Maximum cardinality of the base element identified by the path.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -17077,7 +17077,7 @@ class ElementDefinition_Mapping(BackboneElement):
     language -- Identifies the computable language in which mapping.map is expressed.
     map -- Expresses what part of the target specification corresponds to this element.
     comment -- Comments that provide information about the mapping or its use.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -17230,7 +17230,7 @@ class ElementDefinition_Constraint(BackboneElement):
     expression -- A [FHIRPath](fhirpath.html) expression of constraint that can be executed to see if this constraint is met.
     xpath -- An XPath expression of constraint that can be executed to see if this constraint is met.
     source -- A reference to the original source of the constraint, for traceability purposes.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -17461,7 +17461,7 @@ class ElementDefinition(BackboneElement):
     isSummary -- Whether the element should be included if a client requests a search with the parameter _summary=true.
     binding -- Binds to a value set if this element is coded (code, Coding, CodeableConcept, Quantity), or the data types (string, uri).
     mapping -- Identifies a concept from an external specification that roughly corresponds to this element.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -20590,7 +20590,7 @@ class ProdCharacteristic(BackboneElement):
     imprint -- Where applicable, the imprint can be specified as text.
     image -- Where applicable, the image can be provided The format of the image attachment shall be specified by regional implementations.
     scoring -- Where applicable, the scoring can be specified An appropriate controlled vocabulary shall be used The term and the term identifier shall be used.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -20889,7 +20889,7 @@ class Timing_Repeat(BackboneElement):
     timeOfDay -- Specified time of day for action to take place.
     when -- An approximate time period during the day, potentially linked to an event of daily living that indicates when the action should occur.
     offset -- The number of minutes from the event. If the event code does not indicate whether the minutes is before or after the event, then the offset is assumed to be after the event.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -21260,7 +21260,7 @@ class Timing(BackboneElement):
     event -- Identifies specific times when the event occurs.
     repeat -- A set of rules that describe when the event is scheduled.
     code -- A code for the timing schedule (or just text in code.text). Some codes such as BID are ubiquitous, but many institutions define their own additional codes. If a code is provided, the code is understood to be a complete statement of whatever is specified in the structured timing data, and either the code or the data may be used to interpret the Timing, with the exception that .repeat.bounds still applies over the code (and is not contained in the code).
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -21404,7 +21404,7 @@ class ProductShelfLife(BackboneElement):
     type -- This describes the shelf life, taking into account various scenarios such as shelf life of the packaged Medicinal Product itself, shelf life after transformation where necessary and shelf life after the first opening of a bottle, etc. The shelf life type shall be specified using an appropriate controlled vocabulary The controlled term and the controlled term identifier shall be specified.
     period -- The shelf life time period can be specified using a numerical value for the period of time and its unit of time measurement The unit of measurement shall be specified in accordance with ISO 11240 and the resulting terminology The symbol and the symbol identifier shall be used.
     specialPrecautionsForStorage -- Special precautions for storage, if any, can be specified using an appropriate controlled vocabulary The controlled term and the controlled term identifier shall be specified.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -21564,7 +21564,7 @@ class Population(BackboneElement):
     gender -- The gender of the specific population.
     race -- Race of the specific population.
     physiologicalCondition -- The existing physiological conditions of the specific population to which this applies.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -21727,7 +21727,7 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     lowLimit -- Lower limit possible or expected.
     highLimit -- Upper limit possible or expected.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -21849,7 +21849,7 @@ class SubstanceAmount(BackboneElement):
     amountType -- Most elements that require a quantitative value will also have a field called amount type. Amount type should always be specified because the actual value of the amount is often dependent on it. EXAMPLE: In capturing the actual relative amounts of substances or molecular fragments it is essential to indicate whether the amount refers to a mole ratio or weight ratio. For any given element an effort should be made to use same the amount type for all related definitional elements.
     amountText -- A textual comment on a numeric value.
     referenceRange -- Reference range of possible or expected values.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -22041,7 +22041,7 @@ class MarketingStatus(BackboneElement):
     Placed on the market
     ”
     refers to the release of the Medicinal Product into the distribution chain.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -22205,7 +22205,7 @@ class Dosage_DoseAndRate(BackboneElement):
     Amount of medication per dose.
     Amount of medication per unit of time.
     type -- The kind of dose or rate specified, for example, ordered or calculated.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
@@ -22396,7 +22396,7 @@ class Dosage(BackboneElement):
     maxDosePerPeriod -- Upper limit on medication per unit of time.
     maxDosePerAdministration -- Upper limit on medication per administration.
     maxDosePerLifetime -- Upper limit on medication per lifetime of the patient.
-    
+
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
