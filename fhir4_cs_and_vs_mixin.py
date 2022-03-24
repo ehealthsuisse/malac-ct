@@ -2,38 +2,22 @@ import prop_csv_and_master as pcam
 
 # see https://realpython.com/python-super/#multiple-inheritance-alternatives
 class FHIR4CsAndVsMixin:
-    def get_url(self):
-        if tmp := self.get_url():
-            return tmp.get_value()
-        else:
-            return None
+    # get_id() is not supported
 
-    def get_version(self):
-        return self.get_version().get_value()
-
-    def get_name(self):
-        return self.get_name().get_value()
-
-    def get_title(self):
-        return self.get_title().get_value()
-
-    def get_status(self):
-        return self.get_status().get_value()
-
-    def get_description(self):
-        return self.get_description().get_value()
+    # get_meta() is not supported
 
     def get_implicitrules(self):
         if tmp := self.get_implicitRules():
             return tmp.get_value()
-        else:
-            return None
+        return None
 
     def get_language(self):
         if tmp := self.get_language():
             return tmp.get_value()
         return None
 
+    # NOT SUPPORTED
+    #
     # within fhir-base.xsd "text" has been removed from DomainResource
     #
     # DomainResource/text is of type Narrative which itself allows a lot
@@ -44,6 +28,8 @@ class FHIR4CsAndVsMixin:
     def get_text(self):
         return None
 
+    # NOT SUPPORTED
+    #
     # within fhir-base.xsd "contained" has been removed from DomainResource
     #
     # DomainResource/contained results in circular imports which makes it
@@ -63,14 +49,40 @@ class FHIR4CsAndVsMixin:
     def get_modifierextension(self):
         return None
 
+    def get_url(self):
+        if tmp := self.get_url():
+            return tmp.get_value()
+        return None
+
     # TODO currently, only value may be retrieved - even if there is more information available
+    # see http://www.hl7.org/fhir/datatypes.html#Identifier
     def get_identifier(self):
-        f4_identifier_list = self.get_identifier()
-        identifier_list = []
-        for one_f4_identifier in f4_identifier_list:
+        identifier_list = self.get_identifier()
+        the_identifier_list = []
+        for one_f4_identifier in identifier_list:
             if tmp := one_f4_identifier.get_value():
-                identifier_list.append(tmp.get_value())
-        return identifier_list
+                the_identifier_list.append(tmp.get_value())
+        return the_identifier_list
+
+    def get_version(self):
+        if tmp := self.get_version():
+            return tmp.get_value()
+        return None
+
+    def get_name(self):
+        if tmp := self.get_name():
+            return tmp.get_value()
+        return None
+
+    def get_title(self):
+        if tmp := self.get_title():
+            return tmp.get_value()
+        return None
+
+    def get_status(self):
+        if tmp := self.get_status():
+            return tmp.get_value()
+        return None
 
     def get_experimental(self):
         if tmp := self.get_experimental():
@@ -78,7 +90,9 @@ class FHIR4CsAndVsMixin:
         return None
 
     def get_date(self):
-        return self.get_date().get_value()
+        if tmp := self.get_date():
+            return tmp.get_value()
+        return None
 
     def get_publisher(self):
         if tmp := self.get_publisher():
@@ -86,9 +100,9 @@ class FHIR4CsAndVsMixin:
         return None
 
     def get_contact(self):
-        f4_contact_list = self.get_contact()
-        contact_list = []
-        for one_contact in f4_contact_list:
+        contact_list = self.get_contact()
+        the_contact_list = []
+        for one_contact in contact_list:
             the_contact_detail = pcam.ContactDetail()
             if tmp := one_contact.get_name():
                 the_contact_detail.name = tmp.get_value()
@@ -105,8 +119,13 @@ class FHIR4CsAndVsMixin:
                 if tmp := one_contact_point.get_period():
                     the_contact_point.value = tmp.get_value()
                 the_contact_detail.telecom.append(the_contact_point)
-            contact_list.append(the_contact_detail)
-        return contact_list
+            the_contact_list.append(the_contact_detail)
+        return the_contact_list
+
+    def get_description(self):
+        if tmp := self.get_description():
+            return tmp.get_value()
+        return None
 
     # TODO not fully supported yet, UsageContext is a complex datatype, and there may be 0..*
     #
@@ -131,10 +150,5 @@ class FHIR4CsAndVsMixin:
 
     def get_copyright(self):
         if tmp := self.get_copyright():
-            return tmp.get_value()
-        return None
-
-    def get_immutable(self):
-        if tmp := self.get_immutable():
             return tmp.get_value()
         return None

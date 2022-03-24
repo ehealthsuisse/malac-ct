@@ -69,6 +69,11 @@ class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsv
     def get_resource():
         return pcam.Resource.ValueSet.value
 
+    def get_immutable(self):
+        if tmp := self.get_immutable():
+            return tmp.get_value()
+        return None
+
     def get_lockeddate(self):
         if tmp := self.get_compose():
             if tmp := self.get_compose().get_lockedDate():
@@ -80,9 +85,6 @@ class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsv
             if tmp := self.get_compose().get_inactive():
                 return tmp.get_value()
         return None
-
-    def get_concept(self):
-        return super().get_concept()
 
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub

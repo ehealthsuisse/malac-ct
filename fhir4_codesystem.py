@@ -94,6 +94,11 @@ class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.Pro
             return tmp.get_value()
         return None
 
+    def get_content(self):
+        if tmp := self.get_content():
+            return tmp.get_value()
+        return None
+
     def get_supplements(self):
         if tmp := self.get_supplements():
             return tmp.get_value()
@@ -104,10 +109,37 @@ class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.Pro
             return tmp.get_value()
         return None
 
-    def get_content(self):
-        if tmp := self.get_content():
-            return tmp.get_value()
-        return None
+    def get_filter(self):
+        filter_list = self.get_filter()
+        the_filter_list = []
+        for one_filter in filter_list:
+            the_filter = pcam.Filter()
+            if tmp := one_filter.get_code():
+                the_filter.code = tmp.get_value()
+            if tmp := one_filter.get_description():
+                the_filter.description = tmp.get_value()
+            if tmp := one_filter.get_operator():
+                the_filter.operator = tmp.get_value()
+            if tmp := one_filter.get_value():
+                the_filter.value = tmp.get_value()
+            the_filter_list.append(the_filter)
+        return the_filter_list
+
+    def get_property(self):
+        property_list = self.get_property()
+        the_property_list = []
+        for one_property in property_list:
+            the_property = pcam.Property()
+            if tmp := one_property.get_code():
+                the_property.code = tmp.get_value()
+            if tmp := one_property.get_uri():
+                the_property.uri = tmp.get_value()
+            if tmp := one_property.get_description():
+                the_property.description = tmp.get_value()
+            if tmp := one_property.get_type():
+                the_property.type = tmp.get_value()
+            the_property_list.append(the_property)
+        return the_property_list
 
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub
