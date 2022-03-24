@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // python malac_ct.py -i ./term/ValueSet-elga-serviceeventslabor/ValueSet-elga-serviceeventslabor.1.svsextelga.xml -langArg de-AT -CSSuppl4VS -sushi -j2xServer http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/ -j2xUser fhiruser -j2xPw integrati0n -url https://gkl.termgit.elga.gv.at -appndProcTermTo terminologiesMetadata.csv
         {
             "name": "VS_malac-ct",
             "type": "python",
@@ -12,14 +13,15 @@
             "console": "integratedTerminal",
             "args": [
                 //"-o", "icd10gm2021syst_claml_20200918_20201111___.1.fsh",//"CS-ISO-3166-1-alpha-3.xml",
-                "-i", "./term/ValueSet-appc-anatomie/ValueSet-appc-anatomie.4.fhir.xml", //"Y:\\Termserver\\termgit\\ASP-Liste\\20201028_ASP-Liste_ASP-Liste_Liste_der_humanen_Arzneispezialitäten_gelistet_nach_PZN_20200929_claml.xml",
+                "-i", "./term/ValueSet-elga-serviceeventslabor/ValueSet-elga-serviceeventslabor.1.svsextelga.xml", //"Y:\\Termserver\\termgit\\ASP-Liste\\20201028_ASP-Liste_ASP-Liste_Liste_der_humanen_Arzneispezialitäten_gelistet_nach_PZN_20200929_claml.xml",
                 "-langArg", "de-AT",
                 "-CSSuppl4VS",
                 "-sushi",
                 "-j2xServer", "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/",
                 "-j2xUser", "fhiruser",
                 "-j2xPw", "integrati0n",
-                "-url", "https://gkl.termgit.elga.gv.at"
+                "-url", "https://gkl.termgit.elga.gv.at",
+                "-appndProcTermTo", "terminologiesMetadata.csv"
             ]
         },
         {
@@ -37,7 +39,8 @@
                 "-j2xServer", "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/",
                 "-j2xUser", "fhiruser",
                 "-j2xPw", "integrati0n",
-                "-url", "https://gkl.termgit.elga.gv.at"
+                "-url", "https://gkl.termgit.elga.gv.at",
+                "-appndProcTermTo", "terminologiesMetadata.csv"
             ]
         }
     ]
