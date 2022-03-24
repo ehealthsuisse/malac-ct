@@ -68,6 +68,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_resource():
         return pcam.Resource.CodeSystem.value
 
+    def get_lockeddate(self):
+        return None
+
     def get_content(self):
         return super().get_content().get_value()
 

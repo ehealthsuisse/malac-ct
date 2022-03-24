@@ -68,6 +68,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
     def get_resource():
         return pcam.Resource.ValueSet.value
 
+    def get_lockeddate(self):
+        if tmp := self.get_lockedDate():
+            return tmp.get_value()
+        return None
+
     def get_concept(self):
         return super().get_concept()
 

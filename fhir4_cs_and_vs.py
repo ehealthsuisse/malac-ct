@@ -95,8 +95,8 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         f4_identifier_list = super(self.f4superclass, self).get_identifier()
         identifier_list = []
         for one_f4_identifier in f4_identifier_list:
-            if one_f4_identifier.get_value():
-                identifier_list.append(one_f4_identifier.get_value())
+            if tmp := one_f4_identifier.get_value():
+                identifier_list.append(tmp.get_value())
         return identifier_list
 
     def get_experimental(self):
@@ -165,6 +165,9 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         if tmp := super(self.f4superclass, self).get_immutable():
             return tmp.get_value()
         return None
+
+    def get_lockeddate(self):
+        return self.f4superclass.get_lockeddate(self)
 
 
 
