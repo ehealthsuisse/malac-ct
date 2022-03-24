@@ -69,11 +69,45 @@ class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.Pro
     def get_resource():
         return pcam.Resource.CodeSystem.value
 
-    def get_lockeddate(self):
+    def get_casesensitive(self):
+        if tmp := self.get_caseSensitive():
+            return tmp.get_value()
+        return None
+
+    def get_valueset(self):
+        if tmp := self.get_valueSet():
+            return tmp.get_value()
+        return None
+
+    def get_hierarchymeaning(self):
+        if tmp := self.get_hierarchyMeaning():
+            return tmp.get_value()
+        return None
+
+    def get_compositional(self):
+        if tmp := self.get_compositional():
+            return tmp.get_value()
+        return None
+
+    def get_versionneeded(self):
+        if tmp := self.get_versionNeeded():
+            return tmp.get_value()
+        return None
+
+    def get_supplements(self):
+        if tmp := self.get_supplements():
+            return tmp.get_value()
+        return None
+
+    def get_count(self):
+        if tmp := self.get_count():
+            return tmp.get_value()
         return None
 
     def get_content(self):
-        return super().get_content().get_value()
+        if tmp := self.get_content():
+            return tmp.get_value()
+        return None
 
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub

@@ -75,6 +75,12 @@ class ValueSetSub(supermod.ValueSet, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsv
                 return tmp.get_value()
         return None
 
+    def get_inactive(self):
+        if tmp := self.get_compose():
+            if tmp := self.get_compose().get_inactive():
+                return tmp.get_value()
+        return None
+
     def get_concept(self):
         return super().get_concept()
 
