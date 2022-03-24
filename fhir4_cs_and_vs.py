@@ -113,19 +113,60 @@ class FHIR4CsAndVs(f4cs.CodeSystemSub, f4vs.ValueSetSub):
         return None
 
     def get_contact(self):
-        contact_list = super(self.f4superclass, self).get_contact()
-        contact_detail_list = []
-        for one_contact in contact_list:
+        f4_contact_list = super(self.f4superclass, self).get_contact()
+        contact_list = []
+        for one_contact in f4_contact_list:
             the_contact_detail = pcam.ContactDetail()
             if tmp := one_contact.get_name():
                 the_contact_detail.name = tmp.get_value()
             for one_contact_point in one_contact.get_telecom():
                 the_contact_point = pcam.ContactDetail.ConcactPoint()
+                if tmp := one_contact_point.get_system():
+                    the_contact_point.system = tmp.get_value()
                 if tmp := one_contact_point.get_value():
                     the_contact_point.value = tmp.get_value()
+                if tmp := one_contact_point.get_use():
+                    the_contact_point.use = tmp.get_value()
+                if tmp := one_contact_point.get_rank():
+                    the_contact_point.value = tmp.get_value()
+                if tmp := one_contact_point.get_period():
+                    the_contact_point.value = tmp.get_value()
                 the_contact_detail.telecom.append(the_contact_point)
-            contact_detail_list.append(the_contact_detail)
-        return contact_detail_list
+            contact_list.append(the_contact_detail)
+        return contact_list
+
+    # TODO not fully supported yet, UsageContext is a complex datatype, and there may be 0..*
+    #
+    # right now it is not clear, how the elements should be processed
+    #
+    # see http://www.hl7.org/fhir/metadatatypes.html#UsageContext
+    def get_usecontext(self):
+        return []
+
+    # TODO not fully supported yet, CodeableConcept is a complex datatype
+    #
+    # right now it is not clear, how the elements should be processed
+    #
+    # see http://www.hl7.org/fhir/datatypes.html#CodeableConcept
+    def get_jurisdiction(self):
+        return []
+
+    def get_purpose(self):
+        if tmp := super(self.f4superclass, self).get_purpose():
+            return tmp.get_value()
+        return None
+
+    def get_copyright(self):
+        if tmp := super(self.f4superclass, self).get_copyright():
+            return tmp.get_value()
+        return None
+
+    def get_immutable(self):
+        if tmp := super(self.f4superclass, self).get_immutable():
+            return tmp.get_value()
+        return None
+
+
 
 f4cs.supermod.CodeSystem.subclass = FHIR4CsAndVs
 f4vs.supermod.ValueSet.subclass = FHIR4CsAndVs
