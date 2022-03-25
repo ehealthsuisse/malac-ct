@@ -24,7 +24,7 @@ from lxml import etree as etree_
 
 import fhir4_codesystem_super as supermod
 import prop_csv_and_master as pcam
-import fhir4_cs_and_vs_mixin as f4csvsmixin
+import fhir4_cs_and_vs as f4csvs
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -62,55 +62,122 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.PropCsvAndMaster):
+class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, purpose=None, copyright=None, caseSensitive=None, valueSet=None, hierarchyMeaning=None, compositional=None, versionNeeded=None, content=None, supplements=None, count=None, filter=None, property=None, concept=None, **kwargs_):
         super(CodeSystemSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, purpose, copyright, caseSensitive, valueSet, hierarchyMeaning, compositional, versionNeeded, content, supplements, count, filter, property, concept,  **kwargs_)
 
     def get_resource(self):
         return pcam.Resource.CodeSystem.value
 
+    def get_implicitrules(self):
+        return f4csvs.get_implicitrules(super())
+
+    def get_language(self):
+        return f4csvs.get_language(super())
+
+    def get_text(self):
+        return f4csvs.get_text(super())
+
+    def get_contained(self):
+        return f4csvs.get_contained(super())
+
+    def get_extension(self):
+        return f4csvs.get_extension(super())
+
+    def get_modifierextension(self):
+        return f4csvs.get_modifierextension(super())
+
+    def get_url(self):
+        return f4csvs.get_url(super())
+
+    def get_identifier(self):
+        return f4csvs.get_identifier(super())
+
+    def get_version(self):
+        return f4csvs.get_version(super())
+
+    def get_name(self):
+        return f4csvs.get_name(super())
+
+    def get_title(self):
+        return f4csvs.get_title(super())
+
+    def get_status(self):
+        return f4csvs.get_status(super())
+
+    def get_experimental(self):
+        return f4csvs.get_experimental(super())
+
+    def get_date(self):
+        return f4csvs.get_date(super())
+
+    def get_publisher(self):
+        return f4csvs.get_publisher(super())
+
+    def get_contact(self):
+        return f4csvs.get_contact(super())
+
+    def get_description(self):
+        return f4csvs.get_description(super())
+
+    def get_usecontext(self):
+        return f4csvs.get_usecontext(super())
+
+    def get_jurisdiction(self):
+        return f4csvs.get_jurisdiction(super())
+
+    # field from ValueSet
+    def get_immutable(self):
+        return None
+
+    def get_purpose(self):
+        return f4csvs.get_purpose(super())
+
+    def get_copyright(self):
+        return f4csvs.get_copyright(super())
+
     def get_casesensitive(self):
-        if tmp := self.get_caseSensitive():
+        if tmp := super().get_caseSensitive():
             return tmp.get_value()
         return None
 
     def get_valueset(self):
-        if tmp := self.get_valueSet():
+        if tmp := super().get_valueSet():
             return tmp.get_value()
         return None
 
     def get_hierarchymeaning(self):
-        if tmp := self.get_hierarchyMeaning():
+        if tmp := super().get_hierarchyMeaning():
             return tmp.get_value()
         return None
 
     def get_compositional(self):
-        if tmp := self.get_compositional():
+        if tmp := super().get_compositional():
             return tmp.get_value()
         return None
 
     def get_versionneeded(self):
-        if tmp := self.get_versionNeeded():
+        if tmp := super().get_versionNeeded():
             return tmp.get_value()
         return None
 
     def get_content(self):
-        if tmp := self.get_content():
+        if tmp := super().get_content():
             return tmp.get_value()
         return None
 
     def get_supplements(self):
-        if tmp := self.get_supplements():
+        if tmp := super().get_supplements():
             return tmp.get_value()
         return None
 
     def get_count(self):
-        if tmp := self.get_count():
+        if tmp := super().get_count():
             return tmp.get_value()
         return None
 
     def get_filter(self):
-        filter_list = self.get_filter()
+        filter_list = super().get_filter()
         the_filter_list = []
         for one_filter in filter_list:
             the_filter = pcam.Filter()
@@ -126,7 +193,7 @@ class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.Pro
         return the_filter_list
 
     def get_property(self):
-        property_list = self.get_property()
+        property_list = super().get_property()
         the_property_list = []
         for one_property in property_list:
             the_property = pcam.Property()
@@ -140,6 +207,14 @@ class CodeSystemSub(supermod.CodeSystem, f4csvsmixin.FHIR4CsAndVsMixin, pcam.Pro
                 the_property.type = tmp.get_value()
             the_property_list.append(the_property)
         return the_property_list
+
+    # field from ValueSet
+    def get_lockeddate(self):
+        return None
+
+    # field from ValueSet
+    def get_inactive(self):
+        return None
 
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub

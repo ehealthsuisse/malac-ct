@@ -24,7 +24,7 @@ from lxml import etree as etree_
 
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
-import fhir4_cs_and_vs_mixin as f4csvsmixin
+import fhir4_cs_and_vs as f4csvs
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -69,41 +69,124 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
     def get_resource(self):
         return pcam.Resource.ValueSet.value
 
+    def get_implicitrules(self):
+        return f4csvs.get_implicitrules(super())
+
+    def get_language(self):
+        return f4csvs.get_language(super())
+
+    def get_text(self):
+        return f4csvs.get_text(super())
+
+    def get_contained(self):
+        return f4csvs.get_contained(super())
+
+    def get_extension(self):
+        return f4csvs.get_extension(super())
+
+    def get_modifierextension(self):
+        return f4csvs.get_modifierextension(super())
+
+    def get_url(self):
+        return f4csvs.get_url(super())
+
+    def get_identifier(self):
+        return f4csvs.get_identifier(super())
+
+    def get_version(self):
+        return f4csvs.get_version(super())
+
+    def get_name(self):
+        return f4csvs.get_name(super())
+
+    def get_title(self):
+        return f4csvs.get_title(super())
+
+    def get_status(self):
+        return f4csvs.get_status(super())
+
+    def get_experimental(self):
+        return f4csvs.get_experimental(super())
+
+    def get_date(self):
+        return f4csvs.get_date(super())
+
+    def get_publisher(self):
+        return f4csvs.get_publisher(super())
+
+    def get_contact(self):
+        return f4csvs.get_contact(super())
+
+    def get_description(self):
+        return f4csvs.get_description(super())
+
+    def get_usecontext(self):
+        return f4csvs.get_usecontext(super())
+
+    def get_jurisdiction(self):
+        return f4csvs.get_jurisdiction(super())
+
     def get_immutable(self):
-        if tmp := self.get_immutable():
+        if tmp := super().get_immutable():
             return tmp.get_value()
         return None
 
+    def get_purpose(self):
+        return f4csvs.get_purpose(super())
+
+    def get_copyright(self):
+        return f4csvs.get_copyright(super())
+
+    # field from CodeSystem
+    def get_casesensitive(self):
+        return None
+
+    # field from CodeSystem
+    def get_valueset(self):
+        return None
+
+    # field from CodeSystem
+    def get_hierarchymeaning(self):
+        return None
+
+    # field from CodeSystem
+    def get_compositional(self):
+        return None
+
+    # field from CodeSystem
+    def get_versionneeded(self):
+        return None
+
+    # field from CodeSystem
+    def get_content(self):
+        return None
+
+    # field from CodeSystem
+    def get_supplements(self):
+        return None
+
+    # field from CodeSystem
+    def get_count(self):
+        return None
+
+    # field from CodeSystem
+    def get_filter(self):
+        return []
+
+    # field from CodeSystem
+    def get_property(self):
+        return []
+
     def get_lockeddate(self):
-        if tmp := self.get_compose():
-            if tmp := self.get_compose().get_lockedDate():
+        if tmp := super().get_compose():
+            if tmp := tmp.get_lockedDate():
                 return tmp.get_value()
         return None
 
     def get_inactive(self):
-        if tmp := self.get_compose():
-            if tmp := self.get_compose().get_inactive():
+        if tmp := super().get_compose():
+            if tmp := tmp.get_inactive():
                 return tmp.get_value()
-        return None
-
-    # TODO currently, only value may be retrieved - even if there is more information available
-    # see http://www.hl7.org/fhir/datatypes.html#Identifier
-    def get_identifier(self):
-        identifier_list = super().get_identifier()
-        the_identifier_list = []
-        for one_f4_identifier in identifier_list:
-            if tmp := one_f4_identifier.get_value():
-                the_identifier_list.append(tmp.get_value())
-        return the_identifier_list
-
-    def get_version(self):
-        if tmp := super().get_version():
-            return tmp.get_value()
-        return None
-
-    def get_name(self):
-        if tmp := super().get_name():
-            return tmp.get_value()
         return None
 
 supermod.ValueSet.subclass = ValueSetSub
