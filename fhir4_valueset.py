@@ -20,6 +20,7 @@
 
 import os
 import sys
+from xml.etree.ElementInclude import include
 from lxml import etree as etree_
 
 import fhir4_valueset_super as supermod
@@ -188,6 +189,20 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if tmp := tmp.get_inactive():
                 return tmp.get_value()
         return None
+
+    def get_concept(self):
+        the_concept_list = []
+        if tmp := super().get_compose():
+            if tmp := tmp.get_include():
+                include_list = tmp
+                for one_include in include_list:
+                    the_concept = pcam.VSConcept()
+                    if tmp := one_include.get_system():
+                        the_concept.system = tmp.get_value()
+                    if tmp := one_include.get_version():
+                        the_concept.version = tmp.get_value()
+                    the_concept_list.append(the_concept)
+        return the_concept_list
 
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub
