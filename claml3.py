@@ -214,7 +214,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     elif oneRubric.get_kind() == "designation":
                         splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
                         theDesignation = None
-                        theDesignation = pcam.ConceptDesignation
+                        theDesignation = pcam.ConceptDesignation()
                         theDesignation.language = splittedValue[0]
                         theDesignation.use = splittedValue[1]
                         theDesignation.value = splittedValue[2]
