@@ -754,7 +754,7 @@ class VSConcept():
             return buildStr
 
 class ConceptDesignation():
-        def _init_(self):
+        def __init__(self):
             self.language = None
             self.use = None
             self.value = None
