@@ -216,6 +216,84 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_inactive(self):
         return None
 
+    def get_concept(self):
+        # once the concepts of this CodeSystem have been sorted (see pcam.sortConceptsExpandStyle())
+        # self.concept does not contain elements of type supermod.CodeSystem_Concept
+        # anymore but only pcam.CSConcept
+        concepts_of_type_CSConcept = False
+
+        the_concept_list = []
+        if tmp := super().get_concept():
+            concept_list = tmp
+            for one_concept in concept_list:
+                # one_concept is of type pcam.CSConcept if pcam.sortConceptsExpandStyle()
+                # has already been executed
+                if isinstance(one_concept, pcam.CSConcept):
+                    concepts_of_type_CSConcept = True
+                    break
+
+                the_concept = pcam.CSConcept()
+
+                if tmp := one_concept.get_code():
+                    the_concept.code = tmp.get_value()
+
+                if tmp := one_concept.get_display():
+                    the_concept.display = tmp.get_value()
+
+                if tmp := one_concept.get_definition():
+                    the_concept.definition = tmp.get_value()
+
+                if tmp := one_concept.get_designation():
+                    designation_list = tmp
+                    for one_designation in designation_list:
+                        the_designation = pcam.ConceptDesignation()
+
+                        if tmp := one_designation.get_language():
+                            the_designation.code = tmp.get_value()
+
+                        if tmp := one_designation.get_use():
+                            if tmp := tmp.get_code():
+                                the_designation.use = tmp.get_value()
+
+                        if tmp := one_designation.get_value():
+                            the_designation.value = tmp.get_value()
+
+                        the_concept.designation.append(the_designation)
+
+                if tmp := one_concept.get_property():
+                    property_list = tmp
+                    for one_property in property_list:
+                        the_property = pcam.CSConcept.ConceptProperty()
+
+                        if tmp := one_property.get_code():
+                            the_property.code = tmp.get_value()
+
+                        if (tmp := one_property.get_valueCode()) or\
+                                (tmp := one_property.get_valueString()) or\
+                                (tmp := one_property.get_valueInteger()) or\
+                                (tmp := one_property.get_valueBoolean()) or\
+                                (tmp := one_property.get_valueDateTime()) or\
+                                (tmp := one_property.get_valueDecimal()):
+                            the_property.value = tmp.get_value()
+                            # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                            the_property.type = pcam.PropertyCodeType[tmp.original_tagname_.replace('value','').lower()]
+                        elif tmp_coding := one_property.get_valueCoding():
+                            if tmp := tmp_coding.get_code():
+                                the_property.value = tmp.get_value()
+                                # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                                the_property.type = pcam.PropertyCodeType[tmp_coding.original_tagname_.replace('value','').lower()]
+
+                        the_concept.property.append(the_property)
+
+                the_concept_list.append(the_concept)
+
+        # if pcam.sortConceptsExpandStyle() has already been executed
+        if concepts_of_type_CSConcept:
+            return self.concept
+
+        # return the concept list based on supermod.CodeSystem_Concept
+        return the_concept_list
+
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub
 
