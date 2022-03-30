@@ -204,7 +204,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
             if tmp := one_property.get_description():
                 the_property.description = tmp.get_value()
             if tmp := one_property.get_type():
-                the_property.type = tmp.get_value()
+                the_property.type = pcam.PropertyCodeType[tmp.get_value().lower()]
             the_property_list.append(the_property)
         return the_property_list
 
