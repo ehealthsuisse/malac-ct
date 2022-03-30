@@ -386,7 +386,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     vsMemberAnywhere = True
 
             # if there is a conceptSuppl, print them first
-            if hasattr(self,"conceptSuppl"):
+            if hasattr(self,"conceptSuppl") and self.conceptSuppl:
                 tempList = self.conceptSuppl
             else:
                 tempList = conceptList
@@ -488,7 +488,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         # looking into the concepts, split to every codesystems that is used
         csUsedinVSinklConceptsOrClassi = {}
         for oneCon in self.get_concept():
-            if tmp := oneCon.system:
+            if (tmp := oneCon.system) and 'zuppl' not in tmp:
                 if tmp not in csUsedinVSinklConceptsOrClassi.keys():
                     csUsedinVSinklConceptsOrClassi[tmp] = []
                 csUsedinVSinklConceptsOrClassi[tmp].append(oneCon)

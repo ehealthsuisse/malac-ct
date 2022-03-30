@@ -62,7 +62,7 @@ def get_identifier(self):
     the_identifier_list = []
     for one_f4_identifier in identifier_list:
         if tmp := one_f4_identifier.get_value():
-            the_identifier_list.append(tmp.get_value())
+            the_identifier_list.append(tmp.get_value().replace('urn:oid:', ''))
     return the_identifier_list
 
 def get_version(self):
@@ -72,12 +72,26 @@ def get_version(self):
 
 def get_name(self):
     if tmp := self.get_name():
-        return tmp.get_value()
+        # In case of FHIR CodeSystem or ValueSet get_name() returns an object which
+        # has got a 'get_value' attribute.
+        # In case of zuppl-creation self.name will be set within fsh1.py#exportoSuppl()
+        # and will not have the 'get_value' attribute as it is a simple str object.
+        if hasattr(tmp, 'get_value'):
+            return tmp.get_value()
+        else:
+            return tmp
     return None
 
 def get_title(self):
     if tmp := self.get_title():
-        return tmp.get_value()
+        # In case of FHIR CodeSystem or ValueSet get_title() returns an object which
+        # has got a 'get_value' attribute.
+        # In case of zuppl-creation self.title will be set within fsh1.py#exportoSuppl()
+        # and will not have the 'get_value' attribute as it is a simple str object.
+        if hasattr(tmp, 'get_value'):
+            return tmp.get_value()
+        else:
+            return tmp
     return None
 
 def get_status(self):

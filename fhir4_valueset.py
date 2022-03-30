@@ -68,7 +68,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
 
     def get_resource(self):
-        return pcam.Resource.ValueSet.value
+        # In case of zuppl-creation self.resource will be set within fsh1.py#exportoSuppl()
+        if hasattr(self,"resource") and (tmp := self.resource):
+            return tmp
+        else:
+            return pcam.Resource.ValueSet.value
 
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
@@ -160,11 +164,19 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
     # field from CodeSystem
     def get_content(self):
-        return None
+        # In case of zuppl-creation self.content will be set within fsh1.py#exportoSuppl()
+        if hasattr(self,"content") and (tmp := self.content):
+            return tmp
+        else:
+            return None
 
     # field from CodeSystem
     def get_supplements(self):
-        return None
+        # In case of zuppl-creation self.supplements will be set within fsh1.py#exportoSuppl()
+        if hasattr(self,"supplements") and (tmp := self.supplements):
+            return tmp
+        else:
+            return None
 
     # field from CodeSystem
     def get_count(self):
@@ -191,18 +203,22 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         return None
 
     def get_concept(self):
-        the_concept_list = []
-        if tmp := super().get_compose():
-            if tmp := tmp.get_include():
-                include_list = tmp
-                for one_include in include_list:
-                    the_concept = pcam.VSConcept()
-                    if tmp := one_include.get_system():
-                        the_concept.system = tmp.get_value()
-                    if tmp := one_include.get_version():
-                        the_concept.version = tmp.get_value()
-                    the_concept_list.append(the_concept)
-        return the_concept_list
+        # In case of zuppl-creation self.concept will be set within fsh1.py#exportoSuppl()
+        if hasattr(self,"concept") and (tmp := self.concept):
+            return tmp
+        else:
+            the_concept_list = []
+            if tmp := super().get_compose():
+                if tmp := tmp.get_include():
+                    include_list = tmp
+                    for one_include in include_list:
+                        the_concept = pcam.VSConcept()
+                        if tmp := one_include.get_system():
+                            the_concept.system = tmp.get_value()
+                        if tmp := one_include.get_version():
+                            the_concept.version = tmp.get_value()
+                        the_concept_list.append(the_concept)
+            return the_concept_list
 
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub
