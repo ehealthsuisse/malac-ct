@@ -337,8 +337,8 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_copyright(): outfile.write('* copyright = "%s" \n' % tmp)
 
         if tmp := self.get_immutable(): outfile.write('* immutable = "%s" \n' % tmp)
-        if tmp := self.get_lockeddate(): outfile.write('* lockedDate = "%s" \n' % tmp)
-        if tmp := self.get_inactive(): outfile.write('* inactive = "%s" \n' % tmp)
+        if tmp := self.get_lockeddate(): outfile.write('* compose.lockedDate = "%s" \n' % tmp)
+        if tmp := self.get_inactive(): outfile.write('* compose.inactive = "%s" \n' % tmp)
 
         if tmp := self.get_casesensitive(): outfile.write('* caseSensitive = "%s" \n' % tmp)
         # TODO how should we work with references like valueset
