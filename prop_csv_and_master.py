@@ -761,10 +761,10 @@ class ConceptDesignation():
 
         def __str__(self) -> str:
             buildStr = ""
-            if hasattr(self, 'language'): buildStr += self.language
+            if self.language: buildStr += self.language
             buildStr += "|"
-            if hasattr(self, 'use'): buildStr += self.use
+            if self.use: buildStr += self.use
             buildStr += "|"
-            if hasattr(self, 'value'): buildStr += self.value
+            if self.value: buildStr += self.value
             return buildStr
 
