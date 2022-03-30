@@ -124,8 +124,8 @@ def main() -> None:
         inputClass = getattr(iModule, iClassValue[1])
 
         # serialize the input file
-        inputClass.globalUrl = args.fhirIgUrl
         input = inputClass.parse(args.input)
+        input.globalUrl = args.fhirIgUrl
         # sort the input
         if "CodeSystem-" in args.input:
             input.sortConceptsExpandStyle()
