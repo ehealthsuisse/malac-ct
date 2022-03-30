@@ -168,6 +168,23 @@ def get_copyright(self):
         return tmp.get_value()
     return None
 
+def set_designation(concept, designation_list):
+    concept.designation = []
+    for one_designation in designation_list:
+        the_designation = pcam.ConceptDesignation()
+
+        if tmp := one_designation.get_language():
+            the_designation.language = tmp.get_value()
+
+        if tmp := one_designation.get_use():
+            if tmp := tmp.get_code():
+                the_designation.use = tmp.get_value()
+
+        if tmp := one_designation.get_value():
+            the_designation.value = tmp.get_value()
+
+        concept.designation.append(the_designation)
+
 class FHIR4CsAndVs:
     def __init__(self) -> None:
         pass

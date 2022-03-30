@@ -244,21 +244,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     the_concept.definition = tmp.get_value()
 
                 if tmp := one_concept.get_designation():
-                    designation_list = tmp
-                    for one_designation in designation_list:
-                        the_designation = pcam.ConceptDesignation()
-
-                        if tmp := one_designation.get_language():
-                            the_designation.code = tmp.get_value()
-
-                        if tmp := one_designation.get_use():
-                            if tmp := tmp.get_code():
-                                the_designation.use = tmp.get_value()
-
-                        if tmp := one_designation.get_value():
-                            the_designation.value = tmp.get_value()
-
-                        the_concept.designation.append(the_designation)
+                    f4csvs.set_designation(the_concept, tmp)
 
                 if tmp := one_concept.get_property():
                     property_list = tmp

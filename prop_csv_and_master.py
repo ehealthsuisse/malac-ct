@@ -761,6 +761,7 @@ class ConceptDesignation():
 
         def __str__(self) -> str:
             buildStr = ""
+            # TODO what if self.language is None
             if hasattr(self, 'language'): buildStr += self.language
             buildStr += "|"
             if hasattr(self, 'use'): buildStr += self.use
