@@ -754,18 +754,17 @@ class VSConcept():
             return buildStr
 
 class ConceptDesignation():
-        def _init_(self):
+        def __init__(self):
             self.language = None
             self.use = None
             self.value = None
 
         def __str__(self) -> str:
             buildStr = ""
-            # TODO what if self.language is None
-            if hasattr(self, 'language'): buildStr += self.language
+            if self.language: buildStr += self.language
             buildStr += "|"
-            if hasattr(self, 'use'): buildStr += self.use
+            if self.use: buildStr += self.use
             buildStr += "|"
-            if hasattr(self, 'value'): buildStr += self.value
+            if self.value: buildStr += self.value
             return buildStr
 
