@@ -168,7 +168,7 @@ def get_copyright(self):
         return tmp.get_value()
     return None
 
-def set_designation(concept, designation_list):
+def set_concept_designation(concept, designation_list):
     concept.designation = []
     for one_designation in designation_list:
         the_designation = pcam.ConceptDesignation()
