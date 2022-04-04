@@ -203,22 +203,93 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         return None
 
     def get_concept(self):
-        # In case of zuppl-creation self.concept will be set within fsh1.py#exportoSuppl()
         if hasattr(self,"concept") and (tmp := self.concept):
             return tmp
         else:
-            the_concept_list = []
+            self.concept = []
+
+            # TODO do the same for get_exclude()
             if tmp := super().get_compose():
-                if tmp := tmp.get_include():
-                    include_list = tmp
-                    for one_include in include_list:
-                        the_concept = pcam.VSConcept()
-                        if tmp := one_include.get_system():
-                            the_concept.system = tmp.get_value()
-                        if tmp := one_include.get_version():
-                            the_concept.version = tmp.get_value()
-                        the_concept_list.append(the_concept)
-            return the_concept_list
+                compose = tmp
+                if tmp := compose.get_include():
+                    self.extract_include_information(tmp)
+
+                if tmp := compose.get_exclude():
+                    self.extract_include_information(tmp)
+
+            concept_code_dict = self.buildConceptDictWithKey('code')
+
+            if tmp := super().get_expansion():
+                if tmp := tmp.get_contains():
+                    contains_list = tmp
+                    self.extract_contains_information(0, contains_list, concept_code_dict)
+
+            return self.concept
+
+    def extract_include_information(self, include_list):
+        for one_include in include_list:
+            the_include_system = None
+            the_include_version = None
+
+            if tmp := one_include.get_system():
+                the_include_system = tmp.get_value()
+
+            if tmp := one_include.get_version():
+                the_include_version = tmp.get_value()
+
+            if tmp := one_include.get_concept():
+                concept_list = tmp
+                for one_concept in concept_list:
+                    the_concept = pcam.VSConcept()
+                    the_concept.system = the_include_system
+                    the_concept.version = the_include_version
+
+                    if tmp := one_concept.get_code():
+                        the_concept.code = tmp.get_value()
+
+                    if tmp := one_concept.get_display():
+                        the_concept.display = tmp.get_value()
+
+                    if tmp := one_concept.get_designation():
+                        f4csvs.set_concept_designation(the_concept, tmp)
+
+                    self.concept.append(the_concept)
+
+            if tmp := one_include.get_filter():
+                filter_list = tmp
+
+                the_concept = pcam.VSConcept()
+                the_concept.system = the_include_system
+                the_concept.version = the_include_version
+
+                for one_filter in filter_list:
+                    the_filter = pcam.VSConcept.VSConceptFilter()
+
+                    if tmp := one_filter.get_property():
+                        the_filter.property = tmp.get_value()
+
+                    if tmp := one_filter.get_op():
+                        the_filter.op = tmp.get_value()
+
+                    if tmp := one_filter.get_value():
+                        the_filter.value = tmp.get_value()
+
+                    the_concept.filter.append(the_filter)
+
+                self.concept.append(the_concept)
+
+    def extract_contains_information(self, level, contains_list, concept_code_dict, parent=None):
+        for one_contains in contains_list:
+            if tmp := one_contains.get_code():
+                code = tmp.get_value()
+                if the_concept := concept_code_dict[code]:
+                    the_concept.level = level
+
+                    if parent:
+                        parent.member.append(the_concept)
+
+                    if tmp := one_contains.get_contains():
+                        self.extract_contains_information(level+1, tmp, concept_code_dict, the_concept)
 
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub
