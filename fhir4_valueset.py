@@ -291,6 +291,29 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_contains.get_contains():
                         self.extract_contains_information(level+1, tmp, concept_code_dict, the_concept)
 
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        valueset = supermod.ValueSet()
+
+        # export general metadata
+        f4csvs.exporto(self, supermod, valueset, argsLang)
+
+        valueset_compose = None
+
+        if tmp := self.get_lockeddate():
+            self.init_compose_if_not_existent(valueset, valueset_compose)
+            valueset_compose.set_lockedDate(supermod.date(value=tmp))
+
+        if tmp := self.get_inactive():
+            self.init_compose_if_not_existent(valueset, valueset_compose)
+            valueset_compose.set_inactive(supermod.boolean(value=tmp))
+
+        valueset.export(outfile, 0)
+
+    def init_compose_if_not_existent(self, valueset, valueset_compose):
+        if not valueset_compose:
+            valueset_compose = supermod.ValueSet_Compose()
+            valueset.set_compose(valueset_compose)
+
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub
 

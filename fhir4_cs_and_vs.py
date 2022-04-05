@@ -131,8 +131,11 @@ def get_contact(self):
                 the_contact_point.use = tmp.get_value()
             if tmp := one_contact_point.get_rank():
                 the_contact_point.value = tmp.get_value()
-            if tmp := one_contact_point.get_period():
-                the_contact_point.value = tmp.get_value()
+
+            # TODO FHIR ContactPoint.period consists of start and end.
+            #      pcam.ContactDetail.ContactPoint however has got a single value for 'period'
+            #      Not clear how to transform.
+
             the_contact_detail.telecom.append(the_contact_point)
         the_contact_list.append(the_contact_detail)
     return the_contact_list
@@ -185,6 +188,96 @@ def set_concept_designation(concept, designation_list):
 
         concept.designation.append(the_designation)
 
+def exporto(self, supermod, fhir_resource, args_lang):
+    if tmp := self.get_url():
+        fhir_resource.set_url(supermod.uri(value=tmp))
+
+    if tmp := self.get_identifier():
+        for one_identifier in tmp:
+            the_identifier = supermod.Identifier()
+            the_identifier.set_use(supermod.IdentifierUse(value='official'))
+            the_identifier.set_system(supermod.uri(value='urn:ietf:rfc:3986'))
+            the_identifier.set_value(supermod.string(value='urn:oid:' + one_identifier))
+            fhir_resource.add_identifier(the_identifier)
+
+    if tmp := self.get_version():
+        fhir_resource.set_version(supermod.string(value=tmp))
+
+    if tmp := self.get_name():
+        fhir_resource.set_name(supermod.string(value=tmp))
+
+    if tmp := self.get_title():
+        fhir_resource.set_title(supermod.string(value=tmp))
+
+    if tmp := self.get_status():
+        fhir_resource.set_status(supermod.PublicationStatus(value=tmp))
+
+    if tmp := self.get_experimental():
+        fhir_resource.set_experimental(supermod.boolean(value=tmp))
+
+    if tmp := self.get_date():
+        fhir_resource.set_date(supermod.dateTime(value=tmp))
+
+    if tmp := self.get_publisher():
+        fhir_resource.set_publisher(supermod.string(value=tmp))
+
+    if tmp := self.get_contact():
+        contact_list = tmp
+        for one_contact in contact_list:
+            the_contact = supermod.ContactDetail()
+
+            if tmp := one_contact.name:
+                the_contact.set_name(supermod.strung(tmp))
+
+            if tmp := one_contact.telecom:
+                contact_point_list = tmp
+                for one_contact_point in contact_point_list:
+                    the_contact_point = supermod.ContactPoint()
+
+                    if tmp := one_contact_point.system:
+                        the_contact_point.set_system(supermod.ContactPointSystem(value=tmp))
+
+                    if tmp := one_contact_point.value:
+                        the_contact_point.set_value(supermod.string(value=tmp))
+
+                    if tmp := one_contact_point.use:
+                        the_contact_point.set_use(supermod.ContactPointUse(value=tmp))
+
+                    if tmp := one_contact_point.rank:
+                        the_contact_point.set_rank(supermod.positiveInt(value=tmp))
+
+                    # TODO FHIR ContactPoint.period consists of start and end.
+                    #      pcam.ContactDetail.ContactPoint however has got a single value for 'period'
+                    #      Not clear how to transform.
+
+                    the_contact.add_telecom(the_contact_point)
+
+            fhir_resource.add_contact(the_contact)
+
+    if tmp := self.get_description():
+        fhir_resource.set_description(supermod.markdown(value=tmp))
+
+    # TODO not fully supported yet, UsageContext is a complex datatype, and there may be 0..*
+    #
+    # right now it is not clear, how the elements should be processed
+    #
+    # see http://www.hl7.org/fhir/metadatatypes.html#UsageContext
+
+    # TODO not fully supported yet, CodeableConcept is a complex datatype
+    #
+    # right now it is not clear, how the elements should be processed
+    #
+    # see http://www.hl7.org/fhir/datatypes.html#CodeableConcept
+
+    if tmp := self.get_immutable():
+        fhir_resource.set_immutable(supermod.boolean(value=tmp))
+
+    if tmp := self.get_purpose():
+        fhir_resource.set_purpose(supermod.markdown(value=tmp))
+
+    if tmp := self.get_copyright():
+        fhir_resource.set_copyright(supermod.markdown(value=tmp))
+
 class FHIR4CsAndVs:
     def __init__(self) -> None:
         pass
@@ -198,3 +291,11 @@ class FHIR4CsAndVs:
         else:
             sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')
 
+    def exporto(input, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        outfile.write('<?xml version="1.0" ?>\n')
+
+        resource = input.get_resource()
+        if resource == 'CodeSystem':
+            f4cs.CodeSystemSub.exporto(input, outfile, outputClass, argsLang, incHierarchyExt4VS)
+        elif resource == 'ValueSet':
+            f4vs.ValueSetSub.exporto(input, outfile, outputClass, argsLang, incHierarchyExt4VS)
