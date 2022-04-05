@@ -297,6 +297,8 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_description(): outfile.write('* description = "%s" \n' % tmp)
         if tmp := self.get_implicitrules(): outfile.write('* implicitRules = "%s" \n' % tmp)
         if tmp := self.get_language(): outfile.write('* language = #%s \n' % tmp)
+        # TODO language has to be set, when any terminology file is read in order
+        #      to propagate change to a fallback language to all converted files
         elif argsLang is not None: outfile.write('* language = #%s \n' % argsLang)
         if tmp := self.get_text(): outfile.write('* text = "%s" \n' % tmp)
         if tmp := self.get_contained(): outfile.write('* contained = "%s" \n' % tmp)
