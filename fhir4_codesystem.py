@@ -185,8 +185,15 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 the_filter.code = tmp.get_value()
             if tmp := one_filter.get_description():
                 the_filter.description = tmp.get_value()
+
+            # TODO supermod.CodeSystem_Filter may contain 1..* FilterOperators
+            #      pcam.Filter however handles only one operator (see fsh1.py)
+            #
+            #      As workaround the value of the FIRST operator will be retrieved
             if tmp := one_filter.get_operator():
-                the_filter.operator = tmp.get_value()
+                if tmp := tmp[0].get_value():
+                    the_filter.operator = tmp.get_value()
+
             if tmp := one_filter.get_value():
                 the_filter.value = tmp.get_value()
             the_filter_list.append(the_filter)
