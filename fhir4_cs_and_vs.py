@@ -189,6 +189,24 @@ def set_concept_designation(concept, designation_list):
         concept.designation.append(the_designation)
 
 def exporto(self, supermod, fhir_resource, args_lang):
+    # TODO id is not supported
+
+    # TODO meta is not supported
+
+    if tmp := self.get_implicitrules():
+        fhir_resource.set_implicitRules(supermod.uri(value=tmp))
+
+    if tmp := self.get_language():
+        fhir_resource.set_language(supermod.code(value=tmp))
+
+    # TODO text is not supported
+
+    # TODO contained is not supported
+
+    # TODO extension is not supported
+
+    # TODO modifierextension is not supported
+
     if tmp := self.get_url():
         fhir_resource.set_url(supermod.uri(value=tmp))
 
