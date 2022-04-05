@@ -287,6 +287,78 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         # return the concept list based on supermod.CodeSystem_Concept
         return the_concept_list
 
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        codesystem = supermod.CodeSystem()
+
+        # export general metadata
+        f4csvs.exporto(self, supermod, codesystem, argsLang)
+
+        if tmp := self.get_casesensitive():
+            codesystem.set_caseSensitive(supermod.boolean(value=tmp))
+
+        if tmp := self.get_valueset():
+            codesystem.set_valueSet(supermod.canonical(value=tmp))
+
+        if tmp := self.get_hierarchymeaning():
+            codesystem.set_hierarchyMeaning(supermod.CodeSystemHierarchyMeaning(value=tmp))
+
+        if tmp := self.get_compositional():
+            codesystem.set_compositional(supermod.boolean(value=tmp))
+
+        if tmp := self.get_versionneeded():
+            codesystem.set_versionNeeded(supermod.boolean(value=tmp))
+
+        if tmp := self.get_content():
+            codesystem.set_content(supermod.CodeSystemContentMode(value=tmp))
+
+        if tmp := self.get_supplements():
+            codesystem.set_supplements(supermod.canonical(value=tmp))
+
+        if tmp := self.get_count():
+            codesystem.set_count(supermod.unsignedInt(value=tmp))
+
+        if tmp := self.get_filter():
+            property_list = tmp
+            for one_property in property_list:
+                the_property = supermod.CodeSystem_Filter()
+
+                if tmp := one_property.code:
+                    the_property.set_code(supermod.code(value=tmp))
+
+                if tmp := one_property.description:
+                    the_property.set_description(supermod.string(value=tmp))
+
+                # TODO supermod.CodeSystem_Filter may contain 1..* FilterOperators
+                #      pcam.Filter however handles only one operator (see fsh1.py)
+                if tmp := one_property.operator:
+                    the_property.add_operator(supermod.FilterOperator(value=tmp))
+
+                if tmp := one_property.value:
+                    the_property.set_value(supermod.string(value=tmp))
+
+                codesystem.add_filter(the_property)
+
+        if tmp := self.get_property():
+            property_list = tmp
+            for one_property in property_list:
+                the_property = supermod.CodeSystem_Property()
+
+                if tmp := one_property.code:
+                    the_property.set_code(supermod.code(value=tmp))
+
+                if tmp := one_property.uri:
+                    the_property.set_uri(supermod.uri(value=tmp))
+
+                if tmp := one_property.description:
+                    the_property.set_description(supermod.string(value=tmp))
+
+                if tmp := one_property.type:
+                    the_property.set_type(supermod.PropertyType(value=tmp.value))
+
+                codesystem.add_property(the_property)
+
+        codesystem.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
+
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub
 
