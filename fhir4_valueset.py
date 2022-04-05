@@ -307,7 +307,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             self.init_compose_if_not_existent(valueset, valueset_compose)
             valueset_compose.set_inactive(supermod.boolean(value=tmp))
 
-        valueset.export(outfile, 0)
+        valueset.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
 
     def init_compose_if_not_existent(self, valueset, valueset_compose):
         if not valueset_compose:
