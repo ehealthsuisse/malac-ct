@@ -227,7 +227,7 @@ def exporto(self, supermod, fhir_resource, args_lang):
             the_contact = supermod.ContactDetail()
 
             if tmp := one_contact.name:
-                the_contact.set_name(supermod.strung(tmp))
+                the_contact.set_name(supermod.string(tmp))
 
             if tmp := one_contact.telecom:
                 contact_point_list = tmp
