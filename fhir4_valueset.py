@@ -215,7 +215,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     self.extract_include_information(tmp)
 
                 if tmp := compose.get_exclude():
-                    self.extract_include_information(tmp)
+                    self.extract_include_information(tmp, True)
 
             concept_code_dict = self.buildConceptDictWithKey('code')
 
@@ -226,7 +226,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
             return self.concept
 
-    def extract_include_information(self, include_list):
+    def extract_include_information(self, include_list, exclude=False):
         for one_include in include_list:
             the_include_system = None
             the_include_version = None
@@ -243,6 +243,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_concept = pcam.VSConcept()
                     the_concept.system = the_include_system
                     the_concept.version = the_include_version
+                    the_concept.exclude = exclude
 
                     if tmp := one_concept.get_code():
                         the_concept.code = tmp.get_value()
