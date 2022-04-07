@@ -212,21 +212,21 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if tmp := super().get_compose():
                 compose = tmp
                 if tmp := compose.get_include():
-                    self.extract_include_information(tmp)
+                    self.parse_include_information(tmp)
 
                 if tmp := compose.get_exclude():
-                    self.extract_include_information(tmp, True)
+                    self.parse_include_information(tmp, True)
 
             concept_code_dict = self.buildConceptDictWithKey('code')
 
             if tmp := super().get_expansion():
                 if tmp := tmp.get_contains():
                     contains_list = tmp
-                    self.extract_contains_information(0, contains_list, concept_code_dict)
+                    self.parse_contains_information(0, contains_list, concept_code_dict)
 
             return self.concept
 
-    def extract_include_information(self, include_list, exclude=False):
+    def parse_include_information(self, include_list, exclude=False):
         for one_include in include_list:
             the_include_system = None
             the_include_version = None
@@ -279,7 +279,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 self.concept.append(the_concept)
 
-    def extract_contains_information(self, level, contains_list, concept_code_dict, parent=None):
+    def parse_contains_information(self, level, contains_list, concept_code_dict, parent=None):
         for one_contains in contains_list:
             if tmp := one_contains.get_code():
                 code = tmp.get_value()
@@ -290,7 +290,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         parent.member.append(the_concept)
 
                     if tmp := one_contains.get_contains():
-                        self.extract_contains_information(level+1, tmp, concept_code_dict, the_concept)
+                        self.parse_contains_information(level+1, tmp, concept_code_dict, the_concept)
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         valueset = supermod.ValueSet()
