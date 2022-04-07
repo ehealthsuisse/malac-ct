@@ -188,6 +188,25 @@ def set_concept_designation(concept, designation_list):
 
         concept.designation.append(the_designation)
 
+def exporto_concept_designation(supermod, designation_class, designation_list):
+    the_designation_list = []
+
+    for one_designation in designation_list:
+        the_designation = designation_class()
+
+        if tmp := one_designation.language:
+            the_designation.set_language(supermod.code(value=tmp))
+
+        if tmp := one_designation.use:
+            the_designation.set_use(supermod.Coding(code=tmp))
+
+        if tmp := one_designation.value:
+            the_designation.set_value(supermod.string(value=tmp))
+
+        the_designation_list.append(the_designation)
+
+    return the_designation_list
+
 def exporto(self, supermod, fhir_resource, args_lang):
     # TODO id is not supported
 

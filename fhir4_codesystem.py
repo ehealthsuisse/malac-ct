@@ -357,7 +357,57 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                 codesystem.add_property(the_property)
 
+        if tmp := self.get_concept():
+            codesystem.set_concept(CodeSystemSub.exporto_concept(tmp))
+
         codesystem.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
+
+    def exporto_concept(concept_list):
+        the_concept_list = []
+
+        for one_concept in concept_list:
+            the_concept = supermod.CodeSystem_Concept()
+
+            if tmp := one_concept.code:
+                the_concept.set_code(supermod.code(value=tmp))
+
+            if tmp := one_concept.display:
+                the_concept.set_display(supermod.string(value=tmp))
+
+            if tmp := one_concept.definition:
+                the_concept.set_definition(supermod.string(value=tmp))
+
+            if tmp := one_concept.designation:
+                the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.CodeSystem_Designation, tmp))
+
+            if tmp := one_concept.property:
+                property_list = tmp
+                for one_property in property_list:
+                    the_property = supermod.CodeSystem_Property1()
+
+                    if tmp := one_property.code:
+                        the_property.set_code(supermod.code(value=tmp))
+
+                    if (value := one_property.value) and (value_type := one_property.type):
+                        if value_type == pcam.PropertyCodeType.coding:
+                            the_property.set_valueCoding(supermod.Coding(code=value))
+                        else:
+                            # lower case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
+                            first_char_to_lower = lambda s: s[:1].lower() + s[1:] if s else ''
+
+                            value_type_class_name = first_char_to_lower(value_type.value)
+                            setter_name = 'set_value' + value_type.value
+
+                            if hasattr(the_property, setter_name) and hasattr(supermod, value_type_class_name):
+                                getattr(the_property, setter_name)(getattr(supermod, value_type_class_name)(value=value))
+
+                    the_concept.add_property(the_property)
+
+            # TODO NOT SUPPORTED nested concepts: the_concept.concept
+
+            the_concept_list.append(the_concept)
+
+        return the_concept_list
 
 supermod.CodeSystem.subclass = CodeSystemSub
 # end class CodeSystemSub
