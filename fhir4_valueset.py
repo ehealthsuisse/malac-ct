@@ -252,7 +252,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         the_concept.display = tmp.get_value()
 
                     if tmp := one_concept.get_designation():
-                        f4csvs.set_concept_designation(the_concept, tmp)
+                        the_concept.designation = f4csvs.parse_concept_designation(tmp)
 
                     self.concept.append(the_concept)
 

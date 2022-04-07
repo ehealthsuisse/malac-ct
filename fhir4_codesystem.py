@@ -251,7 +251,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     the_concept.definition = tmp.get_value()
 
                 if tmp := one_concept.get_designation():
-                    f4csvs.set_concept_designation(the_concept, tmp)
+                    the_concept.designation = f4csvs.parse_concept_designation(tmp)
 
                 if tmp := one_concept.get_property():
                     property_list = tmp

@@ -171,8 +171,9 @@ def get_copyright(self):
         return tmp.get_value()
     return None
 
-def set_concept_designation(concept, designation_list):
-    concept.designation = []
+def parse_concept_designation(designation_list):
+    the_designation_list = []
+
     for one_designation in designation_list:
         the_designation = pcam.ConceptDesignation()
 
@@ -186,7 +187,9 @@ def set_concept_designation(concept, designation_list):
         if tmp := one_designation.get_value():
             the_designation.value = tmp.get_value()
 
-        concept.designation.append(the_designation)
+        the_designation_list.append(the_designation)
+
+    return the_designation_list
 
 def exporto_concept_designation(supermod, designation_class, designation_list):
     the_designation_list = []
