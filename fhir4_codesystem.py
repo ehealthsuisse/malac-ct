@@ -278,6 +278,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                         the_concept.property.append(the_property)
 
+                # TODO NOT SUPPORTED nested concepts: one_concept.get_concept() + recursion
+
                 the_concept_list.append(the_concept)
 
         # if pcam.sortConceptsExpandStyle() has already been executed
