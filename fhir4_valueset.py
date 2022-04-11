@@ -20,6 +20,7 @@
 
 import os
 import sys
+from datetime import datetime
 from xml.etree.ElementInclude import include
 from lxml import etree as etree_
 
@@ -279,6 +280,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 self.concept.append(the_concept)
 
             # TODO NOT SUPPORTED: ValueSet.compose.include.valueSet
+
     def parse_contains_information(self, level, contains_list, concept_code_dict, parent=None):
         for one_contains in contains_list:
             if tmp := one_contains.get_code():
@@ -308,12 +310,132 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
             valueset_compose.set_inactive(supermod.boolean(value=tmp))
 
+        if tmp := self.get_concept():
+            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
+            do_expansion = ValueSetSub.exporto_include_exclude(valueset_compose, tmp)
+
+            if do_expansion:
+                the_expansion = supermod.ValueSet_Expansion()
+
+                the_expansion.set_timestamp(supermod.dateTime(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+
+                the_expansion.set_contains(ValueSetSub.exporto_expansion(list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
+
+                valueset.set_expansion(the_expansion)
+
         valueset.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
 
-    def init_compose_if_not_existent(self, valueset, valueset_compose):
+    def init_compose_if_not_existent(valueset, valueset_compose):
         if not valueset_compose:
             valueset_compose = supermod.ValueSet_Compose()
             valueset.set_compose(valueset_compose)
+        return valueset_compose
+
+    def exporto_include_exclude(the_compose, concept_list):
+        do_expansion = False
+
+        the_include_list = []
+        the_exclude_list = []
+
+        # dict containing the concepts for all system + version
+        system_include_dict = {}
+        system_exclude_dict = {}
+        # dummy system + version
+        no_system_no_version = 'NO_SYSTEM_NO_VERSION'
+
+        for one_concept in concept_list:
+            exclude = one_concept.exclude
+
+            # check if exclude is a valid value
+            if exclude != True and exclude != False:
+                sys.exit('Cannot determine if concept should be part of ValueSet.compose.include or ValueSet.compose.exclude')
+
+            the_system_dict = None
+            if exclude:
+                the_system_dict = system_exclude_dict
+            else:
+                the_system_dict = system_include_dict
+
+            one_system = one_concept.system
+            one_version = one_concept.version
+            system_key = None
+            if one_system or one_version:
+                system_key = (one_system or 'None') + '#' + (one_version or 'None')
+            else:
+                system_key = no_system_no_version
+
+            the_include = None
+            if system_key not in the_system_dict:
+                the_include = supermod.ValueSet_Include()
+                if one_system:
+                    the_include.set_system(supermod.uri(value=one_system))
+                if one_version:
+                    the_include.set_version(supermod.string(value=one_version))
+                the_system_dict[system_key] = the_include
+            else:
+                the_include = the_system_dict[system_key]
+
+            if tmp := one_concept.code:
+                do_expansion = True
+
+                the_concept = supermod.ValueSet_Concept()
+
+                the_concept.set_code(supermod.code(value=tmp))
+
+                if tmp := one_concept.display:
+                    the_concept.set_display(supermod.string(value=tmp))
+
+                if tmp := one_concept.designation:
+                    the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
+
+                the_include.add_concept(the_concept)
+            elif tmp := one_concept.filter:
+                pass
+
+            # TODO NOT SUPPORTED: ValueSet.compose.include.valueSet
+
+        for one_exclude in system_include_dict.keys():
+            the_include_list.append(system_include_dict[one_exclude])
+        for one_exclude in system_exclude_dict.keys():
+            the_exclude_list.append(system_exclude_dict[one_exclude])
+
+        the_compose.set_include(the_include_list)
+        the_compose.set_exclude(the_exclude_list)
+
+        return do_expansion
+
+    def exporto_expansion(concept_list):
+        the_concept_list = []
+
+        for one_concept in concept_list:
+            the_concept = supermod.ValueSet_Contains()
+
+            if tmp := one_concept.system:
+                the_concept.set_system(supermod.uri(value=tmp))
+
+            if tmp := one_concept.abstract:
+                the_concept.set_abstract(supermod.boolean(value=tmp))
+
+            # TODO NOT SUPPORTED ValueSet.expansion.contains.inactive
+
+            if tmp := one_concept.version:
+                the_concept.set_version(supermod.string(value=tmp))
+
+            if tmp := one_concept.code:
+                the_concept.set_code(supermod.code(value=tmp))
+
+            if tmp := one_concept.display:
+                the_concept.set_display(supermod.string(value=tmp))
+
+            if tmp := one_concept.designation:
+                the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
+
+            if tmp := one_concept.member:
+                the_concept.set_contains(ValueSetSub.exporto_expansion(tmp))
+
+            the_concept_list.append(the_concept)
+
+        return the_concept_list
 
 supermod.ValueSet.subclass = ValueSetSub
 # end class ValueSetSub
