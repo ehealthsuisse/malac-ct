@@ -144,6 +144,9 @@ class Fsh1(pcam.PropCsvAndMaster):
             if dictConcept != {}:
                 self.concept = list(dictConcept.values())
 
+    def parse(inFilename):
+        return Fsh1(inFilename)
+
     def parseConcepts(self, dictConcept, line, splittedLine, value):
         if '* concept' in splittedLine[0]:
             theConcept = None
@@ -276,9 +279,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                     elif '.value' in line:
                         theFilter.value = value
 
-    def parse(inFilename):
-        return Fsh1(inFilename)
-
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # mandatory fields
         outfile.write('Instance: %s \n' % self.get_name())
@@ -394,8 +394,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                 tempList = conceptList
                 # if a valueset, sort concepts first for systems and than within system for code
                 if self.get_resource() == 'ValueSet' :
-                    tempList.sort(key=pcam.VSConcept.get_code)
-                    tempList.sort(key=pcam.VSConcept.get_system)
+                    tempList.sort(key=pcam.VSConcept.get_codeOnly4Sort)
+                    tempList.sort(key=pcam.VSConcept.get_systemOnly4Sort)
 
 
             for oneConcept in tempList:
@@ -486,7 +486,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     if oneConcept.level == 0:
                         writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
 
-    def exportoSuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exportoZuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # looking into the concepts, split to every codesystems that is used
         csUsedinVSinklConceptsOrClassi = {}
         for oneCon in self.get_concept():

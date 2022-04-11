@@ -1,7 +1,7 @@
 import enum
 from unittest import skip
 
-class PropCsvAndMaster(object):
+class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
         self.url = None
@@ -174,100 +174,6 @@ class PropCsvAndMaster(object):
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
 
-    def appendMetaDataTo(self, csvFilename):
-        # if file is new, add headers
-        try:
-            f = open(csvFilename)
-            f.close()
-        except IOError:
-            with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write("name,oid,version\n")
-
-        # write the one processed terminology
-        with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
-
-        # remove duplicates, remaining the newer/below entry
-        csvlist = []
-        with open(csvFilename, "r", encoding="utf8") as csvfile:
-            for line in csvfile:
-                for listline in csvlist:
-                    if line.split(',')[0] == listline.split(',')[0]:
-                        csvlist.remove(listline)
-                csvlist.append(line)
-
-        with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
-            for line in csvlist:
-                outfile.write(line)
-
-
-    def gainOidFromName(self, name):
-        # check if the needed argument is given
-        if not hasattr(self, "processedTerminologies"):
-            import sys
-            sys.exit('A outdated csv needs a terminologies list for gaining OIDs, given with "-appndProcTermTo".\n')
-
-        # import the csv when its the first time used
-        if type(self.processedTerminologies) is not list:
-            import csv
-            with open(self.processedTerminologies, mode ='r')as file:
-                csvFile = csv.reader(file)
-                self.processedTerminologies = []
-                # displaying the contents of the CSV file
-                for line in csvFile:
-                    self.processedTerminologies.append(line)
-
-        # search for the Name in the list and return oid
-        for line in self.processedTerminologies:
-            if line[0] == name:
-                if line[1]:
-                    return line[1]
-        print('Error: For "%s" as CodeSystem-Name the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the name will be used instead.\n' % name)
-        return name
-
-    def buildConceptDictWithKey(self, stringKey):
-        tmpDict = {}
-        for oneCon in self.get_concept():
-            tmpPointer = oneCon
-            for part in stringKey.split("."):
-                tmpPointer = getattr(tmpPointer,part)
-            tmpDict[tmpPointer] = oneCon
-        return tmpDict
-
-    def sortConceptsExpandStyle(self):
-        sortedConcepts = []
-
-        # build up a dict with code as key
-        conDict = self.buildConceptDictWithKey("code")
-
-        # sort all the child properties inside the concepts
-        for key in conDict:
-            if hasattr(conDict[key],"property") and conDict[key].property:
-                conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
-
-        # find all the concepts with no parent, sorted after key
-        allLvl0 = []
-        for key in sorted(conDict):
-            thereIsAParent = False
-            for oneProp in conDict[key].property:
-                if oneProp.code == "parent":
-                    thereIsAParent = True
-            if thereIsAParent == False:
-                allLvl0.append(key)
-
-        # call the recr for all elements with no parent
-        for lvl0 in allLvl0:
-            self.storeSelfAndRecrCallChildren(conDict[lvl0], conDict, sortedConcepts)
-
-        # overwrite the concept list with the just sorted one
-        self.concept = sortedConcepts
-
-    def storeSelfAndRecrCallChildren(self, oneConcept, conDict, sortedConcepts):
-        sortedConcepts.append(oneConcept)
-        for oneProp in oneConcept.property:
-            if oneProp.code == "child":
-                self.storeSelfAndRecrCallChildren(conDict[oneProp.value], conDict, sortedConcepts)
-
     def get_resource(self):
         return self.resource.value
 
@@ -376,10 +282,20 @@ class PropCsvAndMaster(object):
         if hasattr(self,"property"):
             tmp = self.property
         if self.get_resource() == "CodeSystem":
-            tmp = self.get_additionalConceptPropertys(tmp)
+            tmp = self.appendAdditionalConceptProperties(tmp)
         return tmp
 
-    def get_additionalConceptPropertys(self, retArr):
+    def get_concept(self):
+        return self.concept
+
+    def set_statusToRetired(self, theCSConcept):
+        theProp = CSConcept.ConceptProperty()
+        theProp.code = "status"
+        theProp.value = "retired"
+        theProp.type = PropertyCodeType.code
+        theCSConcept.property.append(theProp)
+
+    def appendAdditionalConceptProperties(self, retArr):
         # look into the concepts and add missing properties
         for oneConcept in self.get_concept():
             if hasattr(oneConcept,"property"):
@@ -397,15 +313,100 @@ class PropCsvAndMaster(object):
                     #    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
         return retArr
 
-    def get_concept(self):
-        return self.concept
+    def appendMetaDataTo(self, csvFilename):
+        # if file is new, add headers
+        try:
+            f = open(csvFilename)
+            f.close()
+        except IOError:
+            with open(csvFilename, 'a', encoding="utf8") as csvfile:
+                csvfile.write("name,oid,version\n")
 
-    def set_retired(self, theCSConcept):
-        theProp = CSConcept.ConceptProperty()
-        theProp.code = "status"
-        theProp.value = "retired"
-        theProp.type = PropertyCodeType.code
-        theCSConcept.property.append(theProp)
+        # write the one processed terminology
+        with open(csvFilename, 'a', encoding="utf8") as csvfile:
+            csvfile.write(self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
+
+        # remove duplicates, remaining the newer/below entry
+        csvlist = []
+        with open(csvFilename, "r", encoding="utf8") as csvfile:
+            for line in csvfile:
+                for listline in csvlist:
+                    if line.split(',')[0] == listline.split(',')[0]:
+                        csvlist.remove(listline)
+                csvlist.append(line)
+
+        with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
+            for line in csvlist:
+                outfile.write(line)
+
+
+    def gainOidFromName(self, name):
+        # check if the needed argument is given
+        if not hasattr(self, "processedTerminologies"):
+            import sys
+            sys.exit('A outdated csv needs a terminologies list for gaining OIDs, given with "-appndProcTermTo".\n')
+
+        # import the csv when its the first time used
+        if type(self.processedTerminologies) is not list:
+            import csv
+            with open(self.processedTerminologies, mode ='r')as file:
+                csvFile = csv.reader(file)
+                self.processedTerminologies = []
+                # displaying the contents of the CSV file
+                for line in csvFile:
+                    self.processedTerminologies.append(line)
+
+        # search for the Name in the list and return oid
+        for line in self.processedTerminologies:
+            if line[0] == name:
+                if line[1]:
+                    return line[1]
+        print('Error: For "%s" as CodeSystem-Name the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the name will be used instead.\n' % name)
+        return name
+
+    def buildConceptDictWithAttr(self, stringAttrAsKey):
+        tmpDict = {}
+        for oneCon in self.get_concept():
+            tmpPointer = oneCon
+            for part in stringAttrAsKey.split("."):
+                tmpPointer = getattr(tmpPointer,part)
+            tmpDict[tmpPointer] = oneCon
+        return tmpDict
+
+    def sortConceptsExpandStyle(self):
+        sortedConcepts = []
+
+        # build up a dict with code as key
+        conDict = self.buildConceptDictWithAttr("code")
+
+        # sort all the child properties inside the concepts
+        for key in conDict:
+            if hasattr(conDict[key],"property") and conDict[key].property:
+                conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
+
+        # find all the concepts with no parent, sorted after key
+        allLvl0 = []
+        for key in sorted(conDict):
+            thereIsAParent = False
+            for oneProp in conDict[key].property:
+                if oneProp.code == "parent":
+                    thereIsAParent = True
+            if thereIsAParent == False:
+                allLvl0.append(key)
+
+        # call the recr for all elements with no parent
+        for lvl0 in allLvl0:
+            self.storeSelfAndRecrCallChildren(conDict[lvl0], conDict, sortedConcepts)
+
+        # overwrite the concept list with the just sorted one
+        self.concept = sortedConcepts
+
+    def storeSelfAndRecrCallChildren(self, oneCon, conDict, sortedCons):
+        sortedCons.append(oneCon)
+        for oneProp in oneCon.property:
+            if oneProp.code == "child":
+                self.storeSelfAndRecrCallChildren(conDict[oneProp.value], conDict, sortedCons)
+
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
