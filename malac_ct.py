@@ -170,7 +170,7 @@ def main() -> None:
                         import os
                         with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfileVS:
                             with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
-                                outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
+                                outputClass.exportoZuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                                 print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
         # converting fsh to json with sushi
         if (args.sushiConvertingToJson):
