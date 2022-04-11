@@ -278,6 +278,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 self.concept.append(the_concept)
 
+            # TODO NOT SUPPORTED: ValueSet.compose.include.valueSet
     def parse_contains_information(self, level, contains_list, concept_code_dict, parent=None):
         for one_contains in contains_list:
             if tmp := one_contains.get_code():
