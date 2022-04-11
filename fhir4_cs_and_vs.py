@@ -211,7 +211,10 @@ def exporto_concept_designation(supermod, designation_class, designation_list):
     return the_designation_list
 
 def exporto(self, supermod, fhir_resource, args_lang):
-    # TODO id is not supported
+    # TODO need for fallback in case 'name' is not available
+    #      IG publisher fails if no id is present
+    if tmp := self.get_name():
+        fhir_resource.set_id(supermod.id(value = tmp))
 
     # TODO meta is not supported
 
