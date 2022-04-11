@@ -301,11 +301,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         valueset_compose = None
 
         if tmp := self.get_lockeddate():
-            self.init_compose_if_not_existent(valueset, valueset_compose)
+            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
             valueset_compose.set_lockedDate(supermod.date(value=tmp))
 
         if tmp := self.get_inactive():
-            self.init_compose_if_not_existent(valueset, valueset_compose)
+            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
             valueset_compose.set_inactive(supermod.boolean(value=tmp))
 
         valueset.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
