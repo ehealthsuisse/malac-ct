@@ -208,7 +208,6 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         else:
             self.concept = []
 
-            # TODO do the same for get_exclude()
             if tmp := super().get_compose():
                 compose = tmp
                 if tmp := compose.get_include():
