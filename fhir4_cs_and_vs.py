@@ -201,7 +201,7 @@ def exporto_concept_designation(supermod, designation_class, designation_list):
             the_designation.set_language(supermod.code(value=tmp))
 
         if tmp := one_designation.use:
-            the_designation.set_use(supermod.Coding(code=tmp))
+            the_designation.set_use(supermod.Coding(code=supermod.code(value=tmp)))
 
         if tmp := one_designation.value:
             the_designation.set_value(supermod.string(value=tmp))
