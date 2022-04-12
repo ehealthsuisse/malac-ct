@@ -67,6 +67,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         super(CodeSystemSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, purpose, copyright, caseSensitive, valueSet, hierarchyMeaning, compositional, versionNeeded, content, supplements, count, filter, property, concept,  **kwargs_)
 
     def get_resource(self):
+        """Return resource type.
+        """
         return pcam.Resource.CodeSystem.value
 
     def get_implicitrules(self):
@@ -126,8 +128,11 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_jurisdiction(self):
         return f4csvs.get_jurisdiction(super())
 
-    # field from ValueSet
     def get_immutable(self):
+        """Return ValueSet.immutable. Field from ValueSet.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
+        """
         return None
 
     def get_purpose(self):
@@ -137,106 +142,155 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         return f4csvs.get_copyright(super())
 
     def get_casesensitive(self):
+        """Return CodeSystem.caseSensitive.
+        """
         if tmp := super().get_caseSensitive():
             return tmp.get_value()
         return None
 
     def get_valueset(self):
+        """Return CodeSystem.valueSet.
+        """
         if tmp := super().get_valueSet():
             return tmp.get_value()
         return None
 
     def get_hierarchymeaning(self):
+        """Return CodeSystem.hierarchyMeaning.
+        """
         if tmp := super().get_hierarchyMeaning():
             return tmp.get_value()
         return None
 
     def get_compositional(self):
+        """Return CodeSystem.compositional.
+        """
         if tmp := super().get_compositional():
             return tmp.get_value()
         return None
 
     def get_versionneeded(self):
+        """Return CodeSystem.versionNeeded.
+        """
         if tmp := super().get_versionNeeded():
             return tmp.get_value()
         return None
 
     def get_content(self):
+        """Return CodeSystem.content.
+        """
         if tmp := super().get_content():
             return tmp.get_value()
         return None
 
     def get_supplements(self):
+        """Return CodeSystem.supplements.
+        """
         if tmp := super().get_supplements():
             return tmp.get_value()
         return None
 
     def get_count(self):
+        """Return CodeSystem.count.
+        """
         if tmp := super().get_count():
             return tmp.get_value()
         return None
 
     def get_filter(self):
-        filter_list = super().get_filter()
+        """Process CodeSystem.filter and return them as list of pcam.Filter.
+
+        TODO CodeSystem_Filter may contain 1..* FilterOperators. pcam.Filter however handles
+             only one operator (see fsh1.py). As workaround the value of the FIRST operator
+             will be retrieved.
+        """
         the_filter_list = []
-        for one_filter in filter_list:
-            the_filter = pcam.Filter()
-            if tmp := one_filter.get_code():
-                the_filter.code = tmp.get_value()
-            if tmp := one_filter.get_description():
-                the_filter.description = tmp.get_value()
 
-            # TODO supermod.CodeSystem_Filter may contain 1..* FilterOperators
-            #      pcam.Filter however handles only one operator (see fsh1.py)
-            #
-            #      As workaround the value of the FIRST operator will be retrieved
-            if tmp := one_filter.get_operator():
-                if tmp := tmp[0].get_value():
-                    the_filter.operator = tmp.get_value()
+        if tmp := super().get_filter():
+            filter_list = tmp
+            for one_filter in filter_list:
+                the_filter = pcam.Filter()
 
-            if tmp := one_filter.get_value():
-                the_filter.value = tmp.get_value()
-            the_filter_list.append(the_filter)
+                if tmp := one_filter.get_code():
+                    the_filter.code = tmp.get_value()
+
+                if tmp := one_filter.get_description():
+                    the_filter.description = tmp.get_value()
+
+                # TODO CodeSystem_Filter may contain 1..* FilterOperators
+                #      pcam.Filter however handles only one operator (see fsh1.py)
+                #
+                #      As workaround the value of the FIRST operator will be retrieved
+                if tmp := one_filter.get_operator():
+                    if tmp := tmp[0].get_value():
+                        the_filter.operator = tmp.get_value()
+
+                if tmp := one_filter.get_value():
+                    the_filter.value = tmp.get_value()
+
+                the_filter_list.append(the_filter)
+
         return the_filter_list
 
     def get_property(self):
-        property_list = super().get_property()
+        """Process CodeSystem.property and return them as list of pcam.Property
+        """
         the_property_list = []
-        for one_property in property_list:
-            the_property = pcam.Property()
-            if tmp := one_property.get_code():
-                the_property.code = tmp.get_value()
-            if tmp := one_property.get_uri():
-                the_property.uri = tmp.get_value()
-            if tmp := one_property.get_description():
-                the_property.description = tmp.get_value()
-            if tmp := one_property.get_type():
-                the_property.type = pcam.PropertyCodeType[tmp.get_value().lower()]
-            the_property_list.append(the_property)
+
+        if tmp := super().get_property():
+            property_list = tmp
+            for one_property in property_list:
+                the_property = pcam.Property()
+
+                if tmp := one_property.get_code():
+                    the_property.code = tmp.get_value()
+
+                if tmp := one_property.get_uri():
+                    the_property.uri = tmp.get_value()
+
+                if tmp := one_property.get_description():
+                    the_property.description = tmp.get_value()
+
+                if tmp := one_property.get_type():
+                    the_property.type = pcam.PropertyCodeType[tmp.get_value().lower()]
+
+                the_property_list.append(the_property)
+
         return the_property_list
 
-    # field from ValueSet
     def get_lockeddate(self):
+        """Return ValueSet.compose.lockedDate. Field from ValueSet.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
+        """
         return None
 
-    # field from ValueSet
     def get_inactive(self):
+        """Return ValueSet.compose.inactive. Field from ValueSet.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
+        """
         return None
 
     def get_concept(self):
-        # once the concepts of this CodeSystem have been sorted (see pcam.sortConceptsExpandStyle())
-        # self.concept does not contain elements of type supermod.CodeSystem_Concept
-        # anymore but only pcam.CSConcept
-        concepts_of_type_CSConcept = False
+        """Process CodeSystem.concept and return a list of pcam.VSConcept.
+
+        When called for the first time self.concept contains elements of type supermod.CodeSystem_Concept.
+        With all subsequent calls, self.concept will represent a list of pcam.CSConcept.
+        """
+        # Once this method has been executed the first time self.concept does not contain elements of type
+        # supermod.CodeSystem_Concept anymore but only pcam.CSConcept
+        concepts_of_type_CodeSystem_Concept = True
 
         the_concept_list = []
+
         if tmp := super().get_concept():
             concept_list = tmp
             for one_concept in concept_list:
-                # one_concept is of type pcam.CSConcept if pcam.sortConceptsExpandStyle()
-                # has already been executed
+                # if one_concept is of type pcam.CSConcept this method has already been executed once
+                # and this loop can be stopped immediately. No transformation needed anymore.
                 if isinstance(one_concept, pcam.CSConcept):
-                    concepts_of_type_CSConcept = True
+                    concepts_of_type_CodeSystem_Concept = False
                     break
 
                 the_concept = pcam.CSConcept()
@@ -267,6 +321,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                                 (tmp := one_property.get_valueBoolean()) or\
                                 (tmp := one_property.get_valueDateTime()) or\
                                 (tmp := one_property.get_valueDecimal()):
+                            # set the property's value
                             the_property.value = tmp.get_value()
                             # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
                             the_property.type = pcam.PropertyCodeType[tmp.original_tagname_.replace('value','').lower()]
@@ -278,22 +333,30 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                         the_concept.property.append(the_property)
 
-                # TODO NOT SUPPORTED nested concepts: one_concept.get_concept() + recursion
+                # TODO NOT SUPPORTED CodeSytem_Concept.concept
+                #      would require recursion
 
                 the_concept_list.append(the_concept)
 
-        # if pcam.sortConceptsExpandStyle() has already been executed
-        if concepts_of_type_CSConcept:
-            return self.concept
+        # if the processed concepts were of type supermod.CodeSystem_Concept()
+        if concepts_of_type_CodeSystem_Concept:
+            self.concept = the_concept_list
 
-        # return the concept list based on supermod.CodeSystem_Concept
-        return the_concept_list
+        return self.concept
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, args_lang=None):
+        """Write information to a FHIR CodeSystem.
+
+        self -- Object holding the information that should be written to the FHIR ValueSet.
+
+        outfile -- File the information will be written to.
+
+        args_lang -- CLI parameter containing default language for resource.
+        """
         codesystem = supermod.CodeSystem()
 
         # export general metadata
-        f4csvs.exporto(self, supermod, codesystem, argsLang)
+        f4csvs.exporto(self, supermod, codesystem, args_lang)
 
         if tmp := self.get_casesensitive():
             codesystem.set_caseSensitive(supermod.boolean(value=tmp))
@@ -362,9 +425,14 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         if tmp := self.get_concept():
             codesystem.set_concept(CodeSystemSub.exporto_concept(tmp))
 
+        # export the FHIR CodeSystem resource to the outfile
         codesystem.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
 
     def exporto_concept(concept_list):
+        """Export information from the given concept_list to CodeSystem.concept.
+
+        concept_list -- List of pcam.VSConcepts which will be processed.
+        """
         the_concept_list = []
 
         for one_concept in concept_list:
@@ -390,22 +458,30 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     if tmp := one_property.code:
                         the_property.set_code(supermod.code(value=tmp))
 
+                    # value and type have to be present for the property's value to be set accordingly
                     if (value := one_property.value) and (value_type := one_property.type):
+                        # special case if type is coding
                         if value_type == pcam.PropertyCodeType.coding:
-                            the_property.set_valueCoding(supermod.Coding(code=value))
+                            the_property.set_valueCoding(supermod.Coding(code=supermod.code(value=value)))
                         else:
-                            # lower case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
-                            first_char_to_lower = lambda s: s[:1].lower() + s[1:] if s else ''
-
-                            value_type_class_name = first_char_to_lower(value_type.value)
+                            # determine class name (e.g. string -> supermod.string)
+                            value_type_class_name = pcam.first_char_to_lower(value_type.value)
+                            # determine proper setter method name (e.g. set_valueString)
                             setter_name = 'set_value' + value_type.value
 
+                            # check if the_property has got a setter according to setter_name
+                            #       if supermod has got a datatype (i.e. class definition) according to value_type_class_name
                             if hasattr(the_property, setter_name) and hasattr(supermod, value_type_class_name):
+                                # for setter_name = 'set_valueString' and value_type_class_anme = 'string' the following
+                                # line could be rewritten as:
+                                #
+                                # the_property.set_valueString(supermod.string(value=tmp))
                                 getattr(the_property, setter_name)(getattr(supermod, value_type_class_name)(value=value))
 
                     the_concept.add_property(the_property)
 
-            # TODO NOT SUPPORTED nested concepts: the_concept.concept
+            # TODO NOT SUPPORTED CodeSytem_Concept.concept
+            #      would require recursion
 
             the_concept_list.append(the_concept)
 
@@ -669,10 +745,6 @@ supermod.Annotation.subclass = AnnotationSub
 class ContactDetailSub(supermod.ContactDetail):
     def __init__(self, id=None, extension=None, name=None, telecom=None, **kwargs_):
         super(ContactDetailSub, self).__init__(id, extension, name, telecom,  **kwargs_)
-
-    # TODO
-    def __str__(self) -> str:
-        return super().__str__()
 supermod.ContactDetail.subclass = ContactDetailSub
 # end class ContactDetailSub
 

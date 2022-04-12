@@ -769,3 +769,5 @@ class ConceptDesignation():
             if self.value: buildStr += self.value
             return buildStr
 
+# lower case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
+first_char_to_lower = lambda s: s[:1].lower() + s[1:] if s else ''
