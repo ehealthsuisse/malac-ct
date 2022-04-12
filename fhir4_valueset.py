@@ -266,7 +266,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # based on the concepts processed so far, a dictionary with the
             # concept's code as key will be created in order to add information
             # which will be retrieved from ValueSet.expansion.contains
-            concept_code_dict = self.buildConceptDictWithKey('code')
+            concept_code_dict = self.buildConceptDictWithAttr('code')
 
             # parse ValueSet.expansion.contains for retrieving information about
             # possible hierarchies
