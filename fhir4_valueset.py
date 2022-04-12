@@ -150,62 +150,78 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         return f4csvs.get_copyright(super())
 
     def get_casesensitive(self):
-        """Return CodeSystem.caseSensitive. Only needed in case of zuppl-creation.
+        """Return CodeSystem.caseSensitive. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_valueset(self):
-        """Return CodeSystem.valueSet. Only needed in case of zuppl-creation.
+        """Return CodeSystem.valueSet. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_hierarchymeaning(self):
-        """Return CodeSystem.hierarchyMeaning. Only needed in case of zuppl-creation.
+        """Return CodeSystem.hierarchyMeaning. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_compositional(self):
-        """Return CodeSystem.compositional. Only needed in case of zuppl-creation.
+        """Return CodeSystem.compositional. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_versionneeded(self):
-        """Return CodeSystem.versionNeeded. Only needed in case of zuppl-creation.
+        """Return CodeSystem.versionNeeded. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_content(self):
-        """Return CodeSystem.content. Only needed in case of zuppl-creation.
-
-        In case of zuppl-creation self.content will be set within fsh1.py#exportoSuppl()
+        """Return CodeSystem.content. Field from CodeSystem.
         """
+        # In case of zuppl-creation self.content will be set within fsh1.py#exportoSuppl()
         if hasattr(self,"content") and (tmp := self.content):
             return tmp
         else:
+            # Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
             return None
 
     def get_supplements(self):
-        """Return CodeSystem.supplements. Only needed in case of zuppl-creation.
-
-        In case of zuppl-creation self.supplements will be set within fsh1.py#exportoSuppl()
+        """Return CodeSystem.supplements. Field from CodeSystem.
         """
+        # In case of zuppl-creation self.supplements will be set within fsh1.py#exportoSuppl()
         if hasattr(self,"supplements") and (tmp := self.supplements):
             return tmp
         else:
+            # Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
             return None
 
     def get_count(self):
-        """Return CodeSystem.count. Only needed in case of zuppl-creation.
+        """Return CodeSystem.count. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return None
 
     def get_filter(self):
-        """Return CodeSystem.filter. Only needed in case of zuppl-creation.
+        """Return CodeSystem.filter. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return []
 
     def get_property(self):
-        """Return CodeSystem.property. Only needed in case of zuppl-creation.
+        """Return CodeSystem.property. Field from CodeSystem.
+
+        Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
         """
         return []
 
