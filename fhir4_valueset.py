@@ -298,8 +298,14 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if tmp := one_include.get_version():
                 the_include_version = tmp.get_value()
 
+            # check if either concepts or filters have been present for one_include
+            include_all_valueset = True
+
             # retrieve ValueSet_Include.concept
             if tmp := one_include.get_concept():
+                # at least one concept is present, hence, it is not a include all valueset
+                include_all_valueset = False
+
                 concept_list = tmp
                 # for each concept within ValueSet_Include a pcam.VSConcept will be created
                 for one_concept in concept_list:
@@ -321,11 +327,15 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
             # retrieve ValueSet_Include.filter
             if tmp := one_include.get_filter():
+                # at least one filter is present, hence, it is not a include all valueset
+                include_all_valueset = False
+
                 filter_list = tmp
 
                 the_concept = pcam.VSConcept()
                 the_concept.system = the_include_system
                 the_concept.version = the_include_version
+                the_concept.exclude = exclude
 
                 # all filters that belong to this ValueSet_Include will be part
                 # of one pcam.VSConcept
@@ -346,6 +356,15 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 the_concept_list.append(the_concept)
 
             # TODO NOT SUPPORTED ValueSet_Include.valueSet
+
+            # if it is an "include all valueset" create a dummy VSConcept
+            if include_all_valueset:
+                the_concept = pcam.VSConcept()
+                the_concept.system = the_include_system
+                the_concept.version = the_include_version
+                the_concept.exclude = exclude
+
+                the_concept_list.append(the_concept)
 
         return the_concept_list
 
@@ -368,7 +387,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if tmp := one_contains.get_code():
                 code = tmp.get_value()
                 # retrieve the concept from the dictionary
-                if the_concept := concept_code_dict[code]:
+                if code in concept_code_dict.keys() and (the_concept := concept_code_dict[code]):
                     # set the concept's level
                     the_concept.level = level
 
