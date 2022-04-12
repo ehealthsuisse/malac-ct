@@ -545,6 +545,18 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
     outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
 
+    dCnt = 0
+    for oneDesignation in oneConcept.designation:
+        if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* expansion%s.designation[%s].language = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.language))
+        if hasattr(oneDesignation, 'use') and oneDesignation.use: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.use))
+        if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.value.replace('"','\\"')))
+        dCnt += 1
+    # following block is only when zuppl are used
+    for oneProperty in oneConcept.property:
+        if hasattr(oneProperty, 'code') and oneProperty.code: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.code))
+        if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
+        dCnt += 1
+
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
         for oneMember in oneConcept.member:
