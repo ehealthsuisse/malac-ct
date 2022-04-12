@@ -345,7 +345,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 the_concept_list.append(the_concept)
 
-            # TODO ValueSet_Include.valueSet
+            # TODO NOT SUPPORTED ValueSet_Include.valueSet
 
         return the_concept_list
 
@@ -545,7 +545,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     the_include.add_filter(the_filter)
 
-            # TODO ValueSet_Include.valueSet
+            # TODO NOT SUPPORTED ValueSet_Include.valueSet
 
         # set ValueSet.compose.include
         the_compose.set_include(list(system_include_dict.values()))

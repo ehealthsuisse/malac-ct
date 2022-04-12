@@ -13,11 +13,11 @@ import fhir4_valueset as f4vs
 #
 ####################################################################################
 
-# NOT SUPPORTED:
+# TODO NOT SUPPORTED:
 #   CodeSystem.id or ValueSet.id
 # def get_id(resource):
 
-# NOT SUPPORTED:
+# TODO NOT SUPPORTED:
 #   CodeSystem.meta or ValueSet.meta
 # def get_meta(resource):
 
@@ -63,18 +63,18 @@ def get_contained(self):
     return None
 
 def get_extension(self):
-    """TODO Return CodeSystem.extension or ValueSet.extension.
+    """Return CodeSystem.extension or ValueSet.extension.
 
-    Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
-    see http://www.hl7.org/fhir/domainresource.html
+    TODO Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
+         see http://www.hl7.org/fhir/domainresource.html
     """
     return None
 
 def get_modifierextension(self):
-    """TODO Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
+    """Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
 
-    Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
-    see http://www.hl7.org/fhir/domainresource.html
+    TODO Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
+         see http://www.hl7.org/fhir/domainresource.html
     """
     return None
 
@@ -86,26 +86,26 @@ def get_url(self):
     return None
 
 def get_identifier(self):
-    """TODO Return CodeSystem.identifier or ValueSet.identifier.
+    """Return CodeSystem.identifier or ValueSet.identifier.
 
-    Currently, only Identifier.value will be retrieved - even if there is more information available.
-    See http://www.hl7.org/fhir/datatypes.html#Identifier
+    TODO Currently, only Identifier.value will be retrieved - even if there is more information available.
+         See http://www.hl7.org/fhir/datatypes.html#Identifier
     """
     identifier_list = self.get_identifier()
     the_identifier_list = []
     for one_identifier in identifier_list:
-        # TODO one_identifier.get_use()
+        # TODO NOT SUPPORTED one_identifier.get_use()
 
-        # TODO one_identifier.get_type()
+        # TODO NOT SUPPORTED one_identifier.get_type()
 
-        # TODO one_identifier.get_system()
+        # TODO NOT SUPPORTED one_identifier.get_system()
 
         if tmp := one_identifier.get_value():
             the_identifier_list.append(tmp.get_value().replace('urn:oid:', ''))
 
-        # TODO one_identifier.get_period()
+        # TODO NOT SUPPORTED one_identifier.get_period()
 
-        # TODO one_identifier.get_assigner()
+        # TODO NOT SUPPORTED one_identifier.get_assigner()
 
     return the_identifier_list
 
@@ -173,11 +173,11 @@ def get_publisher(self):
     return None
 
 def get_contact(self):
-    """TODO Return CodeSystem.contact or ValueSet.contact.
+    """Return CodeSystem.contact or ValueSet.contact.
 
-    Currently, ContactPoint.period cannot be processed. ContactPoint.period
-    consists of start and end. pcam.ContactDetail.ContactPoint however expects a single
-    value for period. Not clear how to transform.
+    TODO Currently, ContactPoint.period cannot be processed. ContactPoint.period
+         consists of start and end. pcam.ContactDetail.ContactPoint however expects a single
+         value for period. Not clear how to transform.
     """
     contact_list = self.get_contact()
     the_contact_list = []
@@ -220,20 +220,20 @@ def get_description(self):
     return None
 
 def get_usecontext(self):
-    """TODO Return CodeSystem.useContext or ValueSet.useContext.
+    """Return CodeSystem.useContext or ValueSet.useContext.
 
-    Not supported yet, UsageContext is a complex datatype, and there may be 0..*.
-    Not clear, how the elements should be processed.
-    See http://www.hl7.org/fhir/metadatatypes.html#UsageContext
+    TODO Not supported yet, UsageContext is a complex datatype, and there may be 0..*.
+         Not clear, how the elements should be processed.
+         See http://www.hl7.org/fhir/metadatatypes.html#UsageContext
     """
     return []
 
 def get_jurisdiction(self):
-    """TODO Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
+    """Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
 
-    Not supported yet, CodeableConcept is a complex datatype, and there may be 0..*.
-    Not clear, how the elements should be processed.
-    See http://www.hl7.org/fhir/datatypes.html#CodeableConcept
+    TODO Not supported yet, CodeableConcept is a complex datatype, and there may be 0..*.
+         Not clear, how the elements should be processed.
+         See http://www.hl7.org/fhir/datatypes.html#CodeableConcept
     """
     return []
 
@@ -262,12 +262,12 @@ def get_copyright(self):
 ####################################################################################
 
 def parse_concept_designation(designation_list):
-    """TODO Parse list of CodeSystem_Designations or ValueSet_Designations and transform them to pcam.ConceptDesignations.
+    """Parse list of CodeSystem_Designations or ValueSet_Designations and transform them to pcam.ConceptDesignations.
 
     designation_list -- List of CodeSystem_Designations or ValueSet_Designations
 
-    For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be retrieved.
-    See http://www.hl7.org/fhir/datatypes.html#Coding
+    TODO For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be retrieved.
+         See http://www.hl7.org/fhir/datatypes.html#Coding
     """
     the_designation_list = []
 
@@ -278,16 +278,16 @@ def parse_concept_designation(designation_list):
             the_designation.language = tmp.get_value()
 
         if tmp := one_designation.get_use():
-            # TODO tmp.get_system()
+            # TODO NOT SUPPORTED one_designation.get_use().get_system()
 
-            # TODO tmp.get_version()
+            # TODO NOT SUPPORTED one_designation.get_use().get_version()
 
             if tmp := tmp.get_code():
                 the_designation.use = tmp.get_value()
 
-            # TODO tmp.get_display()
+            # TODO NOT SUPPORTED one_designation.get_use().get_display()
 
-            # TODO tmp.get_userSelected()
+            # TODO NOT SUPPORTED one_designation.get_use().get_userSelected()
 
         if tmp := one_designation.get_value():
             the_designation.value = tmp.get_value()
@@ -324,7 +324,7 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     if tmp := self.get_name():
         fhir_resource.set_id(supermod.id(value=tmp))
 
-    # NOT SUPPORTED: CodeSystem.meta or ValueSet.meta
+    # TODO NOT SUPPORTED CodeSystem.meta or ValueSet.meta
 
     if tmp := self.get_implicitrules():
         fhir_resource.set_implicitRules(supermod.uri(value=tmp))
@@ -332,13 +332,13 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     if tmp := self.get_language():
         fhir_resource.set_language(supermod.code(value=tmp))
 
-    # NOT SUPPORTED: CodeSystem.text or ValueSet.text
+    # TODO NOT SUPPORTED CodeSystem.text or ValueSet.text
 
-    # NOT SUPPORTED: CodeSystem.contained or ValueSet.contained
+    # TODO NOT SUPPORTED CodeSystem.contained or ValueSet.contained
 
-    # TODO CodeSystem.extension or ValueSet.extension
+    # TODO NOT SUPPORTED CodeSystem.extension or ValueSet.extension
 
-    # TODO CodeSystem.modifierExtension or ValueSet.modifierExtension
+    # TODO NOT SUPPORTED CodeSystem.modifierExtension or ValueSet.modifierExtension
 
     if tmp := self.get_url():
         fhir_resource.set_url(supermod.uri(value=tmp))
@@ -350,16 +350,16 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
             # TODO alternative to fixed value?
             the_identifier.set_use(supermod.IdentifierUse(value='official'))
 
-            # TODO the_identifier.set_type()
+            # TODO NOT SUPPORTED the_identifier.set_type()
 
             # TODO alternative to fixed value?
             the_identifier.set_system(supermod.uri(value='urn:ietf:rfc:3986'))
 
             the_identifier.set_value(supermod.string(value='urn:oid:'+one_identifier))
 
-            # TODO the_identifier.set_period()
+            # TODO NOT SUPPORTED the_identifier.set_period()
 
-            # TODO the_identifier.set_assigner()
+            # TODO NOT SUPPORTED the_identifier.set_assigner()
 
             fhir_resource.add_identifier(the_identifier)
 
@@ -420,9 +420,9 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     if tmp := self.get_description():
         fhir_resource.set_description(supermod.markdown(value=tmp))
 
-    # TODO CodeSystem.useContext or ValueSet.useContext
+    # TODO NOT SUPPORTED CodeSystem.useContext or ValueSet.useContext
 
-    # TODO CodeSystem.jurisdiction or ValueSet.jurisdiction
+    # TODO NOT SUPPORTED CodeSystem.jurisdiction or ValueSet.jurisdiction
 
     if tmp := self.get_purpose():
         fhir_resource.set_purpose(supermod.markdown(value=tmp))
@@ -431,7 +431,7 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
         fhir_resource.set_copyright(supermod.markdown(value=tmp))
 
 def exporto_concept_designation(supermod, designation_class, designation_list):
-    """TODO Transform list of pcam.ConceptDesignations to list of CodeSystem_Designations or ValueSet_Designations depending on designation_class.
+    """Transform list of pcam.ConceptDesignations to list of CodeSystem_Designations or ValueSet_Designations depending on designation_class.
 
     supermod -- Module that contains all datatypes required for creating proper CodeSystem_Designations or ValueSet_Designations.
 
@@ -439,8 +439,8 @@ def exporto_concept_designation(supermod, designation_class, designation_list):
 
     designation_list -- list of pcam.ConceptDesignations
 
-    For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be written.
-    See http://www.hl7.org/fhir/datatypes.html#Coding
+    TODO For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be written.
+         See http://www.hl7.org/fhir/datatypes.html#Coding
     """
     the_designation_list = []
 
@@ -451,7 +451,7 @@ def exporto_concept_designation(supermod, designation_class, designation_list):
             the_designation.set_language(supermod.code(value=tmp))
 
         if tmp := one_designation.use:
-            # TODO Coding.system, Coding.version, Coding.display, Coding.userSelected
+            # TODO NOT SUPPORTED Coding.system, Coding.version, Coding.display, Coding.userSelected
             the_designation.set_use(supermod.Coding(code=supermod.code(value=tmp)))
 
         if tmp := one_designation.value:
@@ -502,4 +502,4 @@ class FHIR4CsAndVs:
         if resource == 'CodeSystem':
             f4cs.CodeSystemSub.exporto(input, outfile, args_lang)
         elif resource == 'ValueSet':
-            f4vs.ValueSetSub.exporto(input, outfile, args_lang, include_hierarchy_extension_4_valueset)
+            f4vs.ValueSetSub.exporto(input, outfile, args_lang)
