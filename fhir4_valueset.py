@@ -69,7 +69,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
 
     def get_resource(self):
-        # In case of zuppl-creation self.resource will be set within fsh1.py#exportoSuppl()
+        """Return resource type.
+
+        In case of zuppl-creation self.resource will be set within fsh1.py#exportoSuppl()
+        and that value should then be returned instead.
+        """
         if hasattr(self,"resource") and (tmp := self.resource):
             return tmp
         else:
@@ -133,6 +137,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         return f4csvs.get_jurisdiction(super())
 
     def get_immutable(self):
+        """Return ValueSet.immutable.
+        """
         if tmp := super().get_immutable():
             return tmp.get_value()
         return None
@@ -143,67 +149,89 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
     def get_copyright(self):
         return f4csvs.get_copyright(super())
 
-    # field from CodeSystem
     def get_casesensitive(self):
+        """Return CodeSystem.caseSensitive. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_valueset(self):
+        """Return CodeSystem.valueSet. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_hierarchymeaning(self):
+        """Return CodeSystem.hierarchyMeaning. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_compositional(self):
+        """Return CodeSystem.compositional. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_versionneeded(self):
+        """Return CodeSystem.versionNeeded. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_content(self):
-        # In case of zuppl-creation self.content will be set within fsh1.py#exportoSuppl()
+        """Return CodeSystem.content. Only needed in case of zuppl-creation.
+
+        In case of zuppl-creation self.content will be set within fsh1.py#exportoSuppl()
+        """
         if hasattr(self,"content") and (tmp := self.content):
             return tmp
         else:
             return None
 
-    # field from CodeSystem
     def get_supplements(self):
-        # In case of zuppl-creation self.supplements will be set within fsh1.py#exportoSuppl()
+        """Return CodeSystem.supplements. Only needed in case of zuppl-creation.
+
+        In case of zuppl-creation self.supplements will be set within fsh1.py#exportoSuppl()
+        """
         if hasattr(self,"supplements") and (tmp := self.supplements):
             return tmp
         else:
             return None
 
-    # field from CodeSystem
     def get_count(self):
+        """Return CodeSystem.count. Only needed in case of zuppl-creation.
+        """
         return None
 
-    # field from CodeSystem
     def get_filter(self):
+        """Return CodeSystem.filter. Only needed in case of zuppl-creation.
+        """
         return []
 
-    # field from CodeSystem
     def get_property(self):
+        """Return CodeSystem.property. Only needed in case of zuppl-creation.
+        """
         return []
 
     def get_lockeddate(self):
+        """Return ValueSet.compose.lockedDate.
+        """
         if tmp := super().get_compose():
             if tmp := tmp.get_lockedDate():
                 return tmp.get_value()
         return None
 
     def get_inactive(self):
+        """Return ValueSet.compose.inactive.
+        """
         if tmp := super().get_compose():
             if tmp := tmp.get_inactive():
                 return tmp.get_value()
         return None
 
     def get_concept(self):
+        """Processes ValueSet.compose.include, ValueSet.compose.exclude, and ValueSet.expansion.contains and
+        returns a list of pcam.VSConcept.
+        """
+
+        # Once the concepts of the underlying ValueSet have been parsed, the result
+        # will be accessible in self.concept (improve performance).
         if hasattr(self,"concept") and (tmp := self.concept):
             return tmp
         else:
@@ -211,34 +239,53 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
             if tmp := super().get_compose():
                 compose = tmp
+                # parse ValueSet.compose.include
                 if tmp := compose.get_include():
-                    self.parse_include_information(tmp)
+                    self.concept.extend(ValueSetSub.parse_include_information(tmp))
 
+                # parse ValueSet.compose.exclude
                 if tmp := compose.get_exclude():
-                    self.parse_include_information(tmp, True)
+                    self.concept.extend(ValueSetSub.parse_include_information(tmp, True))
 
+            # based on the concepts processed so far, a dictionary with the
+            # concept's code as key will be created in order to add information
+            # which will be retrieved from ValueSet.expansion.contains
             concept_code_dict = self.buildConceptDictWithKey('code')
 
+            # parse ValueSet.expansion.contains for retrieving information about
+            # possible hierarchies
             if tmp := super().get_expansion():
                 if tmp := tmp.get_contains():
-                    contains_list = tmp
-                    self.parse_contains_information(0, contains_list, concept_code_dict)
+                    ValueSetSub.parse_contains_information(0, tmp, concept_code_dict)
 
             return self.concept
 
-    def parse_include_information(self, include_list, exclude=False):
+    def parse_include_information(include_list, exclude=False):
+        """Parse the given include_list (of type ValueSet_Include, i.e. ValueSet.compose.include or ValueSet.compose.exclude)
+        and transforms the information into pcam.VSConcepts.
+
+        include_list -- List of ValueSet_Includes that should be transformed to pcam.VSConcepts().
+
+        exclude -- If true all VSConcepts will represent exculde information.
+        """
+        the_concept_list = []
+
         for one_include in include_list:
             the_include_system = None
             the_include_version = None
 
+            # retrieve ValueSet_Include.system
             if tmp := one_include.get_system():
                 the_include_system = tmp.get_value()
 
+            # retrieve ValueSet_Include.version
             if tmp := one_include.get_version():
                 the_include_version = tmp.get_value()
 
+            # retrieve ValueSet_Include.concept
             if tmp := one_include.get_concept():
                 concept_list = tmp
+                # for each concept within ValueSet_Include a pcam.VSConcept will be created
                 for one_concept in concept_list:
                     the_concept = pcam.VSConcept()
                     the_concept.system = the_include_system
@@ -254,8 +301,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_concept.get_designation():
                         the_concept.designation = f4csvs.parse_concept_designation(tmp)
 
-                    self.concept.append(the_concept)
+                    the_concept_list.append(the_concept)
 
+            # retrieve ValueSet_Include.filter
             if tmp := one_include.get_filter():
                 filter_list = tmp
 
@@ -263,6 +311,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 the_concept.system = the_include_system
                 the_concept.version = the_include_version
 
+                # all filters that belong to this ValueSet_Include will be part
+                # of one pcam.VSConcept
                 for one_filter in filter_list:
                     the_filter = pcam.VSConcept.VSConceptFilter()
 
@@ -277,70 +327,131 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     the_concept.filter.append(the_filter)
 
-                self.concept.append(the_concept)
+                the_concept_list.append(the_concept)
 
-            # TODO NOT SUPPORTED: ValueSet.compose.include.valueSet
+            # TODO ValueSet_Include.valueSet
 
-    def parse_contains_information(self, level, contains_list, concept_code_dict, parent=None):
+        return the_concept_list
+
+    def parse_contains_information(level, contains_list, concept_code_dict, parent=None):
+        """Parse the given contains_list (of type ValueSet_Contains, i.e. ValueSet.expansion.contains) and add
+        information regarding possible hierarchies to the pcam.VSConcepts which are part of concept_code_dict.
+
+        level -- the current level of hierarchy. Top level should have level=0.
+
+        contains_list -- List of ValueSet_Contains of the current level.
+
+        concept_code_dict -- Dictionary of all concepts (retrieved from ValueSet.compose.include and ValueSet.compose.exclude) with their code as key.
+
+        parent -- the parent of the concepts within the contains_list.
+
+        TODO Currently, only information about a possible hierarchical ValueSet definition is being
+             retrieved from the expansion. No other information - if available - will be processed.
+        """
         for one_contains in contains_list:
             if tmp := one_contains.get_code():
                 code = tmp.get_value()
+                # retrieve the concept from the dictionary
                 if the_concept := concept_code_dict[code]:
+                    # set the concept's level
                     the_concept.level = level
 
+                    # if a parent has been specified add the_concept to the parent's member
                     if parent:
                         parent.member.append(the_concept)
 
+                    # if one_contains contains a list of contains go into recursion
                     if tmp := one_contains.get_contains():
-                        self.parse_contains_information(level+1, tmp, concept_code_dict, the_concept)
+                        ValueSetSub.parse_contains_information(level+1, tmp, concept_code_dict, the_concept)
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, args_lang=None):
+        """Write information to a FHIR ValueSet.
+
+        self -- Object holding the information that should be written to the FHIR ValueSet.
+
+        outfile -- File the information will be written to.
+
+        args_lang -- CLI parameter containing default language for resource.
+        """
+
+        # Create new FHIR ValueSet
         valueset = supermod.ValueSet()
 
         # export general metadata
-        f4csvs.exporto(self, supermod, valueset, argsLang)
+        f4csvs.exporto(self, supermod, valueset, args_lang)
 
-        valueset_compose = None
+        if tmp := self.get_immutable():
+            valueset.set_immutable(supermod.boolean(value = tmp))
+
+        the_compose = None
 
         if tmp := self.get_lockeddate():
-            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
-            valueset_compose.set_lockedDate(supermod.date(value=tmp))
+            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
+            the_compose.set_lockedDate(supermod.date(value=tmp))
 
         if tmp := self.get_inactive():
-            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
-            valueset_compose.set_inactive(supermod.boolean(value=tmp))
+            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
+            the_compose.set_inactive(supermod.boolean(value=tmp))
 
         if tmp := self.get_concept():
-            valueset_compose = ValueSetSub.init_compose_if_not_existent(valueset, valueset_compose)
-            do_expansion = ValueSetSub.exporto_include_exclude(valueset_compose, tmp)
+            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
 
+            # create ValueSet.compose.include and/or ValueSet.compose.exclude
+            do_expansion = ValueSetSub.exporto_include_exclude(the_compose, tmp)
+
+            # if an expansion shall be appended to the ValueSet definition
             if do_expansion:
                 the_expansion = supermod.ValueSet_Expansion()
 
+                # NOT SUPPORTED ValueSet_Expansion.identifier
+
+                # set timestamp accordingly (required)
                 the_expansion.set_timestamp(supermod.dateTime(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
 
+                # NOT SUPPORTED ValueSet_Expansion.identifier
+
+                # NOT SUPPORTED ValueSet_Expansion.total
+
+                # NOT SUPPORTED ValueSet_Expansion.offset
+
+                # NOT SUPPORTED ValueSet_Expansion.parameter
+
+                # the expansion will be created starting with those concepts which are at level=0 of
+                # a possible hierarchy
+                # TODO WICHTIG the default value of level within VSConcept is -1 ... maybe change that
                 the_expansion.set_contains(ValueSetSub.exporto_expansion(list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
 
                 valueset.set_expansion(the_expansion)
 
+        # export the FHIR ValueSet resource to the outfile
         valueset.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
 
-    def init_compose_if_not_existent(valueset, valueset_compose):
-        if not valueset_compose:
-            valueset_compose = supermod.ValueSet_Compose()
-            valueset.set_compose(valueset_compose)
-        return valueset_compose
+    def create_compose_if_not_existent(valueset):
+        """Create ValueSet.compose if it does not yet exist.
+
+        valueset -- the ValueSet object
+        """
+        compose = None
+
+        if not (compose := valueset.get_compose()):
+            compose = supermod.ValueSet_Compose()
+            valueset.set_compose(compose)
+
+        return compose
 
     def exporto_include_exclude(the_compose, concept_list):
+        """Export information from the given concept_list to the_compose and create
+        ValueSet.compose.include and/or ValueSet.compose.exclude if necessary.
+
+        the_compose -- Represents ValueSet.compose.
+        concept_list -- List of pcam.VSConcepts which will be processed.
+        """
         do_expansion = False
 
-        the_include_list = []
-        the_exclude_list = []
-
-        # dict containing the concepts for all system + version
+        # dictionaries containing the concepts for each system + version
         system_include_dict = {}
         system_exclude_dict = {}
-        # dummy system + version
+        # dummy system + version if a VSConcept has got neither system nor version
         no_system_no_version = 'NO_SYSTEM_NO_VERSION'
 
         for one_concept in concept_list:
@@ -350,33 +461,45 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if exclude != True and exclude != False:
                 sys.exit('Cannot determine if concept should be part of ValueSet.compose.include or ValueSet.compose.exclude')
 
+            # based on exclude decide if the information within one_concept should be
+            # added to ValueSet.compose.include ore ValueSet.compose.exclude
             the_system_dict = None
             if exclude:
                 the_system_dict = system_exclude_dict
             else:
                 the_system_dict = system_include_dict
 
-            one_system = one_concept.system
-            one_version = one_concept.version
+            # retrieve system + version from one_concept
+            the_system = one_concept.system
+            the_version = one_concept.version
+            # create key for the dictionary entry
             system_key = None
-            if one_system or one_version:
-                system_key = (one_system or 'None') + '#' + (one_version or 'None')
+            if the_system or the_version:
+                system_key = (the_system or 'None') + '#' + (the_version or 'None')
             else:
                 system_key = no_system_no_version
 
             the_include = None
+            # if the key does not yet exist in the dictionary a new ValueSet_Include
+            # with the current system + version will be created
             if system_key not in the_system_dict:
                 the_include = supermod.ValueSet_Include()
-                if one_system:
-                    the_include.set_system(supermod.uri(value=one_system))
-                if one_version:
-                    the_include.set_version(supermod.string(value=one_version))
+                if the_system:
+                    the_include.set_system(supermod.uri(value=the_system))
+                if the_version:
+                    the_include.set_version(supermod.string(value=the_version))
                 the_system_dict[system_key] = the_include
             else:
                 the_include = the_system_dict[system_key]
 
+            # if one_concept has got a code it will be transformed into a ValueSet_Concept (i.e. ValueSet.compose.include.concept or ValueSet.compose.exclude.concept)
             if tmp := one_concept.code:
-                do_expansion = True
+                # if concepts are explicitly stated within ValueSet.compose.include a ValueSet.expansion will be
+                # created with all those concepts from ValueSet.compose.include
+                #
+                # if exclude is false, do_expansion will become true
+                # if exclude is true, do_expansion will retain its current value
+                do_expansion |= not exclude
 
                 the_concept = supermod.ValueSet_Concept()
 
@@ -389,51 +512,69 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
 
                 the_include.add_concept(the_concept)
+            # if one_concept has got filters they will be transformed into ValueSet_Filter (i.e. ValueSet.compose.include.filter or ValueSet.compose.exclude.filter)
             elif tmp := one_concept.filter:
-                pass
+                filter_list = tmp
+                for one_filter in filter_list:
+                    the_filter = supermod.ValueSet_Filter()
 
-            # TODO NOT SUPPORTED: ValueSet.compose.include.valueSet
+                    if tmp := one_filter.property:
+                        the_filter.set_property(supermod.code(value=tmp))
 
-        for one_exclude in system_include_dict.keys():
-            the_include_list.append(system_include_dict[one_exclude])
-        for one_exclude in system_exclude_dict.keys():
-            the_exclude_list.append(system_exclude_dict[one_exclude])
+                    if tmp := one_filter.op:
+                        the_filter.set_op(supermod.FilterOperator(value=tmp))
 
-        the_compose.set_include(the_include_list)
-        the_compose.set_exclude(the_exclude_list)
+                    if tmp := one_filter.value:
+                        the_filter.set_value(supermod.string(value=tmp))
+
+                    the_include.add_filter(the_filter)
+
+            # TODO ValueSet_Include.valueSet
+
+        # set ValueSet.compose.include
+        the_compose.set_include(list(system_include_dict.values()))
+        # set ValueSet.compose.exclude
+        the_compose.set_exclude(list(system_exclude_dict.values()))
 
         return do_expansion
 
     def exporto_expansion(concept_list):
+        """Export information from the given concept_list to ValueSet.expansion.
+
+        concept_list -- List of pcam.VSConcepts which will be processed.
+        """
         the_concept_list = []
 
         for one_concept in concept_list:
-            the_concept = supermod.ValueSet_Contains()
+            # only those concepts should be part of the expansion which have exclude=false
+            if not one_concept.exclude:
+                the_concept = supermod.ValueSet_Contains()
 
-            if tmp := one_concept.system:
-                the_concept.set_system(supermod.uri(value=tmp))
+                if tmp := one_concept.system:
+                    the_concept.set_system(supermod.uri(value=tmp))
 
-            if tmp := one_concept.abstract:
-                the_concept.set_abstract(supermod.boolean(value=tmp))
+                if tmp := one_concept.abstract:
+                    the_concept.set_abstract(supermod.boolean(value=tmp))
 
-            # TODO NOT SUPPORTED ValueSet.expansion.contains.inactive
+                # NOT SUPPORTED ValueSet.expansion.contains.inactive
 
-            if tmp := one_concept.version:
-                the_concept.set_version(supermod.string(value=tmp))
+                if tmp := one_concept.version:
+                    the_concept.set_version(supermod.string(value=tmp))
 
-            if tmp := one_concept.code:
-                the_concept.set_code(supermod.code(value=tmp))
+                if tmp := one_concept.code:
+                    the_concept.set_code(supermod.code(value=tmp))
 
-            if tmp := one_concept.display:
-                the_concept.set_display(supermod.string(value=tmp))
+                if tmp := one_concept.display:
+                    the_concept.set_display(supermod.string(value=tmp))
 
-            if tmp := one_concept.designation:
-                the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
+                if tmp := one_concept.designation:
+                    the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
 
-            if tmp := one_concept.member:
-                the_concept.set_contains(ValueSetSub.exporto_expansion(tmp))
+                # if one_concept contains any members a recursion will be started
+                if tmp := one_concept.member:
+                    the_concept.set_contains(ValueSetSub.exporto_expansion(tmp))
 
-            the_concept_list.append(the_concept)
+                the_concept_list.append(the_concept)
 
         return the_concept_list
 
