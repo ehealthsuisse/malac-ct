@@ -426,7 +426,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
             codesystem.set_concept(CodeSystemSub.exporto_concept(tmp))
 
         # export the FHIR CodeSystem resource to the outfile
-        codesystem.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
+        codesystem.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
 
     def exporto_concept(concept_list):
         """Export information from the given concept_list to CodeSystem.concept.

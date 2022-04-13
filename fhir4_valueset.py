@@ -457,7 +457,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 valueset.set_expansion(the_expansion)
 
         # export the FHIR ValueSet resource to the outfile
-        valueset.export(outfile=outfile, level=0, namespacedef_=' xmlns="http://hl7.org/fhir" ')
+        valueset.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
 
     def create_compose_if_not_existent(valueset):
         """Create ValueSet.compose if it does not yet exist.
