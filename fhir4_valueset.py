@@ -438,18 +438,16 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if do_expansion:
                 the_expansion = supermod.ValueSet_Expansion()
 
-                # NOT SUPPORTED ValueSet_Expansion.identifier
+                # TODO NOT SUPPORTED ValueSet_Expansion.identifier
 
                 # set timestamp accordingly (required)
                 the_expansion.set_timestamp(supermod.dateTime(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
 
-                # NOT SUPPORTED ValueSet_Expansion.identifier
+                # TODO NOT SUPPORTED ValueSet_Expansion.total
 
-                # NOT SUPPORTED ValueSet_Expansion.total
+                # TODO NOT SUPPORTED ValueSet_Expansion.offset
 
-                # NOT SUPPORTED ValueSet_Expansion.offset
-
-                # NOT SUPPORTED ValueSet_Expansion.parameter
+                # TODO NOT SUPPORTED ValueSet_Expansion.parameter
 
                 # the expansion will be created starting with those concepts which are at level=0 of
                 # a possible hierarchy
@@ -591,7 +589,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(supermod.boolean(value=tmp))
 
-                # NOT SUPPORTED ValueSet.expansion.contains.inactive
+                # TODO NOT SUPPORTED ValueSet.expansion.contains.inactive
 
                 if tmp := one_concept.version:
                     the_concept.set_version(supermod.string(value=tmp))
