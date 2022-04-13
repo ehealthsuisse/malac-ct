@@ -191,7 +191,13 @@ def main() -> None:
             convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
 
         if (args.upload2FhirServer):
+            import requests
+
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
+
+            auth = None
+            if (args.json2xmlFHIRServerUser and args.json2xmlFHIRServerUserPassword):
+                auth = (args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
 
             if ("CodeSystem-" in args.input):
                 url += "CodeSystem/"+os.path.basename(args.input.replace(iClass,"").replace("CodeSystem-","")).lower()
