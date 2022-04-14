@@ -61,7 +61,7 @@ class Fsh2(Fsh1):
                                 theProperty.code = value
                             elif 'value' in splittedLine[0].split('.')[-1].strip():
                                 theProperty.value = value
-                                theProperty.type = pcam.PropertyCodeType[splittedLine[0].split('.')[-1].strip()[5:].lower()]
+                                theProperty.type = pcam.PropertyCodeType(splittedLine[0].split('.')[-1].strip()[5:].lower())
                 else:
                                 # a detection of two # (without a ^) in a line to give a syserr that nested hierarchy is not supported
                     if len(line.split('#')) > 2:

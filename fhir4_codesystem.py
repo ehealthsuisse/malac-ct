@@ -252,7 +252,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     the_property.description = tmp.get_value()
 
                 if tmp := one_property.get_type():
-                    the_property.type = pcam.PropertyCodeType[tmp.get_value().lower()]
+                    the_property.type = pcam.PropertyCodeType(tmp.get_value().lower())
 
                 the_property_list.append(the_property)
 
@@ -324,12 +324,12 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                             # set the property's value
                             the_property.value = tmp.get_value()
                             # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                            the_property.type = pcam.PropertyCodeType[tmp.original_tagname_.replace('value','').lower()]
+                            the_property.type = pcam.PropertyCodeType(tmp.original_tagname_.replace('value','').lower())
                         elif tmp_coding := one_property.get_valueCoding():
                             if tmp := tmp_coding.get_code():
                                 the_property.value = tmp.get_value()
                                 # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                                the_property.type = pcam.PropertyCodeType[tmp_coding.original_tagname_.replace('value','').lower()]
+                                the_property.type = pcam.PropertyCodeType(tmp_coding.original_tagname_.replace('value','').lower())
 
                         the_concept.property.append(the_property)
 
@@ -466,9 +466,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                             the_property.set_valueCoding(supermod.Coding(code=supermod.code(value=value)))
                         else:
                             # determine class name (e.g. string -> supermod.string)
-                            value_type_class_name = pcam.first_char_to_lower(value_type.value)
+                            value_type_class_name = value_type.value
                             # determine proper setter method name (e.g. set_valueString)
-                            setter_name = 'set_value' + value_type.value
+                            setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
 
                             # check if the_property has got a setter according to setter_name
                             #       if supermod has got a datatype (i.e. class definition) according to value_type_class_name

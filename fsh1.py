@@ -131,7 +131,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     elif splittedLine[0].split('.')[1].strip() == 'uri':
                         theProperty.uri = value
                     elif splittedLine[0].split('.')[1].strip() == 'type':
-                        theProperty.type = pcam.PropertyCodeType[value]
+                        theProperty.type = pcam.PropertyCodeType(value.lower())
 
                 #processing the body with the concepts
                 else:
@@ -214,7 +214,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 theProperty.code = value
                             elif 'value' in splittedLine[0].split('.')[-1].strip():
                                 theProperty.value = value
-                                theProperty.type = pcam.PropertyCodeType(splittedLine[0].split('.')[-1].strip().replace("value",""))
+                                theProperty.type = pcam.PropertyCodeType(splittedLine[0].split('.')[-1].strip().replace("value","").lower())
                 else:
                     # parsing main data of the concept
                     theConcept.code = value
@@ -419,9 +419,9 @@ class Fsh1(pcam.PropCsvAndMaster):
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* concept[%s].property[%s].code = #%s \n' % (cntCSConcept, i, oneProperty.code or "None"))
-                            if hasattr(oneProperty, 'value') and oneProperty.type.value == "String": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
-                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (cntCSConcept, i, oneProperty.type.value, oneProperty.value.replace('"','\\"')))
-                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Boolean": outfile.write('* concept[%s].property[%s].value%s = %s \n' % (cntCSConcept, i, oneProperty.type.value, str(oneProperty.value).lower().replace('"','\\"')))
+                            if hasattr(oneProperty, 'value') and oneProperty.type.value == "string": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "boolean": outfile.write('* concept[%s].property[%s].value%s = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value).lower().replace('"','\\"')))
                             i += 1
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
