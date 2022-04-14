@@ -157,6 +157,7 @@ class Fsh2(Fsh1):
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
+                            # TODO has to be adapted according to fsh1.py
                             if hasattr(oneProperty, 'value'): outfile.write('* #%s ^property[%s].value%s = "%s" \n' % (oneConcept.code, i, oneProperty.type.value, oneProperty.value))
                             i += 1
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
