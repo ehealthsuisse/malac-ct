@@ -325,12 +325,12 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     args_lang -- CLI parameter containing default language for resource.
     """
 
-    # TODO Fallback required, in case 'name' is not available.
-    #      IG publisher fails if no id is present in FHIR resource.
+    # IG publisher fails if no id is present in FHIR resource.
+    # As fallback the name of the resource is being used.
     if tmp := self.get_name():
         fhir_resource.set_id(supermod.id(value=tmp))
 
-    # TODO NOT SUPPORTED CodeSystem.meta or ValueSet.meta
+    # NOT SUPPORTED CodeSystem.meta or ValueSet.meta
 
     if tmp := self.get_implicitrules():
         fhir_resource.set_implicitRules(supermod.uri(value=tmp))
@@ -338,13 +338,13 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     if tmp := self.get_language():
         fhir_resource.set_language(supermod.code(value=tmp))
 
-    # TODO NOT SUPPORTED CodeSystem.text or ValueSet.text
+    # NOT SUPPORTED CodeSystem.text or ValueSet.text
 
-    # TODO NOT SUPPORTED CodeSystem.contained or ValueSet.contained
+    # NOT SUPPORTED CodeSystem.contained or ValueSet.contained
 
-    # TODO NOT SUPPORTED CodeSystem.extension or ValueSet.extension
+    # NOT SUPPORTED CodeSystem.extension or ValueSet.extension
 
-    # TODO NOT SUPPORTED CodeSystem.modifierExtension or ValueSet.modifierExtension
+    # NOT SUPPORTED CodeSystem.modifierExtension or ValueSet.modifierExtension
 
     if tmp := self.get_url():
         fhir_resource.set_url(supermod.uri(value=tmp))
@@ -353,19 +353,20 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
         for one_identifier in tmp:
             the_identifier = supermod.Identifier()
 
-            # TODO alternative to fixed value?
+            # As only urn:oid: is supported the use will set to a fixed value
             the_identifier.set_use(supermod.IdentifierUse(value='official'))
 
-            # TODO NOT SUPPORTED the_identifier.set_type()
+            # NOT SUPPORTED the_identifier.set_type()
 
-            # TODO alternative to fixed value?
+            # As only urn:oid: is supported the system will set to a fixed value
             the_identifier.set_system(supermod.uri(value='urn:ietf:rfc:3986'))
 
+            # currently only urn:oid: supported
             the_identifier.set_value(supermod.string(value='urn:oid:'+one_identifier))
 
-            # TODO NOT SUPPORTED the_identifier.set_period()
+            # NOT SUPPORTED the_identifier.set_period()
 
-            # TODO NOT SUPPORTED the_identifier.set_assigner()
+            # NOT SUPPORTED the_identifier.set_assigner()
 
             fhir_resource.add_identifier(the_identifier)
 
@@ -433,9 +434,9 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     if tmp := self.get_description():
         fhir_resource.set_description(supermod.markdown(value=tmp))
 
-    # TODO NOT SUPPORTED CodeSystem.useContext or ValueSet.useContext
+    # NOT SUPPORTED CodeSystem.useContext or ValueSet.useContext
 
-    # TODO NOT SUPPORTED CodeSystem.jurisdiction or ValueSet.jurisdiction
+    # NOT SUPPORTED CodeSystem.jurisdiction or ValueSet.jurisdiction
 
     if tmp := self.get_purpose():
         fhir_resource.set_purpose(supermod.markdown(value=tmp))
