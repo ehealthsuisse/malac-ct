@@ -650,7 +650,8 @@ class ContactDetail():
             self.value = None
             self.use = None # ContactPointUse
             self.rank = None
-            self.period = None
+            self.period_start = None
+            self.period_end = None
 
         class ContactPointSystem(enum.Enum):
             phone = "phone"

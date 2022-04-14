@@ -181,10 +181,6 @@ def get_publisher(self):
 
 def get_contact(self):
     """Return CodeSystem.contact or ValueSet.contact.
-
-    TODO Currently, ContactPoint.period cannot be processed. ContactPoint.period
-         consists of start and end. pcam.ContactDetail.ContactPoint however expects a single
-         value for period. Not clear how to transform.
     """
     contact_list = self.get_contact()
     the_contact_list = []
@@ -209,9 +205,12 @@ def get_contact(self):
             if tmp := one_contact_point.get_rank():
                 the_contact_point.value = tmp.get_value()
 
-            # TODO FHIR ContactPoint.period consists of start and end.
-            #      pcam.ContactDetail.ContactPoint however has got a single value for 'period'
-            #      Not clear how to transform.
+            if period := one_contact_point.get_period():
+                if tmp := period.get_start():
+                    the_contact_point.period_start = tmp.get_value()
+
+                if tmp := period.get_end():
+                    the_contact_point.period_end = tmp.get_value()
 
             the_contact_detail.telecom.append(the_contact_point)
 
@@ -416,9 +415,16 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
                     if tmp := one_contact_point.rank:
                         the_contact_point.set_rank(supermod.positiveInt(value=tmp))
 
-                    # TODO FHIR ContactPoint.period consists of start and end.
-                    #      pcam.ContactDetail.ContactPoint however has got a single value for 'period'
-                    #      Not clear how to transform.
+                    if (period_start := one_contact_point.period_start) or (period_end := one_contact_point.period_end):
+                        the_period = supermod.Period()
+
+                        if period_start:
+                            the_period.set_start(supermod.dateTime(value=period_start))
+
+                        if period_end:
+                            the_period.set_end(supermod.dateTime(value=period_end))
+
+                        one_contact_point.set_period(the_period)
 
                     the_contact.add_telecom(the_contact_point)
 
