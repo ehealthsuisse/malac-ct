@@ -685,7 +685,7 @@ class Property():
         self.idInFsh = idInFsh
 
     def __str__(self) -> str:
-        return (self.code or "None")+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+(self.type.value or "None")
+        return self.code+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+self.type.value
 
 class CSConcept():
     def __init__(self):
@@ -710,9 +710,9 @@ class CSConcept():
 
         def __str__(self) -> str:
             buildStr = ""
-            buildStr = self.code or "None"
-            buildStr += "|"+ (self.value or "None")
-            buildStr += "|"+ (self.type.value or "None")
+            buildStr = self.code
+            buildStr += "|"+ self.value
+            buildStr += "|"+ self.type.value
             return buildStr
 
 class VSConcept():
