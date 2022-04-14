@@ -355,7 +355,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 the_concept_list.append(the_concept)
 
-            # TODO NOT SUPPORTED ValueSet_Include.valueSet
+            # NOT SUPPORTED ValueSet_Include.valueSet
 
             # if it is an "include all valueset" create a dummy VSConcept
             if include_all_valueset:
@@ -380,8 +380,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         parent -- the parent of the concepts within the contains_list.
 
-        TODO Currently, only information about a possible hierarchical ValueSet definition is being
-             retrieved from the expansion. No other information - if available - will be processed.
+        Currently, only information about a possible hierarchical ValueSet definition is being
+        retrieved from the expansion. No other information - if available - will be processed.
         """
         for one_contains in contains_list:
             if tmp := one_contains.get_code():
@@ -438,20 +438,18 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if do_expansion:
                 the_expansion = supermod.ValueSet_Expansion()
 
-                # TODO NOT SUPPORTED ValueSet_Expansion.identifier
+                # NOT SUPPORTED ValueSet_Expansion.identifier
 
                 # set timestamp accordingly (required)
                 the_expansion.set_timestamp(supermod.dateTime(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
 
-                # TODO NOT SUPPORTED ValueSet_Expansion.total
+                # NOT SUPPORTED ValueSet_Expansion.total
 
-                # TODO NOT SUPPORTED ValueSet_Expansion.offset
+                # NOT SUPPORTED ValueSet_Expansion.offset
 
-                # TODO NOT SUPPORTED ValueSet_Expansion.parameter
+                # NOT SUPPORTED ValueSet_Expansion.parameter
 
-                # the expansion will be created starting with those concepts which are at level=0 of
-                # a possible hierarchy
-                # TODO WICHTIG the default value of level within VSConcept is -1 ... maybe change that
+                # the expansion will be created starting with those concepts which are at level=0 of a possible hierarchy
                 the_expansion.set_contains(ValueSetSub.exporto_expansion(list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
 
                 valueset.set_expansion(the_expansion)
@@ -562,7 +560,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     the_include.add_filter(the_filter)
 
-            # TODO NOT SUPPORTED ValueSet_Include.valueSet
+            # NOT SUPPORTED ValueSet_Include.valueSet
 
         # set ValueSet.compose.include
         the_compose.set_include(list(system_include_dict.values()))
@@ -589,7 +587,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(supermod.boolean(value=tmp))
 
-                # TODO NOT SUPPORTED ValueSet.expansion.contains.inactive
+                # NOT SUPPORTED ValueSet.expansion.contains.inactive
 
                 if tmp := one_concept.version:
                     the_concept.set_version(supermod.string(value=tmp))
