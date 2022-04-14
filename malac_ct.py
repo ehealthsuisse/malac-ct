@@ -94,7 +94,11 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
     if os.path.exists(target_filename):
         os.remove(target_filename)
 
-    res.raise_for_status()
+    try:
+        res.raise_for_status()
+    except:
+        print("ERROR: " + res.text)
+        res.raise_for_status()
 
     with open(target_filename, 'w', newline='', encoding='utf-8') as target_file:
         if target_format == 'json':
