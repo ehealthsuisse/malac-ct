@@ -195,7 +195,7 @@ def get_contact(self):
             the_contact_detail.name = tmp.get_value()
 
         for one_contact_point in one_contact.get_telecom():
-            the_contact_point = pcam.ContactDetail.ConcactPoint()
+            the_contact_point = pcam.ContactDetail.ContactPoint()
 
             if tmp := one_contact_point.get_system():
                 the_contact_point.system = tmp.get_value()

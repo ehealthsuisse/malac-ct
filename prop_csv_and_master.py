@@ -644,7 +644,7 @@ class ContactDetail():
             tempStr += temp
         return tempStr
 
-    class ConcactPoint():
+    class ContactPoint():
         def __init__(self):
             self.system = None # ContactPointSystem
             self.value = None

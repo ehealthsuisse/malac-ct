@@ -147,15 +147,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if tempValueOf := oneAuthor.get_valueOf_():
                     oneConDet = pcam.ContactDetail()
                     oneConDet.name = oneAuthor.get_name()
-                    oneConPoi = pcam.ContactDetail.ConcactPoint()
+                    oneConPoi = pcam.ContactDetail.ContactPoint()
                     oneConPoi.value = tempValueOf
                     oneConDet.telecom = [oneConPoi]
                     tempConDetS.append(oneConDet)
         if (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
-            oneConPoi = pcam.ContactDetail.ConcactPoint()
+            oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
         return tempConDetS
