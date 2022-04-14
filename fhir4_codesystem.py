@@ -200,9 +200,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_filter(self):
         """Process CodeSystem.filter and return them as list of pcam.Filter.
 
-        TODO CodeSystem_Filter may contain 1..* FilterOperators. pcam.Filter however handles
-             only one operator (see fsh1.py). As workaround the value of the FIRST operator
-             will be retrieved.
+        CodeSystem_Filter may contain 1..* FilterOperators. MaLaC-CT however handles
+        only one operator (see pcam.Filter). As a result the value of the FIRST operator
+        will be retrieved.
         """
         the_filter_list = []
 
@@ -217,10 +217,10 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 if tmp := one_filter.get_description():
                     the_filter.description = tmp.get_value()
 
-                # TODO CodeSystem_Filter may contain 1..* FilterOperators
-                #      pcam.Filter however handles only one operator (see fsh1.py)
-                #
-                #      As workaround the value of the FIRST operator will be retrieved
+                """CodeSystem_Filter may contain 1..* FilterOperators. MaLaC-CT however handles
+                only one operator (see pcam.Filter). As a result the value of the FIRST operator
+                will be retrieved.
+                """
                 if tmp := one_filter.get_operator():
                     if tmp := tmp[0].get_value():
                         the_filter.operator = tmp.get_value()
@@ -333,8 +333,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                         the_concept.property.append(the_property)
 
-                # TODO NOT SUPPORTED CodeSytem_Concept.concept
-                #      would require recursion
+                # NOT SUPPORTED CodeSytem_Concept.concept
+                # would require recursion
 
                 the_concept_list.append(the_concept)
 
@@ -480,8 +480,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                     the_concept.add_property(the_property)
 
-            # TODO NOT SUPPORTED CodeSytem_Concept.concept
-            #      would require recursion
+            # NOT SUPPORTED CodeSytem_Concept.concept
+            # would require recursion
 
             the_concept_list.append(the_concept)
 
