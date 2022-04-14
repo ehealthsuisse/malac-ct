@@ -410,23 +410,23 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
 
         # Create new FHIR ValueSet
-        valueset = supermod.ValueSet()
+        valueset = ValueSetSub()
 
         # export general metadata
-        f4csvs.exporto(self, supermod, valueset, args_lang)
+        f4csvs.exporto(self, globals(), valueset, args_lang)
 
         if tmp := self.get_immutable():
-            valueset.set_immutable(supermod.boolean(value = tmp))
+            valueset.set_immutable(booleanSub(value = tmp))
 
         the_compose = None
 
         if tmp := self.get_lockeddate():
             the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
-            the_compose.set_lockedDate(supermod.date(value=tmp))
+            the_compose.set_lockedDate(dateSub(value=tmp))
 
         if tmp := self.get_inactive():
             the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
-            the_compose.set_inactive(supermod.boolean(value=tmp))
+            the_compose.set_inactive(booleanSub(value=tmp))
 
         if tmp := self.get_concept():
             the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
@@ -436,12 +436,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
             # if an expansion shall be appended to the ValueSet definition
             if do_expansion:
-                the_expansion = supermod.ValueSet_Expansion()
+                the_expansion = ValueSet_ExpansionSub()
 
                 # NOT SUPPORTED ValueSet_Expansion.identifier
 
                 # set timestamp accordingly (required)
-                the_expansion.set_timestamp(supermod.dateTime(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                the_expansion.set_timestamp(dateTimeSub(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
 
                 # NOT SUPPORTED ValueSet_Expansion.total
 
@@ -465,7 +465,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         compose = None
 
         if not (compose := valueset.get_compose()):
-            compose = supermod.ValueSet_Compose()
+            compose = ValueSet_ComposeSub()
             valueset.set_compose(compose)
 
         return compose
@@ -514,11 +514,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # if the key does not yet exist in the dictionary a new ValueSet_Include
             # with the current system + version will be created
             if system_key not in the_system_dict:
-                the_include = supermod.ValueSet_Include()
+                the_include = ValueSet_IncludeSub()
                 if the_system:
-                    the_include.set_system(supermod.uri(value=the_system))
+                    the_include.set_system(uriSub(value=the_system))
                 if the_version:
-                    the_include.set_version(supermod.string(value=the_version))
+                    the_include.set_version(stringSub(value=the_version))
                 the_system_dict[system_key] = the_include
             else:
                 the_include = the_system_dict[system_key]
@@ -532,31 +532,31 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # if exclude is true, do_expansion will retain its current value
                 do_expansion |= not exclude
 
-                the_concept = supermod.ValueSet_Concept()
+                the_concept = ValueSet_ConceptSub()
 
-                the_concept.set_code(supermod.code(value=tmp))
+                the_concept.set_code(codeSub(value=tmp))
 
                 if tmp := one_concept.display:
-                    the_concept.set_display(supermod.string(value=tmp))
+                    the_concept.set_display(stringSub(value=tmp))
 
                 if tmp := one_concept.designation:
-                    the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
+                    the_concept.set_designation(f4csvs.exporto_concept_designation(globals(), ValueSet_DesignationSub, tmp))
 
                 the_include.add_concept(the_concept)
             # if one_concept has got filters they will be transformed into ValueSet_Filter (i.e. ValueSet.compose.include.filter or ValueSet.compose.exclude.filter)
             elif tmp := one_concept.filter:
                 filter_list = tmp
                 for one_filter in filter_list:
-                    the_filter = supermod.ValueSet_Filter()
+                    the_filter = ValueSet_FilterSub()
 
                     if tmp := one_filter.property:
-                        the_filter.set_property(supermod.code(value=tmp))
+                        the_filter.set_property(codeSub(value=tmp))
 
                     if tmp := one_filter.op:
-                        the_filter.set_op(supermod.FilterOperator(value=tmp))
+                        the_filter.set_op(FilterOperatorSub(value=tmp))
 
                     if tmp := one_filter.value:
-                        the_filter.set_value(supermod.string(value=tmp))
+                        the_filter.set_value(stringSub(value=tmp))
 
                     the_include.add_filter(the_filter)
 
@@ -579,27 +579,27 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         for one_concept in concept_list:
             # only those concepts should be part of the expansion which have exclude=false
             if not one_concept.exclude:
-                the_concept = supermod.ValueSet_Contains()
+                the_concept = ValueSet_ContainsSub()
 
                 if tmp := one_concept.system:
-                    the_concept.set_system(supermod.uri(value=tmp))
+                    the_concept.set_system(uriSub(value=tmp))
 
                 if tmp := one_concept.abstract:
-                    the_concept.set_abstract(supermod.boolean(value=tmp))
+                    the_concept.set_abstract(booleanSub(value=tmp))
 
                 # NOT SUPPORTED ValueSet.expansion.contains.inactive
 
                 if tmp := one_concept.version:
-                    the_concept.set_version(supermod.string(value=tmp))
+                    the_concept.set_version(stringSub(value=tmp))
 
                 if tmp := one_concept.code:
-                    the_concept.set_code(supermod.code(value=tmp))
+                    the_concept.set_code(codeSub(value=tmp))
 
                 if tmp := one_concept.display:
-                    the_concept.set_display(supermod.string(value=tmp))
+                    the_concept.set_display(stringSub(value=tmp))
 
                 if tmp := one_concept.designation:
-                    the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.ValueSet_Designation, tmp))
+                    the_concept.set_designation(f4csvs.exporto_concept_designation(globals(), ValueSet_DesignationSub, tmp))
 
                 # if one_concept contains any members a recursion will be started
                 if tmp := one_concept.member:

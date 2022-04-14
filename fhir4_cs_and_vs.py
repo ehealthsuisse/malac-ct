@@ -312,13 +312,13 @@ def parse_concept_designation(designation_list):
 #
 ####################################################################################
 
-def exporto(self, supermod, fhir_resource, args_lang=None):
+def exporto(self, globals, fhir_resource, args_lang=None):
     """Write information to a FHIR resource (CodeSystem or ValueSet) that is independent
     of the resource type.
 
     self -- Object holding the information that should be written to the FHIR resource.
 
-    supermod -- Module that contains all datatypes required for creating the content of the FHIR resources.
+    globals -- Dictionary implementing the calling module namespace.
 
     fhir_resource -- The FHIR resource the information will be written to.
 
@@ -328,17 +328,17 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     # IG publisher fails if no id is present in FHIR resource.
     # As fallback the name of the resource is being used.
     if tmp := self.get_name():
-        fhir_resource.set_id(supermod.id(value=tmp))
+        fhir_resource.set_id(globals.get('idSub')(value=tmp))
 
     # NOT SUPPORTED CodeSystem.meta or ValueSet.meta
 
     if tmp := self.get_implicitrules():
-        fhir_resource.set_implicitRules(supermod.uri(value=tmp))
+        fhir_resource.set_implicitRules(globals.get('uriSub')(value=tmp))
 
     if tmp := self.get_language():
-        fhir_resource.set_language(supermod.code(value=tmp))
+        fhir_resource.set_language(globals.get('codeSub')(value=tmp))
     elif args_lang:
-        fhir_resource.set_language(supermod.code(value=args_lang))
+        fhir_resource.set_language(globals.get('codeSub')(value=args_lang))
 
     # NOT SUPPORTED CodeSystem.text or ValueSet.text
 
@@ -349,22 +349,22 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
     # NOT SUPPORTED CodeSystem.modifierExtension or ValueSet.modifierExtension
 
     if tmp := self.get_url():
-        fhir_resource.set_url(supermod.uri(value=tmp))
+        fhir_resource.set_url(globals.get('uriSub')(value=tmp))
 
     if tmp := self.get_identifier():
         for one_identifier in tmp:
-            the_identifier = supermod.Identifier()
+            the_identifier = globals.get('IdentifierSub')()
 
             # As only urn:oid: is supported the use will set to a fixed value
-            the_identifier.set_use(supermod.IdentifierUse(value='official'))
+            the_identifier.set_use(globals.get('IdentifierUseSub')(value='official'))
 
             # NOT SUPPORTED the_identifier.set_type()
 
             # As only urn:oid: is supported the system will set to a fixed value
-            the_identifier.set_system(supermod.uri(value='urn:ietf:rfc:3986'))
+            the_identifier.set_system(globals.get('uriSub')(value='urn:ietf:rfc:3986'))
 
             # currently only urn:oid: supported
-            the_identifier.set_value(supermod.string(value='urn:oid:'+one_identifier))
+            the_identifier.set_value(globals.get('stringSub')(value='urn:oid:'+one_identifier))
 
             # NOT SUPPORTED the_identifier.set_period()
 
@@ -373,59 +373,59 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
             fhir_resource.add_identifier(the_identifier)
 
     if tmp := self.get_version():
-        fhir_resource.set_version(supermod.string(value=tmp))
+        fhir_resource.set_version(globals.get('stringSub')(value=tmp))
 
     if tmp := self.get_name():
-        fhir_resource.set_name(supermod.string(value=tmp))
+        fhir_resource.set_name(globals.get('stringSub')(value=tmp))
 
     if tmp := self.get_title():
-        fhir_resource.set_title(supermod.string(value=tmp))
+        fhir_resource.set_title(globals.get('stringSub')(value=tmp))
 
     if tmp := self.get_status():
-        fhir_resource.set_status(supermod.PublicationStatus(value=tmp))
+        fhir_resource.set_status(globals.get('PublicationStatusSub')(value=tmp))
 
     if tmp := self.get_experimental():
-        fhir_resource.set_experimental(supermod.boolean(value=tmp))
+        fhir_resource.set_experimental(globals.get('booleanSub')(value=tmp))
 
     if tmp := self.get_date():
-        fhir_resource.set_date(supermod.dateTime(value=tmp))
+        fhir_resource.set_date(globals.get('dateTimeSub')(value=tmp))
 
     if tmp := self.get_publisher():
-        fhir_resource.set_publisher(supermod.string(value=tmp))
+        fhir_resource.set_publisher(globals.get('stringSub')(value=tmp))
 
     if tmp := self.get_contact():
         contact_list = tmp
         for one_contact in contact_list:
-            the_contact = supermod.ContactDetail()
+            the_contact = globals.get('ContactDetailSub')()
 
             if tmp := one_contact.name:
-                the_contact.set_name(supermod.string(value=tmp))
+                the_contact.set_name(globals.get('stringSub')(value=tmp))
 
             if tmp := one_contact.telecom:
                 contact_point_list = tmp
                 for one_contact_point in contact_point_list:
-                    the_contact_point = supermod.ContactPoint()
+                    the_contact_point = globals.get('ContactPointSub')()
 
                     if tmp := one_contact_point.system:
-                        the_contact_point.set_system(supermod.ContactPointSystem(value=tmp))
+                        the_contact_point.set_system(globals.get('ContactPointSystemSub')(value=tmp))
 
                     if tmp := one_contact_point.value:
-                        the_contact_point.set_value(supermod.string(value=tmp))
+                        the_contact_point.set_value(globals.get('stringSub')(value=tmp))
 
                     if tmp := one_contact_point.use:
-                        the_contact_point.set_use(supermod.ContactPointUse(value=tmp))
+                        the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp))
 
                     if tmp := one_contact_point.rank:
-                        the_contact_point.set_rank(supermod.positiveInt(value=tmp))
+                        the_contact_point.set_rank(globals.get('positiveIntSub')(value=tmp))
 
                     if (period_start := one_contact_point.period_start) or (period_end := one_contact_point.period_end):
-                        the_period = supermod.Period()
+                        the_period = globals.get('PeriodSub')()
 
                         if period_start:
-                            the_period.set_start(supermod.dateTime(value=period_start))
+                            the_period.set_start(globals.get('dateTimeSub')(value=period_start))
 
                         if period_end:
-                            the_period.set_end(supermod.dateTime(value=period_end))
+                            the_period.set_end(globals.get('dateTimeSub')(value=period_end))
 
                         one_contact_point.set_period(the_period)
 
@@ -434,22 +434,22 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
             fhir_resource.add_contact(the_contact)
 
     if tmp := self.get_description():
-        fhir_resource.set_description(supermod.markdown(value=tmp))
+        fhir_resource.set_description(globals.get('markdownSub')(value=tmp))
 
     # NOT SUPPORTED CodeSystem.useContext or ValueSet.useContext
 
     # NOT SUPPORTED CodeSystem.jurisdiction or ValueSet.jurisdiction
 
     if tmp := self.get_purpose():
-        fhir_resource.set_purpose(supermod.markdown(value=tmp))
+        fhir_resource.set_purpose(globals.get('markdownSub')(value=tmp))
 
     if tmp := self.get_copyright():
-        fhir_resource.set_copyright(supermod.markdown(value=tmp))
+        fhir_resource.set_copyright(globals.get('markdownSub')(value=tmp))
 
-def exporto_concept_designation(supermod, designation_class, designation_list):
+def exporto_concept_designation(globals, designation_class, designation_list):
     """Transform list of pcam.ConceptDesignations to list of CodeSystem_Designations or ValueSet_Designations depending on designation_class.
 
-    supermod -- Module that contains all datatypes required for creating proper CodeSystem_Designations or ValueSet_Designations.
+    globals -- Dictionary implementing the calling module namespace.
 
     designation_class -- Either CodeSystem_Designation or ValueSet_Designation.
 
@@ -464,14 +464,14 @@ def exporto_concept_designation(supermod, designation_class, designation_list):
         the_designation = designation_class()
 
         if tmp := one_designation.language:
-            the_designation.set_language(supermod.code(value=tmp))
+            the_designation.set_language(globals.get('codeSub')(value=tmp))
 
         if tmp := one_designation.use:
             # TODO NOT SUPPORTED Coding.system, Coding.version, Coding.display, Coding.userSelected
-            the_designation.set_use(supermod.Coding(code=supermod.code(value=tmp)))
+            the_designation.set_use(globals.get('CodingSub')(code=globals.get('codeSub')(value=tmp)))
 
         if tmp := one_designation.value:
-            the_designation.set_value(supermod.string(value=tmp))
+            the_designation.set_value(globals.get('stringSub')(value=tmp))
 
         the_designation_list.append(the_designation)
 

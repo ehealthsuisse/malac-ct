@@ -275,12 +275,12 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_concept(self):
         """Process CodeSystem.concept and return a list of pcam.VSConcept.
 
-        When called for the first time self.concept contains elements of type supermod.CodeSystem_Concept.
+        When called for the first time self.concept contains elements of type CodeSystem_ConceptSub.
         With all subsequent calls, self.concept will represent a list of pcam.CSConcept.
         """
         # Once this method has been executed the first time self.concept does not contain elements of type
-        # supermod.CodeSystem_Concept anymore but only pcam.CSConcept
-        concepts_of_type_CodeSystem_Concept = True
+        # CodeSystem_ConceptSub anymore but only pcam.CSConcept
+        concepts_of_type_CodeSystem_ConceptSub = True
 
         the_concept_list = []
 
@@ -290,7 +290,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 # if one_concept is of type pcam.CSConcept this method has already been executed once
                 # and this loop can be stopped immediately. No transformation needed anymore.
                 if isinstance(one_concept, pcam.CSConcept):
-                    concepts_of_type_CodeSystem_Concept = False
+                    concepts_of_type_CodeSystem_ConceptSub = False
                     break
 
                 the_concept = pcam.CSConcept()
@@ -338,8 +338,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                 the_concept_list.append(the_concept)
 
-        # if the processed concepts were of type supermod.CodeSystem_Concept()
-        if concepts_of_type_CodeSystem_Concept:
+        # if the processed concepts were of type CodeSystem_ConceptSub
+        if concepts_of_type_CodeSystem_ConceptSub:
             self.concept = the_concept_list
 
         return self.concept
@@ -353,73 +353,73 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         args_lang -- CLI parameter containing default language for resource.
         """
-        codesystem = supermod.CodeSystem()
+        codesystem = CodeSystemSub()
 
         # export general metadata
-        f4csvs.exporto(self, supermod, codesystem, args_lang)
+        f4csvs.exporto(self, globals(), codesystem, args_lang)
 
         if tmp := self.get_casesensitive():
-            codesystem.set_caseSensitive(supermod.boolean(value=tmp))
+            codesystem.set_caseSensitive(booleanSub(value=tmp))
 
         if tmp := self.get_valueset():
-            codesystem.set_valueSet(supermod.canonical(value=tmp))
+            codesystem.set_valueSet(canonicalSub(value=tmp))
 
         if tmp := self.get_hierarchymeaning():
-            codesystem.set_hierarchyMeaning(supermod.CodeSystemHierarchyMeaning(value=tmp))
+            codesystem.set_hierarchyMeaning(CodeSystemHierarchyMeaningSub(value=tmp))
 
         if tmp := self.get_compositional():
-            codesystem.set_compositional(supermod.boolean(value=tmp))
+            codesystem.set_compositional(booleanSub(value=tmp))
 
         if tmp := self.get_versionneeded():
-            codesystem.set_versionNeeded(supermod.boolean(value=tmp))
+            codesystem.set_versionNeeded(booleanSub(value=tmp))
 
         if tmp := self.get_content():
-            codesystem.set_content(supermod.CodeSystemContentMode(value=tmp))
+            codesystem.set_content(CodeSystemContentModeSub(value=tmp))
 
         if tmp := self.get_supplements():
-            codesystem.set_supplements(supermod.canonical(value=tmp))
+            codesystem.set_supplements(canonicalSub(value=tmp))
 
         if tmp := self.get_count():
-            codesystem.set_count(supermod.unsignedInt(value=tmp))
+            codesystem.set_count(unsignedIntSub(value=tmp))
 
         if tmp := self.get_filter():
             property_list = tmp
             for one_property in property_list:
-                the_property = supermod.CodeSystem_Filter()
+                the_property = CodeSystem_FilterSub()
 
                 if tmp := one_property.code:
-                    the_property.set_code(supermod.code(value=tmp))
+                    the_property.set_code(codeSub(value=tmp))
 
                 if tmp := one_property.description:
-                    the_property.set_description(supermod.string(value=tmp))
+                    the_property.set_description(stringSub(value=tmp))
 
                 """CodeSystem_Filter may contain 1..* FilterOperators. MaLaC-CT however handles
                 only one operator (see pcam.Filter).
                 """
                 if tmp := one_property.operator:
-                    the_property.add_operator(supermod.FilterOperator(value=tmp))
+                    the_property.add_operator(FilterOperatorSub(value=tmp))
 
                 if tmp := one_property.value:
-                    the_property.set_value(supermod.string(value=tmp))
+                    the_property.set_value(stringSub(value=tmp))
 
                 codesystem.add_filter(the_property)
 
         if tmp := self.get_property():
             property_list = tmp
             for one_property in property_list:
-                the_property = supermod.CodeSystem_Property()
+                the_property = CodeSystem_PropertySub()
 
                 if tmp := one_property.code:
-                    the_property.set_code(supermod.code(value=tmp))
+                    the_property.set_code(codeSub(value=tmp))
 
                 if tmp := one_property.uri:
-                    the_property.set_uri(supermod.uri(value=tmp))
+                    the_property.set_uri(uriSub(value=tmp))
 
                 if tmp := one_property.description:
-                    the_property.set_description(supermod.string(value=tmp))
+                    the_property.set_description(stringSub(value=tmp))
 
                 if tmp := one_property.type:
-                    the_property.set_type(supermod.PropertyType(value=tmp.value))
+                    the_property.set_type(PropertyTypeSub(value=tmp.value))
 
                 codesystem.add_property(the_property)
 
@@ -437,47 +437,47 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         the_concept_list = []
 
         for one_concept in concept_list:
-            the_concept = supermod.CodeSystem_Concept()
+            the_concept = CodeSystem_ConceptSub()
 
             if tmp := one_concept.code:
-                the_concept.set_code(supermod.code(value=tmp))
+                the_concept.set_code(codeSub(value=tmp))
 
             if tmp := one_concept.display:
-                the_concept.set_display(supermod.string(value=tmp))
+                the_concept.set_display(stringSub(value=tmp))
 
             if tmp := one_concept.definition:
-                the_concept.set_definition(supermod.string(value=tmp))
+                the_concept.set_definition(stringSub(value=tmp))
 
             if tmp := one_concept.designation:
-                the_concept.set_designation(f4csvs.exporto_concept_designation(supermod, supermod.CodeSystem_Designation, tmp))
+                the_concept.set_designation(f4csvs.exporto_concept_designation(globals(), CodeSystem_DesignationSub, tmp))
 
             if tmp := one_concept.property:
                 property_list = tmp
                 for one_property in property_list:
-                    the_property = supermod.CodeSystem_Property1()
+                    the_property = CodeSystem_Property1Sub()
 
                     if tmp := one_property.code:
-                        the_property.set_code(supermod.code(value=tmp))
+                        the_property.set_code(codeSub(value=tmp))
 
                     # value and type have to be present for the property's value to be set accordingly
                     if (value := one_property.value) and (value_type := one_property.type):
                         # special case if type is coding
                         if value_type == pcam.PropertyCodeType.coding:
-                            the_property.set_valueCoding(supermod.Coding(code=supermod.code(value=value)))
+                            the_property.set_valueCoding(CodingSub(code=codeSub(value=value)))
                         else:
-                            # determine class name (e.g. string -> supermod.string)
-                            value_type_class_name = value_type.value
+                            # determine class name (e.g. string -> stringSub)
+                            value_type_class_name = value_type.value + 'Sub'
                             # determine proper setter method name (e.g. set_valueString)
                             setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
 
                             # check if the_property has got a setter according to setter_name
-                            #       if supermod has got a datatype (i.e. class definition) according to value_type_class_name
-                            if hasattr(the_property, setter_name) and hasattr(supermod, value_type_class_name):
-                                # for setter_name = 'set_valueString' and value_type_class_anme = 'string' the following
+                            #       if this module has got a datatype (i.e. class definition) according to value_type_class_name
+                            if hasattr(the_property, setter_name) and globals().get(value_type_class_name):
+                                # for setter_name = 'set_valueString' and value_type_class_anme = 'stringSub' the following
                                 # line could be rewritten as:
                                 #
-                                # the_property.set_valueString(supermod.string(value=tmp))
-                                getattr(the_property, setter_name)(getattr(supermod, value_type_class_name)(value=value))
+                                # the_property.set_valueString(stringSub(value=tmp))
+                                getattr(the_property, setter_name)(globals().get(value_type_class_name)(value=value))
 
                     the_concept.add_property(the_property)
 
