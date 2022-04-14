@@ -337,6 +337,8 @@ def exporto(self, supermod, fhir_resource, args_lang=None):
 
     if tmp := self.get_language():
         fhir_resource.set_language(supermod.code(value=tmp))
+    elif args_lang:
+        fhir_resource.set_language(supermod.code(value=args_lang))
 
     # NOT SUPPORTED CodeSystem.text or ValueSet.text
 
