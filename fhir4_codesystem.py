@@ -393,8 +393,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 if tmp := one_property.description:
                     the_property.set_description(supermod.string(value=tmp))
 
-                # TODO supermod.CodeSystem_Filter may contain 1..* FilterOperators
-                #      pcam.Filter however handles only one operator (see fsh1.py)
+                """CodeSystem_Filter may contain 1..* FilterOperators. MaLaC-CT however handles
+                only one operator (see pcam.Filter).
+                """
                 if tmp := one_property.operator:
                     the_property.add_operator(supermod.FilterOperator(value=tmp))
 
