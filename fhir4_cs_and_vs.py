@@ -107,7 +107,7 @@ def get_identifier(self):
         # NOT SUPPORTED one_identifier.get_system()
 
         # TODO same for FSH
-        if tmp := one_identifier.get_value() and 'urn:oid:' in tmp.get_value():
+        if (tmp := one_identifier.get_value()) and 'urn:oid:' in tmp.get_value():
             the_identifier_list.append(tmp.get_value().replace('urn:oid:', ''))
 
         # NOT SUPPORTED one_identifier.get_period()
