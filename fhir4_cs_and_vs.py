@@ -13,11 +13,11 @@ import fhir4_valueset as f4vs
 #
 ####################################################################################
 
-# TODO NOT SUPPORTED:
+# NOT SUPPORTED:
 #   CodeSystem.id or ValueSet.id
 # def get_id(resource):
 
-# TODO NOT SUPPORTED:
+# NOT SUPPORTED:
 #   CodeSystem.meta or ValueSet.meta
 # def get_meta(resource):
 
@@ -63,18 +63,24 @@ def get_contained(self):
     return None
 
 def get_extension(self):
-    """Return CodeSystem.extension or ValueSet.extension.
+    """NOT SUPPORTED: Return CodeSystem.extension or ValueSet.extension.
 
-    TODO Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
-         see http://www.hl7.org/fhir/domainresource.html
+    Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
+    see http://www.hl7.org/fhir/domainresource.html
+
+    Has to be implemented specifically for each extension. For converting resources MaLaC-CT would have to understand/interpret extensions
+    accordingly.
     """
     return None
 
 def get_modifierextension(self):
-    """Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
+    """NOT SUPPORTED: Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
 
-    TODO Not fully supported yet, Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
-         see http://www.hl7.org/fhir/domainresource.html
+    Extension is a complex datatype (http://www.hl7.org/fhir/extensibility.html#Extension), and there may be 0..*
+    see http://www.hl7.org/fhir/domainresource.html
+
+    Has to be implemented specifically for each extension. For converting resources MaLaC-CT would have to understand/interpret extensions
+    accordingly.
     """
     return None
 
@@ -88,24 +94,25 @@ def get_url(self):
 def get_identifier(self):
     """Return CodeSystem.identifier or ValueSet.identifier.
 
-    TODO Currently, only Identifier.value will be retrieved - even if there is more information available.
-         See http://www.hl7.org/fhir/datatypes.html#Identifier
+    Currently, only urn:oid: is supported. As a result only Identifier.value will be retrieved -
+    even if there is more information available. See http://www.hl7.org/fhir/datatypes.html#Identifier
     """
     identifier_list = self.get_identifier()
     the_identifier_list = []
     for one_identifier in identifier_list:
-        # TODO NOT SUPPORTED one_identifier.get_use()
+        # NOT SUPPORTED one_identifier.get_use()
 
-        # TODO NOT SUPPORTED one_identifier.get_type()
+        # NOT SUPPORTED one_identifier.get_type()
 
-        # TODO NOT SUPPORTED one_identifier.get_system()
+        # NOT SUPPORTED one_identifier.get_system()
 
-        if tmp := one_identifier.get_value():
+        # TODO same for FSH
+        if tmp := one_identifier.get_value() and 'urn:oid:' in tmp.get_value():
             the_identifier_list.append(tmp.get_value().replace('urn:oid:', ''))
 
-        # TODO NOT SUPPORTED one_identifier.get_period()
+        # NOT SUPPORTED one_identifier.get_period()
 
-        # TODO NOT SUPPORTED one_identifier.get_assigner()
+        # NOT SUPPORTED one_identifier.get_assigner()
 
     return the_identifier_list
 
@@ -220,20 +227,20 @@ def get_description(self):
     return None
 
 def get_usecontext(self):
-    """Return CodeSystem.useContext or ValueSet.useContext.
+    """NOT SUPPORTED: Return CodeSystem.useContext or ValueSet.useContext.
 
-    TODO Not supported yet, UsageContext is a complex datatype, and there may be 0..*.
-         Not clear, how the elements should be processed.
-         See http://www.hl7.org/fhir/metadatatypes.html#UsageContext
+    UsageContext is a complex datatype, and there may be 0..*.
+    Not clear, how the elements should be processed.
+    See http://www.hl7.org/fhir/metadatatypes.html#UsageContext
     """
     return []
 
 def get_jurisdiction(self):
-    """Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
+    """NOT SUPPORTED: Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
 
-    TODO Not supported yet, CodeableConcept is a complex datatype, and there may be 0..*.
-         Not clear, how the elements should be processed.
-         See http://www.hl7.org/fhir/datatypes.html#CodeableConcept
+    CodeableConcept is a complex datatype, and there may be 0..*.
+    Not clear, how the elements should be processed.
+    See http://www.hl7.org/fhir/datatypes.html#CodeableConcept
     """
     return []
 
