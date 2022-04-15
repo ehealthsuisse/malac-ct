@@ -470,8 +470,6 @@ class Fsh1(pcam.PropCsvAndMaster):
             # write the expansion
             if self.get_resource() == 'ValueSet':
                 outfile.write('\n')
-                outfile.write('* expansion.parameter.name = "excludeNotForUI"\n')
-                outfile.write('* expansion.parameter.valueUri = "false"\n')
                 outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
                 outfile.write('\n')
                 containCnt = [-1]
