@@ -390,11 +390,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                 tempList = self.conceptSuppl
             else:
                 tempList = conceptList
-                # if a valueset, sort concepts first for systems and than within system for code
-                if self.get_resource() == 'ValueSet' :
-                    tempList.sort(key=pcam.VSConcept.get_codeOnly4Sort)
-                    tempList.sort(key=pcam.VSConcept.get_systemOnly4Sort)
-
 
             for oneConcept in tempList:
                 cntCSConcept += 1
