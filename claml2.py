@@ -289,12 +289,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return self.concept
         else:
             retArr = []
-            # iterate though a sorted list
-            sortedClassList = self.get_Class()
-            sortedClassList.sort(key=supermod.Class.get_code)
-            #if tmp := sortedClassList[0].get_Meta_with_name(self,'Sortierreihenfolge'):
-            #    sortedClassList.sort(key=Class.get_sortierreihenfolge)
-            for oneClass in sortedClassList:
+            for oneClass in self.get_Class():
                 theConcept = pcam.CSConcept()
                 theConcept.code = oneClass.get_code()
 

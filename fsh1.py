@@ -60,10 +60,10 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* contained ': self.contained = value
                 elif splittedLine[0] == '* extension ': self.extension = value
                 elif splittedLine[0] == '* modifierExtension ': self.modifierextension = value
-                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0]:
+                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0] and 'urn:oid:' in value:
                     if not hasattr(self,'identifier'):
                         self.identifier = []
-                    self.identifier.append(value)
+                    self.identifier.append(value.replace("urn:oid:",""))
                 elif splittedLine[0] == '* experimental ': self.experimental = value
                 elif splittedLine[0] == '* date ': self.date = value
                 elif splittedLine[0] == '* publisher ': self.publisher = value
@@ -390,11 +390,6 @@ class Fsh1(pcam.PropCsvAndMaster):
                 tempList = self.conceptSuppl
             else:
                 tempList = conceptList
-                # if a valueset, sort concepts first for systems and than within system for code
-                if self.get_resource() == 'ValueSet' :
-                    tempList.sort(key=pcam.VSConcept.get_codeOnly4Sort)
-                    tempList.sort(key=pcam.VSConcept.get_systemOnly4Sort)
-
 
             for oneConcept in tempList:
                 cntCSConcept += 1
@@ -544,6 +539,18 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
         outfile.write('* expansion%s.abstract = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
     outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
+
+    dCnt = 0
+    for oneDesignation in oneConcept.designation:
+        if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* expansion%s.designation[%s].language = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.language))
+        if hasattr(oneDesignation, 'use') and oneDesignation.use: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.use))
+        if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.value.replace('"','\\"')))
+        dCnt += 1
+    # following block is only when zuppl are used
+    for oneProperty in oneConcept.property:
+        if hasattr(oneProperty, 'code') and oneProperty.code: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.code))
+        if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
+        dCnt += 1
 
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
