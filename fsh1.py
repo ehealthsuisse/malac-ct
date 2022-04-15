@@ -1,4 +1,5 @@
 from datetime import datetime
+from pickletools import string4
 import prop_csv_and_master as pcam
 import re
 import copy
@@ -258,7 +259,16 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if '.language' in line:
                                 theDesignation.language = value
                             elif '.use' in line:
-                                theDesignation.use = value
+                                str4Coding = value
+                                if "|" in value:
+                                    str4Coding = str4Coding.replace("|","#")
+                                else:
+                                    str4Coding = str4Coding.replace("#","##")
+                                if " \"" in value:
+                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
+                                else:
+                                    str4Coding += "#"
+                                theDesignation.use = pcam.Coding(str4Coding)
                             elif '.value' in line:
                                 theDesignation.value = value
                 if '.filter' in line:
@@ -405,7 +415,12 @@ class Fsh1(pcam.PropCsvAndMaster):
                         i = 0
                         for oneDesignation in oneConcept.designation:
                             if hasattr(oneDesignation, 'language'): outfile.write('* concept[%s].designation[%s].language = #%s \n' % (cntCSConcept, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* concept[%s].designation[%s].use = #%s \n' % (cntCSConcept, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* concept[%s].designation[%s].use = %s \n' % (cntCSConcept, i, tmpCoding))
                             if hasattr(oneDesignation, 'value'): outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
                             i += 1
                     if hasattr(oneConcept, 'property') and oneConcept.property != []:
@@ -440,7 +455,12 @@ class Fsh1(pcam.PropCsvAndMaster):
                         for oneDesignation in oneConcept.designation:
                             i += 1
                             if hasattr(oneDesignation, 'language'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].language = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = %s \n' % (cntCSConcept, i, tmpCoding))
                             if hasattr(oneDesignation, 'value'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter') and oneConcept.filter != []:
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
@@ -502,11 +522,11 @@ class Fsh1(pcam.PropCsvAndMaster):
             supplSelf.concept = csUsedinVSinklConceptsOrClassi[oneCS]
             # convert designations with use to properties
             for oneCon in supplSelf.concept:
-                if hasattr(oneCon,"designation"):
+                if hasattr(oneCon,"designation") and oneCon.designation:
                     oneCon.property = []
                     tmpDesignation = []
                     for oneDesig in oneCon.designation:
-                        if hasattr(oneDesig,"use") and oneDesig.use:
+                        if hasattr(oneDesig,"use") and oneDesig.use.code:
                             theProp = pcam.CSConcept.ConceptProperty()
                             theProp.code = oneDesig.use
                             theProp.value = oneDesig.value
@@ -543,14 +563,25 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     dCnt = 0
     for oneDesignation in oneConcept.designation:
         if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* expansion%s.designation[%s].language = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.language))
-        if hasattr(oneDesignation, 'use') and oneDesignation.use: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.use))
+        if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+            tmpCoding = oneDesignation.use.codesystem
+            if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+            tmpCoding += "#"+oneDesignation.use.code
+            if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+            outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
         if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.value.replace('"','\\"')))
         dCnt += 1
     # following block is only when zuppl are used
-    for oneProperty in oneConcept.property:
-        if hasattr(oneProperty, 'code') and oneProperty.code: outfile.write('* expansion%s.designation[%s].use = #%s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.code))
-        if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
-        dCnt += 1
+    if hasattr(oneConcept, 'property') and oneConcept.property:
+        for oneProperty in oneConcept.property:
+            if hasattr(oneProperty, 'code') and oneProperty.code:
+                tmpCoding = oneProperty.code.codesystem
+                if tmp := oneProperty.code.version: tmpCoding += "|"+tmp
+                tmpCoding += "#"+oneProperty.code.code
+                if tmp := oneProperty.code.display: tmpCoding += " \""+tmp+"\""
+                outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
+            if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
+            dCnt += 1
 
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]

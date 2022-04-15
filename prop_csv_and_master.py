@@ -129,12 +129,7 @@ class PropCsvAndMaster():
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
                                 if 'definition' == headingList[i]: tempConcept.definition = row[i]
                                 if 'designation' == headingList[i]:
-                                    designationElements = row[i].split('|')
-                                    tempDesignation = ConceptDesignation()
-                                    tempDesignation.language = designationElements[0]
-                                    tempDesignation.use = designationElements[1]
-                                    tempDesignation.value = designationElements[2]
-                                    tempConcept.designation.append(tempDesignation)
+                                    tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'property' == headingList[i]:
                                     propertyElements = row[i].split('|')
                                     tempProperty = CSConcept.ConceptProperty()
@@ -149,12 +144,7 @@ class PropCsvAndMaster():
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
                                 if 'designation' == headingList[i]:
-                                    designationElements = row[i].split('|')
-                                    tempDesignation = ConceptDesignation()
-                                    tempDesignation.language = designationElements[0]
-                                    tempDesignation.use = designationElements[1]
-                                    tempDesignation.value = designationElements[2]
-                                    tempConcept.designation.append(tempDesignation)
+                                    tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
                                     filterElements = row[i].split('|')
                                     tempFilter = VSConcept.VSConceptFilter()
@@ -755,17 +745,47 @@ class VSConcept():
             return buildStr
 
 class ConceptDesignation():
-        def __init__(self):
+    def __init__(self, str=None):
+        if str is None:
             self.language = None
-            self.use = None
+            self.use = Coding()
             self.value = None
+        else:
+            splittedValue = str.split('|',2)
+            self.language = splittedValue[0]
+            self.use = Coding(splittedValue[1])
+            self.value = splittedValue[2]
 
-        def __str__(self) -> str:
-            buildStr = ""
-            if self.language: buildStr += self.language
-            buildStr += "|"
-            if self.use: buildStr += self.use
-            buildStr += "|"
-            if self.value: buildStr += self.value
-            return buildStr
+    def __str__(self) -> str:
+        buildStr = ""
+        if self.language: buildStr += self.language
+        buildStr += "|"
+        if self.use: buildStr += str(self.use)
+        buildStr += "|"
+        if self.value: buildStr += self.value
+        return buildStr
 
+class Coding():
+    def __init__(self, str=None):
+        if str is None:
+            self.codesystem = None
+            self.version = None
+            self.code = None
+            self.display = None
+        else:
+            splittedValue = str.split('#',3)
+            self.codesystem = splittedValue[0]
+            self.version = splittedValue[1]
+            self.code = splittedValue[2]
+            self.display = splittedValue[3]
+
+    def __str__(self) -> str:
+        buildStr = ""
+        if self.codesystem: buildStr += self.codesystem
+        buildStr += "#"
+        if self.version: buildStr += self.version
+        buildStr += "#"
+        if self.code: buildStr += self.code
+        buildStr += "#"
+        if self.display: buildStr += self.display
+        return buildStr
