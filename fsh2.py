@@ -178,7 +178,12 @@ class Fsh2(Fsh1):
                         for oneDesignation in oneConcept.designation:
                             i += 1
                             if hasattr(oneDesignation, 'language'): outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code: outfile.write('* compose.include[%s].concept[%s].designation[%s].use = #%s \n' % (j, k, i, oneDesignation.use))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* compose.include[%s].concept[%s].designation[%s].use = %s \n' % (j, k, i, tmpCoding))
                             if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter'):
                         k += 1
