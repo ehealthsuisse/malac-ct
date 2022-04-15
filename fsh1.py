@@ -60,7 +60,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* contained ': self.contained = value
                 elif splittedLine[0] == '* extension ': self.extension = value
                 elif splittedLine[0] == '* modifierExtension ': self.modifierextension = value
-                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0]:
+                elif '* identifier' in splittedLine[0] and 'value' in splittedLine[0] and 'urn:oid:' in splittedLine[0]:
                     if not hasattr(self,'identifier'):
                         self.identifier = []
                     self.identifier.append(value)
