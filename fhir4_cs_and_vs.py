@@ -222,6 +222,21 @@ def get_description(self):
     """Return CodeSystem.description or ValueSet.description.
     """
     if tmp := self.get_description():
+        """A XML having &#10; will be loaded correctly by generateDS transforming the
+        &#10; into \n.
+
+        For the correct interpretation in all other formats it was assumed that \n would
+        have to be replaced by \\n in order to be written properly. The return statement
+        would have been as follows:
+
+        return tmp.get_value().replace('\n', '\\n')
+
+        However, code analysis revealed that this was not necessary. FSH for example handles
+        real line feeds as well as \n in the description. Furthermore, if the FSH was subsequently
+        processed by SUSHI the correct result was delivered in either cases. Hence the
+        replace was found to be not necessary.
+        """
+
         return tmp.get_value()
     return None
 

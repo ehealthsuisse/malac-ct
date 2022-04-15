@@ -769,6 +769,14 @@ def quote_xml_aux(inStr):
 def quote_attrib(inStr):
     s1 = (isinstance(inStr, BaseStrType_) and inStr or '%s' % inStr)
     s1 = s1.replace('&', '&amp;')
+    """For correct conversion from FHIR XML to JSON it is necessary to
+    convert all \n to &#10; With that the line feeds will be detected correctly.
+
+    Related issues:
+    - https://github.com/IBM/FHIR/issues/3577
+    - https://sourceforge.net/p/generateds/tickets/29/
+    """
+    s1 = s1.replace('\n', '&#10;')
     s1 = s1.replace('<', '&lt;')
     s1 = s1.replace('>', '&gt;')
     if '"' in s1:
