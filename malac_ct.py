@@ -52,9 +52,6 @@ def init_argparse() -> argparse.ArgumentParser:
         "-url", "--fhirIgUrl", help="the home adress of the FHIR IG Publisher URL, to fill a predefined url in the resource", required=False
     )
     parser.add_argument(
-        "-CSSuppl4VS", "--CodeSystemSupplement4Valueset", action="store_true", help="Creates a CodeSystem supplement for a ValueSet", required=False
-    )
-    parser.add_argument(
         "-appndProcTermTo", "--appendProcessedTerminologyTo", action='append', help="Appends the processed terminology to a given csv", required=False
     )
     parser.add_argument(
@@ -161,16 +158,9 @@ def main() -> None:
             outputClass = getattr(oModule, oClassValue[1])
 
             # open a new file and export to output file
-            if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.output and oClass == ".1.fsh"):
-                with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
-                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                    print("*"+oClass)
-            else:
-                import os
-                with open(args.output, 'w', newline='', encoding='utf-8') as outfileVS:
-                    with open(os.path.join(os.path.dirname(args.output),"CodeSystem-zuppl-4-"+os.path.basename(args.output).lower()), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
-                        outputClass.exportoSuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                        print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
+            with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
+                outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
+                print("*"+oClass)
         # if no output class is given, than convert to all known formats
         else:
             for oClass in listClasses:
@@ -179,16 +169,10 @@ def main() -> None:
                     outputClass = getattr(oModule, listClasses[oClass][1])
 
                     # open a new file and export to output file
-                    if not (args.CodeSystemSupplement4Valueset and "ValueSet-" in args.input and oClass == ".1.fsh"):
-                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
-                            outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                            print("*"+oClass)
-                    else:
-                        import os
-                        with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfileVS:
-                            with open(os.path.join(os.path.dirname(args.input.replace(iClass,oClass)),"CodeSystem-zuppl-4-"+os.path.basename(args.input.replace(iClass,oClass).lower())), 'w', newline='', encoding='utf-8') as outfileCSsuppl:
-                                outputClass.exportoZuppl(input, outfileVS, outfileCSsuppl, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                                print("*"+oClass+" and CodeSystem-zuppl-4-*"+oClass)
+                    with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                        outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
+                        print("*"+oClass)
+
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer):
         if do_fhir_server_conversion:
