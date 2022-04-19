@@ -190,7 +190,16 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
-                                theDesignation.use = value
+                                str4Coding = value
+                                if "|" in value:
+                                    str4Coding = str4Coding.replace("|","#")
+                                else:
+                                    str4Coding = str4Coding.replace("#","##")
+                                if " \"" in value:
+                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
+                                else:
+                                    str4Coding += "#"
+                                theDesignation.use = pcam.Coding(str4Coding)
                             elif 'value' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.value = value
                         elif 'property' in line:
