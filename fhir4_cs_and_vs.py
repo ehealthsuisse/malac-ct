@@ -286,9 +286,6 @@ def parse_concept_designation(designation_list):
     """Parse list of CodeSystem_Designations or ValueSet_Designations and transform them to pcam.ConceptDesignations.
 
     designation_list -- List of CodeSystem_Designations or ValueSet_Designations
-
-    TODO For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be retrieved.
-         See http://www.hl7.org/fhir/datatypes.html#Coding
     """
     the_designation_list = []
 
@@ -298,17 +295,24 @@ def parse_concept_designation(designation_list):
         if tmp := one_designation.get_language():
             the_designation.language = tmp.get_value()
 
-        if tmp := one_designation.get_use():
-            # TODO NOT SUPPORTED one_designation.get_use().get_system()
+        if one_use := one_designation.get_use():
+            the_use = pcam.Coding()
 
-            # TODO NOT SUPPORTED one_designation.get_use().get_version()
+            if tmp := one_use.get_system():
+                the_use.codesystem = tmp.get_value()
 
-            if tmp := tmp.get_code():
-                the_designation.use = tmp.get_value()
+            if tmp := one_use.get_version():
+                the_use.version = tmp.get_value()
 
-            # TODO NOT SUPPORTED one_designation.get_use().get_display()
+            if tmp := one_use.get_code():
+                the_use.code = tmp.get_value()
 
-            # TODO NOT SUPPORTED one_designation.get_use().get_userSelected()
+            if tmp := one_use.get_display():
+                the_use.display = tmp.get_value()
+
+            # NOT SUPPORTED one_designation.get_use().get_userSelected()
+
+            the_designation.use = the_use
 
         if tmp := one_designation.get_value():
             the_designation.value = tmp.get_value()
@@ -469,9 +473,6 @@ def exporto_concept_designation(globals, designation_class, designation_list):
     designation_class -- Either CodeSystem_Designation or ValueSet_Designation.
 
     designation_list -- list of pcam.ConceptDesignations
-
-    TODO For CodeSystem_Designation.use and ValueSet_Designation.use only use.code will be written.
-         See http://www.hl7.org/fhir/datatypes.html#Coding
     """
     the_designation_list = []
 
@@ -481,9 +482,24 @@ def exporto_concept_designation(globals, designation_class, designation_list):
         if tmp := one_designation.language:
             the_designation.set_language(globals.get('codeSub')(value=tmp))
 
-        if tmp := one_designation.use:
-            # TODO NOT SUPPORTED Coding.system, Coding.version, Coding.display, Coding.userSelected
-            the_designation.set_use(globals.get('CodingSub')(code=globals.get('codeSub')(value=tmp)))
+        if (one_use := one_designation.use) and one_use.code:
+            the_use = globals.get('CodingSub')()
+
+            if tmp := one_use.codesystem:
+                the_use.set_system(globals.get('uriSub')(value=tmp))
+
+            if tmp := one_use.version:
+                the_use.set_version(globals.get('stringSub')(value=tmp))
+
+            if tmp := one_use.code:
+                the_use.set_code(globals.get('codeSub')(value=tmp))
+
+            if tmp := one_use.display:
+                the_use.set_display(globals.get('stringSub')(value=tmp))
+
+            # NOT SUPPORTED Coding.userSelected
+
+            the_designation.set_use(the_use)
 
         if tmp := one_designation.value:
             the_designation.set_value(globals.get('stringSub')(value=tmp))
