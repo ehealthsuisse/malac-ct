@@ -335,12 +335,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     elif oneRubric.get_kind() == "note":
                         theConcept.definition = tmp
                     elif oneRubric.get_kind() == "designation":
-                        splittedValue = tmp.split('|')
-                        theDesignation = pcam.ConceptDesignation()
-                        theDesignation.language = splittedValue[0]
-                        theDesignation.use = splittedValue[1]
-                        theDesignation.value = splittedValue[2]
-                        theConcept.designation.append(theDesignation)
+                        theConcept.designation.append(pcam.ConceptDesignation(tmp))
                     else:
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                         theProperty.code = oneRubric.get_kind()

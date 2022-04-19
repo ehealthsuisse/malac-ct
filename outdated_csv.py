@@ -91,7 +91,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                 if 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
                                 if 'concept_Beschreibung' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = "concept_Beschreibung"
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##concept_beschreibung#concept_beschreibung",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 if 'meaning' == headingList[i] and row[i] != "":
@@ -101,7 +101,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 if 'hints' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = "hinweise"
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##hinweise#hinweise",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 if 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
@@ -110,17 +110,17 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                     theConcept.abstract = True
                                 if 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = "relationships"
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##relationships#relationships",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 if 'einheit codiert' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = "einheit_codiert"
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##einheit_codiert#einheit_codiert",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 if 'einheit print' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = "einheit_print"
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##einheit_print#einheit_print",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
@@ -225,7 +225,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
             elif self.get_resource() == "ValueSet":
                 foundIt = False
                 for oneDesig in oneConcept.designation:
-                    if hasattr(oneDesig,"use") and oneDesig.use == "concept_beschreibung":
+                    if hasattr(oneDesig,"use") and oneDesig.use.code == "concept_beschreibung":
                         conceptRow.append(oneDesig.value)
                         foundIt = True
                 if foundIt == False:
@@ -254,7 +254,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                         tmpString += oneProp.value.replace(";",",")
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if hasattr(oneDesig,"use") and oneDesig.use == "hinweise":
+                    if hasattr(oneDesig,"use") and oneDesig.use.code == "hinweise":
                         if tmpString != "":
                             tmpString += ", "
                         tmpString += oneDesig.value
@@ -319,7 +319,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                         break
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if hasattr(oneDesig,"use") and oneDesig.use == "relationships":
+                    if hasattr(oneDesig,"use") and oneDesig.use.code == "relationships":
                         conceptRow.append(oneDesig.value)
                         foundIt = True
                         break
@@ -330,7 +330,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
             if self.get_resource() == "ValueSet":
                 foundIt = False
                 for oneDesig in oneConcept.designation:
-                    if hasattr(oneDesig,"use") and oneDesig.use == "einheit_print":
+                    if hasattr(oneDesig,"use") and oneDesig.use.code == "einheit_print":
                         conceptRow.append(oneDesig.value or "")
                         foundIt = True
                         break
@@ -341,7 +341,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
             if self.get_resource() == "ValueSet":
                 foundIt = False
                 for oneDesig in oneConcept.designation:
-                    if hasattr(oneDesig,"use") and oneDesig.use == "einheit_codiert":
+                    if hasattr(oneDesig,"use") and oneDesig.use.code == "einheit_codiert":
                         conceptRow.append(oneDesig.value or "")
                         foundIt = True
                         break
