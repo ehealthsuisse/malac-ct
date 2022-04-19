@@ -766,8 +766,6 @@ class ConceptDesignation():
         if self.value: buildStr += self.value
         return buildStr
 
-# upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
-first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
 class Coding():
     def __init__(self, str=None):
         if str is None:
@@ -792,3 +790,6 @@ class Coding():
         buildStr += "#"
         if self.display: buildStr += self.display
         return buildStr
+
+# upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
+first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
