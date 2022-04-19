@@ -180,18 +180,18 @@ class Fsh2(Fsh1):
                         outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
                     if hasattr(oneConcept, 'display'):
                         outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
-                    if hasattr(oneConcept, 'designation'):
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = -1
                         for oneDesignation in oneConcept.designation:
                             i += 1
-                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
                             if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
                                 tmpCoding = oneDesignation.use.codesystem
                                 if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.include[%s].concept[%s].designation[%s].use = %s \n' % (j, k, i, tmpCoding))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter'):
                         k += 1
                         for oneFilter in oneConcept.filter:
