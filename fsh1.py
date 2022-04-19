@@ -423,14 +423,14 @@ class Fsh1(pcam.PropCsvAndMaster):
                     if hasattr(oneConcept, 'designation') and oneConcept.designation != []:
                         i = 0
                         for oneDesignation in oneConcept.designation:
-                            if hasattr(oneDesignation, 'language'): outfile.write('* concept[%s].designation[%s].language = #%s \n' % (cntCSConcept, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* concept[%s].designation[%s].language = #%s \n' % (cntCSConcept, i, oneDesignation.language))
                             if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
                                 tmpCoding = oneDesignation.use.codesystem
                                 if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* concept[%s].designation[%s].use = %s \n' % (cntCSConcept, i, tmpCoding))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
                             i += 1
                     if hasattr(oneConcept, 'property') and oneConcept.property != []:
                         i = 0
@@ -463,14 +463,14 @@ class Fsh1(pcam.PropCsvAndMaster):
                         i = -1
                         for oneDesignation in oneConcept.designation:
                             i += 1
-                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].language = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* compose.%s[%s].concept[%s].designation[%s].language = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.language))
                             if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
                                 tmpCoding = oneDesignation.use.codesystem
                                 if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmpCoding))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter') and oneConcept.filter != []:
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
                         if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
