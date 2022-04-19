@@ -248,32 +248,32 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         theConcept.designation.append(theDesig)
                     if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##alt#alt")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##alt#alt")
                         theDesig.value = tmpDisAlt
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##concept_beschreibung#concept_beschreibung")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##concept_beschreibung#concept_beschreibung")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##einheit_codiert#einheit_codiert")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_codiert#einheit_codiert")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##einheit_print#einheit_print")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_print#einheit_print")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##hinweise#hinweise")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##hinweise#hinweise")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation##relationships#relationships")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##relationships#relationships")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
 
