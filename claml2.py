@@ -431,10 +431,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
         # optional FHIR fields
-        if tmp := self.get_language():
-            metas.append(MetaSub('language',tmp))
+        if language := self.get_language():
+            metas.append(MetaSub('language',language))
         elif argsLang is not None:
-            metas.append(MetaSub('language',argsLang))
+            language = argsLang
+            metas.append(MetaSub('language',language))
 
         if tmp := self.get_implicitrules(): metas.append(MetaSub('implicitrules',tmp))
         if tmp := self.get_text(): metas.append(MetaSub('text',tmp))
@@ -493,12 +494,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass.set_code(oneConcept.code)
 
                 if hasattr(oneConcept,'display'):
-                    theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.display)]))
+                    theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=language,valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
-                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.definition)]))
+                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=oneConcept.definition)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=oneDesignation)]))
 
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
@@ -511,7 +512,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
-                            theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))
+                            theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
