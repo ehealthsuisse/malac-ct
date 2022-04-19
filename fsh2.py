@@ -146,12 +146,17 @@ class Fsh2(Fsh1):
                         outfile.write('* #%s\n' % (oneConcept.code))
                     if hasattr(oneConcept, 'definition'):
                         outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
-                    if hasattr(oneConcept, 'designation'):
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = 0
                         for oneDesignation in oneConcept.designation:
-                            if hasattr(oneDesignation, 'language'): outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code: outfile.write('* #%s ^designation[%s].use = #%s \n' % (oneConcept.code, i, oneDesignation.use))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* #%s ^designation[%s].use = %s \n' % (oneConcept.code, i, tmpCoding))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
                     if hasattr(oneConcept, 'property'):
                         i = 0
