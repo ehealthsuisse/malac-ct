@@ -36,7 +36,16 @@ class Fsh2(Fsh1):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
-                                theDesignation.use = value
+                                str4Coding = value
+                                if "|" in value:
+                                    str4Coding = str4Coding.replace("|","#")
+                                else:
+                                    str4Coding = str4Coding.replace("#","##")
+                                if " \"" in value:
+                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
+                                else:
+                                    str4Coding += "#"
+                                theDesignation.use = pcam.Coding(str4Coding)
                             elif 'value' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.value = value
                         elif 'property' in line:
@@ -61,7 +70,7 @@ class Fsh2(Fsh1):
                                 theProperty.code = value
                             elif 'value' in splittedLine[0].split('.')[-1].strip():
                                 theProperty.value = value
-                                theProperty.type = pcam.PropertyCodeType[splittedLine[0].split('.')[-1].strip()[5:].lower()]
+                                theProperty.type = pcam.PropertyCodeType(splittedLine[0].split('.')[-1].strip()[5:].lower())
                 else:
                                 # a detection of two # (without a ^) in a line to give a syserr that nested hierarchy is not supported
                     if len(line.split('#')) > 2:
@@ -110,7 +119,16 @@ class Fsh2(Fsh1):
                             if '.language' in line:
                                 theDesignation.language = value
                             elif '.use' in line:
-                                theDesignation.use = value
+                                str4Coding = value
+                                if "|" in value:
+                                    str4Coding = str4Coding.replace("|","#")
+                                else:
+                                    str4Coding = str4Coding.replace("#","##")
+                                if " \"" in value:
+                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
+                                else:
+                                    str4Coding += "#"
+                                theDesignation.use = pcam.Coding(str4Coding)
                             elif '.value' in line:
                                 theDesignation.value = value
                 if '.filter' in line:
@@ -146,18 +164,25 @@ class Fsh2(Fsh1):
                         outfile.write('* #%s\n' % (oneConcept.code))
                     if hasattr(oneConcept, 'definition'):
                         outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
-                    if hasattr(oneConcept, 'designation'):
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = 0
                         for oneDesignation in oneConcept.designation:
-                            if hasattr(oneDesignation, 'language'): outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* #%s ^designation[%s].use = #%s \n' % (oneConcept.code, i, oneDesignation.use))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* #%s ^designation[%s].language = #%s \n' % (oneConcept.code, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* #%s ^designation[%s].use = %s \n' % (oneConcept.code, i, tmpCoding))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
                     if hasattr(oneConcept, 'property'):
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
-                            if hasattr(oneProperty, 'value'): outfile.write('* #%s ^property[%s].value%s = "%s" \n' % (oneConcept.code, i, oneProperty.type.value, oneProperty.value))
+                            if hasattr(oneProperty, 'value') and oneProperty.type.value == "string": outfile.write('* #%s ^property[%s].value%s = "%s" \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "code": outfile.write('* #%s ^property[%s].value%s = #%s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "boolean": outfile.write('* #%s ^property[%s].value%s = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value).lower().replace('"','\\"')))
                             i += 1
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
@@ -173,13 +198,18 @@ class Fsh2(Fsh1):
                         outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
                     if hasattr(oneConcept, 'display'):
                         outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
-                    if hasattr(oneConcept, 'designation'):
+                    if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = -1
                         for oneDesignation in oneConcept.designation:
                             i += 1
-                            if hasattr(oneDesignation, 'language'): outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
-                            if hasattr(oneDesignation, 'use'): outfile.write('* compose.include[%s].concept[%s].designation[%s].use = #%s \n' % (j, k, i, oneDesignation.use))
-                            if hasattr(oneDesignation, 'value'): outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
+                            if hasattr(oneDesignation, 'language') and oneDesignation.language: outfile.write('* compose.include[%s].concept[%s].designation[%s].language = #%s \n' % (j, k, i, oneDesignation.language))
+                            if hasattr(oneDesignation, 'use') and oneDesignation.use.code:
+                                tmpCoding = oneDesignation.use.codesystem
+                                if tmp := oneDesignation.use.version: tmpCoding += "|"+tmp
+                                tmpCoding += "#"+oneDesignation.use.code
+                                if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
+                                outfile.write('* compose.include[%s].concept[%s].designation[%s].use = %s \n' % (j, k, i, tmpCoding))
+                            if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter'):
                         k += 1
                         for oneFilter in oneConcept.filter:

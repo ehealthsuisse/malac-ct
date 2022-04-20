@@ -97,7 +97,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_identifier(self):
         identifiers = []
         for oneIdentifier in self.get_Identifier():
-            identifiers.append(oneIdentifier.get_uid())
+            if tmp := oneIdentifier.get_uid():
+                identifiers.append(tmp)
         return identifiers
 
     def get_version(self):
@@ -147,15 +148,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if tempValueOf := oneAuthor.get_valueOf_():
                     oneConDet = pcam.ContactDetail()
                     oneConDet.name = oneAuthor.get_name()
-                    oneConPoi = pcam.ContactDetail.ConcactPoint()
+                    oneConPoi = pcam.ContactDetail.ContactPoint()
                     oneConPoi.value = tempValueOf
                     oneConDet.telecom = [oneConPoi]
                     tempConDetS.append(oneConDet)
         if (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
-            oneConPoi = pcam.ContactDetail.ConcactPoint()
+            oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
         return tempConDetS
@@ -219,10 +220,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tempContent := get_Meta_with_name(self,'content'):
             return tempContent
         elif tempContent := get_Meta_with_name(self,'unvollstaendig'):
-            #if tempContent == "false":
-            return pcam.Content.complete.value
-            #elif tempContent == "true":
-            #    return pcam.Content.fragment.value
+            if tempContent == "false":
+                return pcam.Content.complete.value
+            elif tempContent == "true":
+               return pcam.Content.fragment.value
         else:
             return pcam.Content.complete.value
 
@@ -289,12 +290,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return self.concept
         else:
             retArr = []
-            # iterate though a sorted list
-            sortedClassList = self.get_Class()
-            sortedClassList.sort(key=supermod.Class.get_code)
-            #if tmp := sortedClassList[0].get_Meta_with_name(self,'Sortierreihenfolge'):
-            #    sortedClassList.sort(key=Class.get_sortierreihenfolge)
-            for oneClass in sortedClassList:
+            for oneClass in self.get_Class():
                 theConcept = pcam.CSConcept()
                 theConcept.code = oneClass.get_code()
 
@@ -340,12 +336,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     elif oneRubric.get_kind() == "note":
                         theConcept.definition = tmp
                     elif oneRubric.get_kind() == "designation":
-                        splittedValue = tmp.split('|')
-                        theDesignation = pcam.ConceptDesignation()
-                        theDesignation.language = splittedValue[0]
-                        theDesignation.use = splittedValue[1]
-                        theDesignation.value = splittedValue[2]
-                        theConcept.designation.append(theDesignation)
+                        theConcept.designation.append(pcam.ConceptDesignation(tmp))
                     else:
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                         theProperty.code = oneRubric.get_kind()
@@ -441,10 +432,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
 
         # optional FHIR fields
-        if tmp := self.get_language():
-            metas.append(MetaSub('language',tmp))
+        if language := self.get_language():
+            metas.append(MetaSub('language',language))
         elif argsLang is not None:
-            metas.append(MetaSub('language',argsLang))
+            language = argsLang
+            metas.append(MetaSub('language',language))
 
         if tmp := self.get_implicitrules(): metas.append(MetaSub('implicitrules',tmp))
         if tmp := self.get_text(): metas.append(MetaSub('text',tmp))
@@ -503,12 +495,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass.set_code(oneConcept.code)
 
                 if hasattr(oneConcept,'display'):
-                    theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.display)]))
+                    theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=language,valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
-                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=self.get_language(),valueOf_=oneConcept.definition)]))
+                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=oneConcept.definition)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=self.get_language(),valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=oneDesignation)]))
 
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
@@ -521,7 +513,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
-                            theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=self.get_language(), valueOf_=oneProperty.value)]))
+                            theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():

@@ -109,7 +109,7 @@ class PropCsvAndMaster():
                         tempProperty.code = propElements[0]
                         tempProperty.uri = propElements[1]
                         tempProperty.description = propElements[2]
-                        tempProperty.type = PropertyCodeType(propElements[3])
+                        tempProperty.type = PropertyCodeType(propElements[3].lower())
                         self.property.append(tempProperty)
 
                 #initializing the body/content
@@ -129,18 +129,13 @@ class PropCsvAndMaster():
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
                                 if 'definition' == headingList[i]: tempConcept.definition = row[i]
                                 if 'designation' == headingList[i]:
-                                    designationElements = row[i].split('|')
-                                    tempDesignation = ConceptDesignation()
-                                    tempDesignation.language = designationElements[0]
-                                    tempDesignation.use = designationElements[1]
-                                    tempDesignation.value = designationElements[2]
-                                    tempConcept.designation.append(tempDesignation)
+                                    tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'property' == headingList[i]:
                                     propertyElements = row[i].split('|')
                                     tempProperty = CSConcept.ConceptProperty()
                                     tempProperty.code = propertyElements[0]
                                     tempProperty.value = propertyElements[1]
-                                    tempProperty.type = PropertyCodeType(propertyElements[2])
+                                    tempProperty.type = PropertyCodeType(propertyElements[2].lower())
                                     tempConcept.property.append(tempProperty)
 
                             elif self.resource == self.resource.ValueSet:
@@ -149,12 +144,7 @@ class PropCsvAndMaster():
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
                                 if 'designation' == headingList[i]:
-                                    designationElements = row[i].split('|')
-                                    tempDesignation = ConceptDesignation()
-                                    tempDesignation.language = designationElements[0]
-                                    tempDesignation.use = designationElements[1]
-                                    tempDesignation.value = designationElements[2]
-                                    tempConcept.designation.append(tempDesignation)
+                                    tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
                                     filterElements = row[i].split('|')
                                     tempFilter = VSConcept.VSConceptFilter()
@@ -619,13 +609,13 @@ class HierarchyMeaning(enum.Enum):
     classifiedwith = "classified-with"
 
 class PropertyCodeType(enum.Enum):
-    code = "Code"
+    code = "code"
     coding = "Coding"
-    string = "String"
-    integer = "Integer"
-    boolean = "Boolean"
-    dateTime = "DateTime"
-    decimal = "Decimal"
+    string = "string"
+    integer = "integer"
+    boolean = "boolean"
+    datetime = "dateTime"
+    decimal = "decimal"
 
 class ContactDetail():
     def __init__(self):
@@ -644,13 +634,14 @@ class ContactDetail():
             tempStr += temp
         return tempStr
 
-    class ConcactPoint():
+    class ContactPoint():
         def __init__(self):
             self.system = None # ContactPointSystem
             self.value = None
             self.use = None # ContactPointUse
             self.rank = None
-            self.period = None
+            self.period_start = None
+            self.period_end = None
 
         class ContactPointSystem(enum.Enum):
             phone = "phone"
@@ -684,7 +675,7 @@ class Property():
         self.idInFsh = idInFsh
 
     def __str__(self) -> str:
-        return (self.code or "None")+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+(self.type.value or "None")
+        return self.code+"|"+(self.uri or "")+"|"+(self.description or "")+"|"+self.type.value
 
 class CSConcept():
     def __init__(self):
@@ -709,9 +700,9 @@ class CSConcept():
 
         def __str__(self) -> str:
             buildStr = ""
-            buildStr = self.code or "None"
-            buildStr += "|"+ (self.value or "None")
-            buildStr += "|"+ (self.type.value or "None")
+            buildStr = self.code
+            buildStr += "|"+ self.value
+            buildStr += "|"+ self.type.value
             return buildStr
 
 class VSConcept():
@@ -755,17 +746,50 @@ class VSConcept():
             return buildStr
 
 class ConceptDesignation():
-        def __init__(self):
+    def __init__(self, str=None):
+        if str is None:
             self.language = None
-            self.use = None
+            self.use = Coding()
             self.value = None
+        else:
+            splittedValue = str.split('|',2)
+            self.language = splittedValue[0]
+            self.use = Coding(splittedValue[1])
+            self.value = splittedValue[2]
 
-        def __str__(self) -> str:
-            buildStr = ""
-            if self.language: buildStr += self.language
-            buildStr += "|"
-            if self.use: buildStr += self.use
-            buildStr += "|"
-            if self.value: buildStr += self.value
-            return buildStr
+    def __str__(self) -> str:
+        buildStr = ""
+        if self.language: buildStr += self.language
+        buildStr += "|"
+        if self.use: buildStr += str(self.use)
+        buildStr += "|"
+        if self.value: buildStr += self.value
+        return buildStr
 
+class Coding():
+    def __init__(self, str=None):
+        if str is None:
+            self.codesystem = None
+            self.version = None
+            self.code = None
+            self.display = None
+        else:
+            splittedValue = str.split('#',3)
+            self.codesystem = splittedValue[0]
+            self.version = splittedValue[1]
+            self.code = splittedValue[2]
+            self.display = splittedValue[3]
+
+    def __str__(self) -> str:
+        buildStr = ""
+        if self.codesystem: buildStr += self.codesystem
+        buildStr += "#"
+        if self.version: buildStr += self.version
+        buildStr += "#"
+        if self.code: buildStr += self.code
+        buildStr += "#"
+        if self.display: buildStr += self.display
+        return buildStr
+
+# upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
+first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''

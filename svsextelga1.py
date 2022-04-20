@@ -162,9 +162,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         tempConDetS = []
         if (website := self.get_website()) and not website == "":
             oneConDet = pcam.ContactDetail()
-            oneConPoi = pcam.ContactDetail.ConcactPoint()
+            oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
             oneConDet.telecom.append(oneConPoi)
             tempConDetS.append(oneConDet)
         return tempConDetS
@@ -235,7 +235,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             if self.get_resource() == "ValueSet":
                 for oneCon in sortedConceptList:
                     theConcept = pcam.VSConcept()
-                    theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+
+                    if (tmp := oneCon.get_parentCodeSystemName()) and (tmp.startswith('http://') or tmp.startswith('https://')):
+                        theConcept.system = tmp
+                    else:
+                        theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
 
@@ -248,32 +253,32 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         theConcept.designation.append(theDesig)
                     if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "alt"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##alt#alt")
                         theDesig.value = tmpDisAlt
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "concept_beschreibung"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##concept_beschreibung#concept_beschreibung")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "einheit_codiert"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_codiert#einheit_codiert")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "einheit_print"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_print#einheit_print")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "hinweise"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##hinweise#hinweise")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = "relationships"
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##relationships#relationships")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
 
@@ -385,7 +390,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         effectiveDate = last_change_date = status_date = self.get_date() or ""
         gueltigkeitsbereich = "empfohlen"
 
-        if (tmp := self.get_identifier()[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
             id = self.gainOidFromName(self.get_resource()+"-"+self.get_name())
@@ -397,7 +402,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
 
         foundIt = False
         for oneConcept in self.get_contact():
-            if oneConcept.telecom[0].system == pcam.ContactDetail.ConcactPoint.ContactPointSystem.url.value:
+            if oneConcept.telecom[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value:
                 website = oneConcept.telecom[0].value
                 foundIt = True
         if not foundIt:
@@ -412,7 +417,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             # creating codeSystem
             codeSystem = None
             if self.get_resource() == "CodeSystem":
-                codeSystem = self.get_identifier()[0] or ""
+                if (identifier := self.get_identifier()) and (tmp := identifier[0]):
+                    codeSystem = tmp
+                else:
+                    codeSystem = ''
             elif self.get_resource() == "ValueSet":
                 codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
 
@@ -424,7 +432,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         concept_beschreibung = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "concept_beschreibung":
+                    if oneDesig.use.code == "concept_beschreibung":
                         concept_beschreibung = oneDesig.value
 
             # creating deutsch
@@ -447,7 +455,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         displayNameAlt = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "alt":
+                    if oneDesig.use.code == "alt":
                         displayNameAlt = oneDesig.value
 
             # creating einheit_codiert
@@ -458,7 +466,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         einheit_codiert = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "einheit_codiert":
+                    if oneDesig.use.code == "einheit_codiert":
                         einheit_codiert = oneDesig.value
 
             # creating einheit_print
@@ -469,7 +477,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         einheit_print = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "einheit_print":
+                    if oneDesig.use.code == "einheit_print":
                         einheit_print = oneDesig.value
 
             # creating hinweise
@@ -480,7 +488,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         hinweise = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "hinweise":
+                    if oneDesig.use.code == "hinweise":
                         hinweise = oneDesig.value
 
             # creating level
@@ -516,7 +524,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         relationships = oneProp.value
             elif self.get_resource() == "ValueSet":
                 for oneDesig in oneConcept.designation:
-                    if oneDesig.use == "relationships":
+                    if oneDesig.use.code == "relationships":
                         relationships = oneDesig.value
 
             # creating type
