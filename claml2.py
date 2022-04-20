@@ -97,7 +97,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_identifier(self):
         identifiers = []
         for oneIdentifier in self.get_Identifier():
-            identifiers.append(oneIdentifier.get_uid())
+            if tmp := oneIdentifier.get_uid():
+                identifiers.append(tmp)
         return identifiers
 
     def get_version(self):

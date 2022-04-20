@@ -199,7 +199,10 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
 
             # writing csv-codeSystem
             if self.get_resource() == "CodeSystem":
-                conceptRow.append(self.get_identifier()[0] or "")
+                if (identifier := self.get_identifier()) and (tmp := identifier[0]):
+                    conceptRow.append(tmp)
+                else:
+                    conceptRow.append('')
             elif self.get_resource() == "ValueSet":
                 if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
                     conceptRow.append(self.gainOidFromName(oneConcept.system) or "")

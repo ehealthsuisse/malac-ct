@@ -390,7 +390,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         effectiveDate = last_change_date = status_date = self.get_date() or ""
         gueltigkeitsbereich = "empfohlen"
 
-        if (tmp := self.get_identifier()[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
             id = self.gainOidFromName(self.get_resource()+"-"+self.get_name())
@@ -417,7 +417,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             # creating codeSystem
             codeSystem = None
             if self.get_resource() == "CodeSystem":
-                codeSystem = self.get_identifier()[0] or ""
+                if (identifier := self.get_identifier()) and (tmp := identifier[0]):
+                    codeSystem = tmp
+                else:
+                    codeSystem = ''
             elif self.get_resource() == "ValueSet":
                 codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
 
