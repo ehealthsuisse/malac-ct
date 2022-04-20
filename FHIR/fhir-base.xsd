@@ -35,6 +35,13 @@
 
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hl7.org/fhir" xmlns:xhtml="http://www.w3.org/1999/xhtml" targetNamespace="http://hl7.org/fhir" elementFormDefault="qualified" version="1.0">
+  <!-- START MaLaC-CT -->
+  <!-- Removed from fhir-base.xsd in order to prevent circular references. -->
+  <!-- <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+  <xs:import namespace="http://www.w3.org/1999/xhtml" schemaLocation="fhir-xhtml.xsd"/>
+  <xs:include schemaLocation="fhir-all.xsd"/> -->
+  <!-- END MaLaC-CT -->
+
   <xs:simpleType name="date-primitive">
     <xs:restriction>
       <xs:simpleType>
@@ -362,6 +369,162 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <!-- START MaLaC-CT -->
+  <!--
+    DomainResource.contained results in circular references which makes it
+    difficult to create proper python classes with generateDS.
+    -->
+  <!-- <xs:complexType name="ResourceContainer">
+    <xs:choice>
+      <xs:element ref="Account"/>
+      <xs:element ref="ActivityDefinition"/>
+      <xs:element ref="AdverseEvent"/>
+      <xs:element ref="AllergyIntolerance"/>
+      <xs:element ref="Appointment"/>
+      <xs:element ref="AppointmentResponse"/>
+      <xs:element ref="AuditEvent"/>
+      <xs:element ref="Basic"/>
+      <xs:element ref="Binary"/>
+      <xs:element ref="BiologicallyDerivedProduct"/>
+      <xs:element ref="BodyStructure"/>
+      <xs:element ref="Bundle"/>
+      <xs:element ref="CapabilityStatement"/>
+      <xs:element ref="CarePlan"/>
+      <xs:element ref="CareTeam"/>
+      <xs:element ref="CatalogEntry"/>
+      <xs:element ref="ChargeItem"/>
+      <xs:element ref="ChargeItemDefinition"/>
+      <xs:element ref="Claim"/>
+      <xs:element ref="ClaimResponse"/>
+      <xs:element ref="ClinicalImpression"/>
+      <xs:element ref="CodeSystem"/>
+      <xs:element ref="Communication"/>
+      <xs:element ref="CommunicationRequest"/>
+      <xs:element ref="CompartmentDefinition"/>
+      <xs:element ref="Composition"/>
+      <xs:element ref="ConceptMap"/>
+      <xs:element ref="Condition"/>
+      <xs:element ref="Consent"/>
+      <xs:element ref="Contract"/>
+      <xs:element ref="Coverage"/>
+      <xs:element ref="CoverageEligibilityRequest"/>
+      <xs:element ref="CoverageEligibilityResponse"/>
+      <xs:element ref="DetectedIssue"/>
+      <xs:element ref="Device"/>
+      <xs:element ref="DeviceDefinition"/>
+      <xs:element ref="DeviceMetric"/>
+      <xs:element ref="DeviceRequest"/>
+      <xs:element ref="DeviceUseStatement"/>
+      <xs:element ref="DiagnosticReport"/>
+      <xs:element ref="DocumentManifest"/>
+      <xs:element ref="DocumentReference"/>
+      <xs:element ref="EffectEvidenceSynthesis"/>
+      <xs:element ref="Encounter"/>
+      <xs:element ref="Endpoint"/>
+      <xs:element ref="EnrollmentRequest"/>
+      <xs:element ref="EnrollmentResponse"/>
+      <xs:element ref="EpisodeOfCare"/>
+      <xs:element ref="EventDefinition"/>
+      <xs:element ref="Evidence"/>
+      <xs:element ref="EvidenceVariable"/>
+      <xs:element ref="ExampleScenario"/>
+      <xs:element ref="ExplanationOfBenefit"/>
+      <xs:element ref="FamilyMemberHistory"/>
+      <xs:element ref="Flag"/>
+      <xs:element ref="Goal"/>
+      <xs:element ref="GraphDefinition"/>
+      <xs:element ref="Group"/>
+      <xs:element ref="GuidanceResponse"/>
+      <xs:element ref="HealthcareService"/>
+      <xs:element ref="ImagingStudy"/>
+      <xs:element ref="Immunization"/>
+      <xs:element ref="ImmunizationEvaluation"/>
+      <xs:element ref="ImmunizationRecommendation"/>
+      <xs:element ref="ImplementationGuide"/>
+      <xs:element ref="InsurancePlan"/>
+      <xs:element ref="Invoice"/>
+      <xs:element ref="Library"/>
+      <xs:element ref="Linkage"/>
+      <xs:element ref="List"/>
+      <xs:element ref="Location"/>
+      <xs:element ref="Measure"/>
+      <xs:element ref="MeasureReport"/>
+      <xs:element ref="Media"/>
+      <xs:element ref="Medication"/>
+      <xs:element ref="MedicationAdministration"/>
+      <xs:element ref="MedicationDispense"/>
+      <xs:element ref="MedicationKnowledge"/>
+      <xs:element ref="MedicationRequest"/>
+      <xs:element ref="MedicationStatement"/>
+      <xs:element ref="MedicinalProduct"/>
+      <xs:element ref="MedicinalProductAuthorization"/>
+      <xs:element ref="MedicinalProductContraindication"/>
+      <xs:element ref="MedicinalProductIndication"/>
+      <xs:element ref="MedicinalProductIngredient"/>
+      <xs:element ref="MedicinalProductInteraction"/>
+      <xs:element ref="MedicinalProductManufactured"/>
+      <xs:element ref="MedicinalProductPackaged"/>
+      <xs:element ref="MedicinalProductPharmaceutical"/>
+      <xs:element ref="MedicinalProductUndesirableEffect"/>
+      <xs:element ref="MessageDefinition"/>
+      <xs:element ref="MessageHeader"/>
+      <xs:element ref="MolecularSequence"/>
+      <xs:element ref="NamingSystem"/>
+      <xs:element ref="NutritionOrder"/>
+      <xs:element ref="Observation"/>
+      <xs:element ref="ObservationDefinition"/>
+      <xs:element ref="OperationDefinition"/>
+      <xs:element ref="OperationOutcome"/>
+      <xs:element ref="Organization"/>
+      <xs:element ref="OrganizationAffiliation"/>
+      <xs:element ref="Patient"/>
+      <xs:element ref="PaymentNotice"/>
+      <xs:element ref="PaymentReconciliation"/>
+      <xs:element ref="Person"/>
+      <xs:element ref="PlanDefinition"/>
+      <xs:element ref="Practitioner"/>
+      <xs:element ref="PractitionerRole"/>
+      <xs:element ref="Procedure"/>
+      <xs:element ref="Provenance"/>
+      <xs:element ref="Questionnaire"/>
+      <xs:element ref="QuestionnaireResponse"/>
+      <xs:element ref="RelatedPerson"/>
+      <xs:element ref="RequestGroup"/>
+      <xs:element ref="ResearchDefinition"/>
+      <xs:element ref="ResearchElementDefinition"/>
+      <xs:element ref="ResearchStudy"/>
+      <xs:element ref="ResearchSubject"/>
+      <xs:element ref="RiskAssessment"/>
+      <xs:element ref="RiskEvidenceSynthesis"/>
+      <xs:element ref="Schedule"/>
+      <xs:element ref="SearchParameter"/>
+      <xs:element ref="ServiceRequest"/>
+      <xs:element ref="Slot"/>
+      <xs:element ref="Specimen"/>
+      <xs:element ref="SpecimenDefinition"/>
+      <xs:element ref="StructureDefinition"/>
+      <xs:element ref="StructureMap"/>
+      <xs:element ref="Subscription"/>
+      <xs:element ref="Substance"/>
+      <xs:element ref="SubstanceNucleicAcid"/>
+      <xs:element ref="SubstancePolymer"/>
+      <xs:element ref="SubstanceProtein"/>
+      <xs:element ref="SubstanceReferenceInformation"/>
+      <xs:element ref="SubstanceSourceMaterial"/>
+      <xs:element ref="SubstanceSpecification"/>
+      <xs:element ref="SupplyDelivery"/>
+      <xs:element ref="SupplyRequest"/>
+      <xs:element ref="Task"/>
+      <xs:element ref="TerminologyCapabilities"/>
+      <xs:element ref="TestReport"/>
+      <xs:element ref="TestScript"/>
+      <xs:element ref="ValueSet"/>
+      <xs:element ref="VerificationResult"/>
+      <xs:element ref="VisionPrescription"/>
+      <xs:element ref="Parameters"/>
+    </xs:choice>
+  </xs:complexType> -->
+  <!-- END MaLaC-CT -->
   <xs:complexType name="Extension">
     <xs:annotation>
       <xs:documentation xml:lang="en">Optional Extension Element - found in all resources.</xs:documentation>
@@ -449,6 +612,70 @@ Modifier extensions SHALL NOT change the meaning of any elements on Resource or 
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <!-- START MaLaC-CT -->
+  <!--
+  DomainResource.text is of type Narrative which itself allows a lot
+  of further tags which eventually would result in two "class code()" definitions
+  in the generated python files by generateDS.
+  -->
+  <!-- <xs:complexType name="Narrative">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">A human-readable summary of the resource conveying the essential clinical and business information for the resource.</xs:documentation>
+      <xs:documentation xml:lang="en">If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="Element">
+        <xs:sequence>
+          <xs:element name="status" type="NarrativeStatus" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation xml:lang="en">The status of the narrative - whether it's entirely generated (from just the defined data or the extensions too), or whether a human authored it and it may contain additional data.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element ref="xhtml:div" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation xml:lang="en">The actual narrative content, a stripped down version of XHTML.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="NarrativeStatus-list">
+    <xs:restriction base="code-primitive">
+      <xs:enumeration value="generated">
+        <xs:annotation>
+          <xs:documentation xml:lang="en">Generated</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="extensions">
+        <xs:annotation>
+          <xs:documentation xml:lang="en">Extensions</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="additional">
+        <xs:annotation>
+          <xs:documentation xml:lang="en">Additional</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="empty">
+        <xs:annotation>
+          <xs:documentation xml:lang="en">Empty</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="NarrativeStatus">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">The status of a resource narrative.</xs:documentation>
+      <xs:documentation xml:lang="en">If the element is present, it must have either a @value, an @id, or extensions</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+       <xs:extension base="Element">
+         <xs:attribute name="value" type="NarrativeStatus-list" use="optional"/>
+       </xs:extension>
+     </xs:complexContent>
+  </xs:complexType> -->
+  <!-- END MaLaC-CT -->
   <xs:complexType name="Element">
     <xs:annotation>
       <xs:documentation xml:lang="en">Base definition for all elements in a resource.</xs:documentation>
@@ -3562,6 +3789,26 @@ When pattern[x] is used to constrain a complex object, it means that each proper
     <xs:complexContent>
       <xs:extension base="Resource">
         <xs:sequence>
+          <!-- START MaLaC-CT -->
+          <!--
+            DomainResource.text is of type Narrative which itself allows a lot
+            of further tags which eventually would result in two "class code()" definitions
+            in the generated python files by generateDS.
+
+            DomainResource.contained results in circular references which makes it
+            difficult to create proper python classes with generateDS.
+           -->
+          <!-- <xs:element name="text" type="Narrative" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation xml:lang="en">A human-readable narrative that contains a summary of the resource and can be used to represent the content of the resource to a human. The narrative need not encode all the structured data, but is required to contain sufficient detail to make it &quot;clinically safe&quot; for a human to just read the narrative. Resource definitions may define what content should be represented in the narrative to ensure clinical safety.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="contained" type="ResourceContainer" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation xml:lang="en">These resources do not have an independent existence apart from the resource that contains them - they cannot be identified independently, and nor can they have their own independent transaction scope.</xs:documentation>
+            </xs:annotation>
+          </xs:element> -->
+          <!-- END MaLaC-CT -->
           <xs:element name="extension" type="Extension" minOccurs="0" maxOccurs="unbounded">
             <xs:annotation>
               <xs:documentation xml:lang="en">May be used to represent additional information that is not part of the basic definition of the resource. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.</xs:documentation>
