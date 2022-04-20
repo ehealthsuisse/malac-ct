@@ -180,6 +180,7 @@ def main() -> None:
 
         if (args.upload2FhirServer):
             import requests
+            import os
 
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
 
