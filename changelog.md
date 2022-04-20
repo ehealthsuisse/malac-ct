@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-16](https://jira-neu.elga.gv.at/browse/TERGI-16) Direct support of FHIR XML without the need for SUSHI.
+- [TERGI-23](https://jira-neu.elga.gv.at/browse/TERGI-23) Support external CodeSystems as source for ValueSet concepts (e.g. `http://loinc.org`).
+- Enhance `ConceptDesignation.use` in order to properly parse/write `Coding` values.
+- Write `ValueSet.expansion` for FSH v1.
+- Print error message from FHIR server if file conversion fails.
+- Write properties according to FSH v1 in FSH v2.
+- Support fragment CodeSystems when reading ClaML v2.
+
+### Changed
+
+- Only read identifies of type `urn:oid:` when parsing FSH v1.
+- Correct `__str__` method for `Property` and `CSConcept.ConceptProperty`.
+- Rename some existing methods.
+- Correct typos.
+
+### Removed
+
+- [TERGI-16](https://jira-neu.elga.gv.at/browse/TERGI-16) Remove CLI parameters `-sushi` and `-gofsh` as they have been replaced by custom implementation.
+- Remove support for automatic Zuppl-creation by specifying `-CSSuppl4VS` as CLI parameter.
+- Remove `excludeNotForUI` as expansion parameter.
+
+### Fixed
+
+- Fix structure of `ValueSet.compose.lockedDate` and `ValueSet.compose.inactive` for FSH v1.
+- Fix support of CodeSystems without identifier.
+- Fix writing of designations in ClaML v3.
+- Fix use of languages when writing ClaML v2.
+
 ## [1.1.0+20220315-beta]
 
 ### Added
@@ -48,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - claml2 with facts from german claml experts
-- sysout to print 
+- sysout to print
 - argument handling
 
 ### Fixed
