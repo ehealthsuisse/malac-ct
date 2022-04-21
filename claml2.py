@@ -339,7 +339,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         theConcept.designation.append(pcam.ConceptDesignation(tmp))
                     else:
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                        theProperty.code = oneRubric.get_kind()
+                        """TODO Rubrics exist that do not have @kind. As a quick fix "None" will be assumed as code
+                                for these properties.
+                        """
+                        theProperty.code = oneRubric.get_kind() or "None"
                         theProperty.value = tmp
                         theProperty.type = pcam.PropertyCodeType.string
                         thePropertys.append(theProperty)
