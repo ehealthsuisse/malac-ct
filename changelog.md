@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix invocation of methods.
+- Fix handling of Rubrics without `@kind`.
+
 ## [2.0.1+20220420]
 
 ### Fixed
