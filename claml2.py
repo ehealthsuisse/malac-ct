@@ -233,7 +233,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_filter(self):
         retArr = []
         for oneMeta in self.get_Meta():
-            if oneMeta.get_name == 'filter':
+            if oneMeta.get_name() == 'filter':
                 oneFilter = pcam.Filter()
                 oneFilter.code = oneMeta.get_value().split('|')[0]
                 oneFilter.description = oneMeta.get_value().split('|')[1]
@@ -245,7 +245,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_property(self):
         retArr = []
         for oneMeta in self.get_Meta():
-            if oneMeta.get_name == 'property':
+            if oneMeta.get_name() == 'property':
                 oneProperty = pcam.Filter()
                 oneProperty.code = oneMeta.get_value().split('|')[0]
                 oneProperty.uri = oneMeta.get_value().split('|')[1]
