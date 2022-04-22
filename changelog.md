@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [TERGI-16](https://jira-neu.elga.gv.at/browse/TERGI-16) Direct support of FHIR XML without the need for SUSHI.
 - [TERGI-23](https://jira-neu.elga.gv.at/browse/TERGI-23) Support external CodeSystems as source for ValueSet concepts (e.g. `http://loinc.org`).
 - Enhance `ConceptDesignation.use` in order to properly parse/write `Coding` values.
-- Write `ValueSet.expansion` for FSH v1.
+- Write `ValueSet.expansion.contains.designation` for FSH v1.
 - Print error message from FHIR server if file conversion fails.
 - Write properties according to FSH v1 in FSH v2.
 - Support fragment CodeSystems when reading ClaML v2.
