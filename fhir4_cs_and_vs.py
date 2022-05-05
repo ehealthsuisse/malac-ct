@@ -331,7 +331,7 @@ def parse_concept_designation(designation_list):
 #
 ####################################################################################
 
-def exporto(self, globals, fhir_resource, args_lang=None):
+def exporto(self, globals, fhir_resource):
     """Write information to a FHIR resource (CodeSystem or ValueSet) that is independent
     of the resource type.
 
@@ -340,8 +340,6 @@ def exporto(self, globals, fhir_resource, args_lang=None):
     globals -- Dictionary implementing the calling module namespace.
 
     fhir_resource -- The FHIR resource the information will be written to.
-
-    args_lang -- CLI parameter containing default language for resource.
     """
 
     # IG publisher fails if no id is present in FHIR resource.
@@ -356,8 +354,6 @@ def exporto(self, globals, fhir_resource, args_lang=None):
 
     if tmp := self.get_language():
         fhir_resource.set_language(globals.get('codeSub')(value=tmp))
-    elif args_lang:
-        fhir_resource.set_language(globals.get('codeSub')(value=args_lang))
 
     # NOT SUPPORTED CodeSystem.text or ValueSet.text
 
@@ -539,7 +535,7 @@ class FHIR4CsAndVs:
 
         output_class -- not required
 
-        args_lang -- CLI parameter containing default language for resource.
+        args_lang -- NOT SUPPORTED CLI parameter containing default language for resource.
 
         include_hierarchy_extension_4_valueset -- NOT SUPPORTED If true, extensions within ValueSet.compose will be included for specifying hierarchical ValueSets.
         """
@@ -547,6 +543,6 @@ class FHIR4CsAndVs:
 
         resource = input.get_resource()
         if resource == 'CodeSystem':
-            f4cs.CodeSystemSub.exporto(input, outfile, args_lang)
+            f4cs.CodeSystemSub.exporto(input, outfile)
         elif resource == 'ValueSet':
-            f4vs.ValueSetSub.exporto(input, outfile, args_lang)
+            f4vs.ValueSetSub.exporto(input, outfile)

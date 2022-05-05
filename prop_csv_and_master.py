@@ -416,7 +416,6 @@ class PropCsvAndMaster():
 
             if tmp := self.get_implicitrules(): csv_list.append(("implicitRules",tmp))
             if tmp := self.get_language(): csv_list.append(("language",tmp))
-            elif argsLang is not None: csv_list.append(("language",argsLang))
             if tmp := self.get_text(): csv_list.append(("text",tmp))
             if tmp := self.get_contained(): csv_list.append(("contained",tmp))
             if tmp := self.get_extension(): csv_list.append(("extension",tmp))

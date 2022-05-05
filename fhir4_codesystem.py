@@ -344,19 +344,17 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         return self.concept
 
-    def exporto(self, outfile, args_lang=None):
+    def exporto(self, outfile):
         """Write information to a FHIR CodeSystem.
 
         self -- Object holding the information that should be written to the FHIR ValueSet.
 
         outfile -- File the information will be written to.
-
-        args_lang -- CLI parameter containing default language for resource.
         """
         codesystem = CodeSystemSub()
 
         # export general metadata
-        f4csvs.exporto(self, globals(), codesystem, args_lang)
+        f4csvs.exporto(self, globals(), codesystem)
 
         if tmp := self.get_casesensitive():
             codesystem.set_caseSensitive(booleanSub(value=tmp))

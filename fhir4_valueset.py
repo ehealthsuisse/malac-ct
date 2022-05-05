@@ -399,21 +399,19 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_contains.get_contains():
                         ValueSetSub.parse_contains_information(level+1, tmp, concept_code_dict, the_concept)
 
-    def exporto(self, outfile, args_lang=None):
+    def exporto(self, outfile):
         """Write information to a FHIR ValueSet.
 
         self -- Object holding the information that should be written to the FHIR ValueSet.
 
         outfile -- File the information will be written to.
-
-        args_lang -- CLI parameter containing default language for resource.
         """
 
         # Create new FHIR ValueSet
         valueset = ValueSetSub()
 
         # export general metadata
-        f4csvs.exporto(self, globals(), valueset, args_lang)
+        f4csvs.exporto(self, globals(), valueset)
 
         if tmp := self.get_immutable():
             valueset.set_immutable(booleanSub(value = tmp))

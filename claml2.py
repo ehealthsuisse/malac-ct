@@ -437,9 +437,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # optional FHIR fields
         if language := self.get_language():
             metas.append(MetaSub('language',language))
-        elif argsLang is not None:
-            language = argsLang
-            metas.append(MetaSub('language',language))
 
         if tmp := self.get_implicitrules(): metas.append(MetaSub('implicitrules',tmp))
         if tmp := self.get_text(): metas.append(MetaSub('text',tmp))
