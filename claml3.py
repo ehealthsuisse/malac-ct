@@ -246,12 +246,12 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         #required ClaMl3 fields
         claml3 = ClaML3Sub('3.0.0')
         if tmp := self.get_language():
-            lang = self.get_language()
+            lang = tmp
         elif argsLang is not None:
             lang = argsLang
         else:
-            print("A language code is required in ClaMl3. Please type one in (i.e. 'en','de-DE' or 'de-AT') and press enter:")
-            lang = input()
+            sys.exit('A language for the output classification ClaML v3 is required (use CLI parameter "-langArg"), use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.')
+
         title = TitleSub(self.get_name(),self.get_version(),None,self.get_title())
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))

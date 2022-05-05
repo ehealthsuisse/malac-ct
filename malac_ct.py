@@ -29,7 +29,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-o", "--output", help='the output file, if none is given MaLaC-CT will convert into all other known formats.', required=False
     )
     parser.add_argument(
-        "-langArg", "--argumentLanguage", help='a fixed language for the output classification, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
+        "-langArg", "--argumentLanguage", help='a fixed language for the output classification ClaML v3, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
     )
     parser.add_argument(
         "-j2xServer", "--json2xmlFHIRServer", help="Directly run a json2xml convert on a given FHIR server after sushi. "+
