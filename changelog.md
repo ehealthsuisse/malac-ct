@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [TERGI-75](https://jira-neu.elga.gv.at/browse/TERGI-75) MaLaC-CT will not set a resource's language if language is missing (parameter `-langArg`). However, CLI parameter `-langArg` will affect ClaML v3 as language is required there.
 
+### Fixed
+
+- [TERGI-66](https://jira-neu.elga.gv.at/browse/TERGI-66) Fix not lowering first letter of property names
+
 ## [2.0.2+20220421]
 
 ### Fixed
