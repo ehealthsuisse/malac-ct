@@ -239,7 +239,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                     if (tmp := oneCon.get_parentCodeSystemName()) and (tmp.startswith('http://') or tmp.startswith('https://')):
                         theConcept.system = tmp
                     else:
-                        theConcept.system = (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                        theConcept.system = self.globalUrl+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()

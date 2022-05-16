@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [TERGI-66](https://jira-neu.elga.gv.at/browse/TERGI-66) Fix not lowering first letter of property names
+- [TERGI-91](https://jira-neu.elga.gv.at/browse/TERGI-81) Fix using whole url for references to codesystems
 
 ## [2.0.2+20220421]
 
