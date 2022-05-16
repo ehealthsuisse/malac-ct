@@ -36,7 +36,7 @@
                 "-j2xServer", "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/",
                 "-j2xUser", "fhiruser",
                 "-j2xPw", "integrati0n",
-                "-url", "https://gkl.termgit.elga.gv.at",
+                "-url", "https://gkl.termgit.elga.gv.at/",
                 "-appndProcTermTo", "terminologiesMetadata.csv"
             ]
         }

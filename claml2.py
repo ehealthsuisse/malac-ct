@@ -397,7 +397,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theProperty.type = pcam.PropertyCodeType.boolean
                             thePropertys.append(theProperty)
                         else:
-                            theProperty.code = oneMeta.get_name()[0].lower()+oneMeta.get_name()[1:]
+                            theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
                             thePropertys.append(theProperty)
