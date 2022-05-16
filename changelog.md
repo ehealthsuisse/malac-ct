@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3+20220516]
+
 ### Changed
 
 - [TERGI-75](https://jira-neu.elga.gv.at/browse/TERGI-75) MaLaC-CT will not set a resource's language if language is missing (parameter `-langArg`). However, CLI parameter `-langArg` will affect ClaML v3 as language is required there.
