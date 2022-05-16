@@ -310,11 +310,11 @@ class PropCsvAndMaster():
             f.close()
         except IOError:
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write("name,oid,version\n")
+                csvfile.write("name,canonical,oid,version\n")
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.globalUrl + self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
+            csvfile.write(self.get_resource()+"-"+self.get_name()+","+self.globalUrl + self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
@@ -330,7 +330,7 @@ class PropCsvAndMaster():
                 outfile.write(line)
 
 
-    def gainOidFromName(self, name):
+    def gainOidFromSystemByIndexAndValue(self, index, value):
         # check if the needed argument is given
         if not hasattr(self, "processedTerminologies"):
             import sys
@@ -348,11 +348,17 @@ class PropCsvAndMaster():
 
         # search for the Name in the list and return oid
         for line in self.processedTerminologies:
-            if line[0] == name:
-                if line[1]:
-                    return line[1]
-        print('Error: For "%s" as CodeSystem-Name the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the name will be used instead.\n' % name)
-        return name
+            if line[index] == value:
+                if line[2]:
+                    return line[2]
+        print('Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % value)
+        return value
+
+    def gainOidFromName(self, name):
+        return self.gainOidFromSystemByIndexAndValue(0, name)
+
+    def gainOidFromCanonical(self, canonical):
+        return self.gainOidFromSystemByIndexAndValue(1, canonical)
 
     def buildConceptDictWithAttr(self, stringAttrAsKey):
         tmpDict = {}
