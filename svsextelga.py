@@ -79,7 +79,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         elif hasattr(self,"filename") and (fn := self.filename):
             if fn.split("\\")[-1].startswith("CodeSystem-"):
                 return pcam.Resource.CodeSystem.value
-            elif fn.split("\\")[-1].startsWith("ValueSet-"):
+            elif fn.split("\\")[-1].startswith("ValueSet-"):
                 return pcam.Resource.ValueSet.value
         else:
             return pcam.Resource.ValueSet.value
@@ -446,7 +446,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 else:
                     codeSystem = ''
             elif self.get_resource() == "ValueSet":
-                codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
+                if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
+                    codeSystem = self.gainOidFromName(oneConcept.system) or ""
+                else:
+                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system) or ""
 
             # creating concept_beschreibung
             concept_beschreibung = None

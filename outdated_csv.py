@@ -375,34 +375,36 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
             # write all the other properties/designations, if this is a outdated csv v2
             if versionOfOutdatedCsv == 2:
-                oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code)
-                for oneProp in oneConcept.property:
-                    if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
-                        # look up if there is already one column we could use
-                        if oneProp.code not in csv_list[0]:
-                            csv_list[0].append(oneProp.code)
+                if hasattr(oneConcept,"property"):
+                    oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code)
+                    for oneProp in oneConcept.property:
+                        if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
+                            # look up if there is already one column we could use
+                            if oneProp.code not in csv_list[0]:
+                                csv_list[0].append(oneProp.code)
 
-                        # add "" for not existing props in this concept to conceptRow
-                        while len(conceptRow) <= csv_list[0].index(oneProp.code):
-                            conceptRow.append("")
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow) <= csv_list[0].index(oneProp.code):
+                                conceptRow.append("")
 
-                        conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
-                        #conceptRow.append(oneProp.value)
+                            conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
+                            #conceptRow.append(oneProp.value)
 
-                        csv_list[0][csv_list[0].index(oneProp.code)]
-                for oneDesig in oneConcept.designation:
-                    if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
-                            oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
-                            oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
-                        # look up if there is already one column we could use
-                        if oneDesig.code not in csv_list[0]:
-                            csv_list[0].append(oneDesig.code)
+                            csv_list[0][csv_list[0].index(oneProp.code)]
+                if hasattr(oneConcept,"designation"):
+                    for oneDesig in oneConcept.designation:
+                        if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
+                                oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
+                                oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
+                            # look up if there is already one column we could use
+                            if oneDesig.use.code not in csv_list[0]:
+                                csv_list[0].append(oneDesig.use.code)
 
-                        # add "" for not existing props in this concept to conceptRow
-                        while len(conceptRow)-1 <= csv_list[0].index(oneDesig.code):
-                            conceptRow.append("")
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow)-1 <= csv_list[0].index(oneDesig.use.code):
+                                conceptRow.append("")
 
-                        conceptRow[csv_list[0].index(oneDesig.code)] = oneDesig.value
+                            conceptRow[csv_list[0].index(oneDesig.use.code)] = oneDesig.value
 
 
             # add conceptRow to csv list
