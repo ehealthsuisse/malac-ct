@@ -17,7 +17,7 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
-versionNumber = "2.0.2+20220421"
+versionNumber = "2.0.3+20220516"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -31,7 +31,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-o", "--output", help='the output file, if none is given MaLaC-CT will convert into all other known formats.', required=False
     )
     parser.add_argument(
-        "-langArg", "--argumentLanguage", help='a fixed language for the output classification, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
+        "-langArg", "--argumentLanguage", help='a fixed language for the output classification ClaML v3, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
     )
     parser.add_argument(
         "-j2xServer", "--json2xmlFHIRServer", help="Directly run a json2xml convert on a given FHIR server after sushi. "+

@@ -224,7 +224,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                     conceptRow.append('')
             elif self.get_resource() == "ValueSet":
                 if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
-                    conceptRow.append(self.gainOidFromName(oneConcept.system) or "")
+                    conceptRow.append(self.gainOidFromCanonical(oneConcept.system) or "")
                 else:
                     conceptRow.append(self.gainOidFromName("CodeSystem-"+oneConcept.system) or "")
 
