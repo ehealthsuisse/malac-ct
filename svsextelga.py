@@ -447,9 +447,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     codeSystem = ''
             elif self.get_resource() == "ValueSet":
                 if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
-                    codeSystem = self.gainOidFromName(oneConcept.system) or ""
+                    codeSystem = self.gainOidFromCanonical(oneConcept.system) or ""
                 else:
-                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system) or ""
+                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.name) or ""
 
             # creating concept_beschreibung
             concept_beschreibung = None
