@@ -6,12 +6,14 @@ import time
 # malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
 # TODO check if fhir.json and fhir.xml has to be in listClasses for input check
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
-    ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv"],
+    ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
+    ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
     ".3.claml.xml":["claml3", "ClaML3Sub"],
     ".1.fsh":["fsh1", "Fsh1"],
     ".2.fsh":["fsh2", "Fsh2"],
-    ".1.svsextelga.xml":["svsextelga1", "SVSextELGA1Sub"],
+    ".1.svsextelga.xml":["svsextelga", "SVSextELGA1Sub"],
+    ".2.svsextelga.xml":["svsextelga", "SVSextELGA2Sub"],
     ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
@@ -140,6 +142,7 @@ def main() -> None:
         # serialize the input file
         input = inputClass.parse(args.input)
         input.globalUrl = args.fhirIgUrl
+        input.filename = args.input
         # sort the input
         if "CodeSystem-" in args.input:
             input.sortConceptsExpandStyle()

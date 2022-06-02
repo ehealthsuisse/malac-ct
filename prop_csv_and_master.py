@@ -698,6 +698,10 @@ class CSConcept():
             else:
                 return str(0)
 
+        # only used for sort
+        def get_code(self):
+            return self.code
+
         def __str__(self) -> str:
             buildStr = ""
             buildStr = self.code
