@@ -77,9 +77,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         if hasattr(self,"resource") and (res := self.resource):
             return res
         elif hasattr(self,"filename") and (fn := self.filename):
-            if fn.split("\\")[-1].startswith("CodeSystem-"):
+            if os.path.basename(fn).startswith("CodeSystem-"):
                 return pcam.Resource.CodeSystem.value
-            elif fn.split("\\")[-1].startswith("ValueSet-"):
+            elif os.path.basename(fn).startswith("ValueSet-"):
                 return pcam.Resource.ValueSet.value
         else:
             return pcam.Resource.ValueSet.value
