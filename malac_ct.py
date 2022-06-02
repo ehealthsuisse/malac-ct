@@ -17,7 +17,7 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
-versionNumber = "2.0.3+20220516"
+versionNumber = "2.1.0+20220602"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -100,12 +100,13 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
         res.raise_for_status()
 
     with open(target_filename, 'w', newline='', encoding='utf-8') as target_file:
+        startRequest = time.time()
         if target_format == 'json':
             target_file.write(json.dumps(json.loads(res.text), indent=2))
-            print("*.4.fhir.json")
+            print("*.4.fhir.json (in "+str(round(time.time()-startRequest,3))+" seconds)")
         elif target_format == 'xml':
             target_file.write(xml.dom.minidom.parseString(res.text).toprettyxml())
-            print("*.4.fhir.xml")
+            print("*.4.fhir.xml (in "+str(round(time.time()-startRequest,3))+" seconds)")
         else:
             sys.exit('Target format ' + target_format + ' not supported. Either xml or json.')
 
@@ -162,8 +163,9 @@ def main() -> None:
 
             # open a new file and export to output file
             with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
+                startFormat = time.time()
                 outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                print("*"+oClass)
+                print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
         # if no output class is given, than convert to all known formats
         else:
             for oClass in listClasses:
@@ -173,8 +175,9 @@ def main() -> None:
 
                     # open a new file and export to output file
                     with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                        startFormat = time.time()
                         outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                        print("*"+oClass)
+                        print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer):
@@ -208,7 +211,7 @@ def main() -> None:
             res.raise_for_status()
             print("& uploaded to given fhir server")
 
-    print("in "+str(round(time.time()-start,2))+" seconds.")
+    print("altogether in "+str(round(time.time()-start,2))+" seconds.")
     print("-------------------- MaLaC-CT ended --------------------")
 
 if __name__ == "__main__":
