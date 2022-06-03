@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Tue Dec 21 08:23:47 2021 by generateDS.py version 2.40.6.
-# Python 3.9.4 (tags/v3.9.4:1f2e308, Apr  6 2021, 13:40:21) [MSC v.1928 64 bit (AMD64)]
+# Generated Wed Jun  1 13:33:35 2022 by generateDS.py version 2.40.12.
+# Python 3.10.2 (tags/v3.10.2:a58ebcc, Jan 17 2022, 14:12:15) [MSC v.1929 64 bit (AMD64)]
 #
 # Command line options:
-#   ('-o', 'svsextelga1super.py')
-#   ('-s', 'svsextelga1.py')
+#   ('-o', 'svsextelga2super.py')
+#   ('-s', 'svsextelga2.py')
 #
 # Command line arguments:
-#   .\SVS-extELGA.xsd
+#   .\SVS-extELGA2.xsd
 #
 # Command line:
-#   generateDS.py -o "svsextelga1super.py" -s "svsextelga1.py" .\SVS-extELGA.xsd
+#   generateDS.py -o "svsextelga2super.py" -s "svsextelga2.py" .\SVS-extELGA2.xsd
 #
 # Current working directory (os.getcwd()):
-#   generateDS-2.40.6
+#   generateDS-2.40.12
 #
 
 import sys
@@ -35,6 +35,7 @@ from lxml import etree as etree_
 
 Validate_simpletypes_ = True
 SaveElementTreeNode = True
+TagNamePrefix = ""
 if sys.version_info.major == 2:
     BaseStrType_ = basestring
 else:
@@ -175,7 +176,7 @@ except ModulenotfoundExp_ as exp:
     except ModulenotfoundExp_ as exp:
         class GeneratedsSuperSuper(object):
             pass
-    
+
     class GeneratedsSuper(GeneratedsSuperSuper):
         __hash__ = object.__hash__
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -194,12 +195,12 @@ except ModulenotfoundExp_ as exp:
                 'str_pretty_print': True,
                 'str_indent_level': 0,
                 'str_namespaceprefix': '',
-                'str_name': None,
+                'str_name': self.__class__.__name__,
                 'str_namespacedefs': '',
             }
             for n in settings:
                 if hasattr(self, n):
-                    setattr(settings[n], self[n])
+                    settings[n] = getattr(self, n)
             if sys.version_info.major == 2:
                 from StringIO import StringIO
             else:
@@ -346,6 +347,7 @@ except ModulenotfoundExp_ as exp:
         def gds_format_boolean(self, input_data, input_name=''):
             return ('%s' % input_data).lower()
         def gds_parse_boolean(self, input_data, node=None, input_name=''):
+            input_data = input_data.strip()
             if input_data in ('true', '1'):
                 bval = True
             elif input_data in ('false', '0'):
@@ -525,6 +527,7 @@ except ModulenotfoundExp_ as exp:
             # The target value must match at least one of the patterns
             # in order for the test to succeed.
             found1 = True
+            target = str(target)
             for patterns1 in patterns:
                 found2 = False
                 for patterns2 in patterns1:
@@ -685,8 +688,8 @@ except ModulenotfoundExp_ as exp:
                     self.gds_elementtree_node_.sourceline)
             else:
                 return ""
-    
-    
+
+
     def getSubclassFromModule_(module, class_):
         '''Get the subclass of a class from a specific module.'''
         name = class_.__name__ + 'Sub'
@@ -770,6 +773,7 @@ def quote_attrib(inStr):
     s1 = s1.replace('&', '&amp;')
     s1 = s1.replace('<', '&lt;')
     s1 = s1.replace('>', '&gt;')
+    s1 = s1.replace('\n', '&#10;')
     if '"' in s1:
         if "'" in s1:
             s1 = '"%s"' % s1.replace('"', "&quot;")
@@ -997,7 +1001,7 @@ def _cast(typ, value):
 #
 
 
-class SVSextELGA1(GeneratedsSuper):
+class SVSextELGA2(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = None
@@ -1047,13 +1051,13 @@ class SVSextELGA1(GeneratedsSuper):
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, SVSextELGA1)
+                CurrentSubclassModule_, SVSextELGA2)
             if subclass is not None:
                 return subclass(*args_, **kwargs_)
-        if SVSextELGA1.subclass:
-            return SVSextELGA1.subclass(*args_, **kwargs_)
+        if SVSextELGA2.subclass:
+            return SVSextELGA2.subclass(*args_, **kwargs_)
         else:
-            return SVSextELGA1(*args_, **kwargs_)
+            return SVSextELGA2(*args_, **kwargs_)
     factory = staticmethod(factory)
     def get_ns_prefix_(self):
         return self.ns_prefix_
@@ -1422,6 +1426,7 @@ class concept(GeneratedsSuper):
         self.relationships_nsprefix_ = None
         self.type_ = _cast(None, type_)
         self.type__nsprefix_ = None
+        self.anyAttributes_ = {}
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -1501,6 +1506,8 @@ class concept(GeneratedsSuper):
         return self.type_
     def set_type(self, type_):
         self.type_ = type_
+    def get_anyAttributes_(self): return self.anyAttributes_
+    def set_anyAttributes_(self, anyAttributes_): self.anyAttributes_ = anyAttributes_
     def _hasContent(self):
         if (
 
@@ -1579,6 +1586,37 @@ class concept(GeneratedsSuper):
         if self.type_ is not None and 'type_' not in already_processed:
             already_processed.add('type_')
             outfile.write(' type=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.type_), input_name='type')), ))
+        unique_counter = 0
+        for name, value in self.anyAttributes_.items():
+            xsinamespaceprefix = 'xsi'
+            xsinamespace1 = 'http://www.w3.org/2001/XMLSchema-instance'
+            xsinamespace2 = '{%s}' % (xsinamespace1, )
+            if name.startswith(xsinamespace2):
+                name1 = name[len(xsinamespace2):]
+                name2 = '%s:%s' % (xsinamespaceprefix, name1, )
+                if name2 not in already_processed:
+                    already_processed.add(name2)
+                    outfile.write(' %s=%s' % (name2, quote_attrib(value), ))
+            else:
+                mo = re_.match(Namespace_extract_pat_, name)
+                if mo is not None:
+                    namespace, name = mo.group(1, 2)
+                    if name not in already_processed:
+                        already_processed.add(name)
+                        if namespace == 'http://www.w3.org/XML/1998/namespace':
+                            outfile.write(' %s=%s' % (
+                                name, quote_attrib(value), ))
+                        else:
+                            unique_counter += 1
+                            outfile.write(' xmlns:%d="%s"' % (
+                                unique_counter, namespace, ))
+                            outfile.write(' %d:%s=%s' % (
+                                unique_counter, name, quote_attrib(value), ))
+                else:
+                    if name not in already_processed:
+                        already_processed.add(name)
+                        outfile.write(' %s=%s' % (
+                            name, quote_attrib(value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='concept', fromsubclass_=False, pretty_print=True):
         pass
     def build(self, node, gds_collector_=None):
@@ -1660,6 +1698,10 @@ class concept(GeneratedsSuper):
         if value is not None and 'type' not in already_processed:
             already_processed.add('type')
             self.type_ = value
+        self.anyAttributes_ = {}
+        for name, value in attrs.items():
+            if name not in already_processed:
+                self.anyAttributes_[name] = value
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
         pass
 # end class concept
@@ -1681,9 +1723,10 @@ def usage():
 
 def get_root_tag(node):
     tag = Tag_pattern_.match(node.tag).groups()[-1]
-    rootClass = GDSClassesMapping.get(tag)
+    prefix_tag = TagNamePrefix + tag
+    rootClass = GDSClassesMapping.get(prefix_tag)
     if rootClass is None:
-        rootClass = globals().get(tag)
+        rootClass = globals().get(prefix_tag)
     return tag, rootClass
 
 
@@ -1713,7 +1756,7 @@ def parse(inFileName, silence=True, print_warnings=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = SVSextELGA1
+        rootClass = SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode, gds_collector_=gds_collector)
     CapturedNsmap_, namespacedefs = get_required_ns_prefix_defs(rootNode)
@@ -1745,7 +1788,7 @@ def parseEtree(inFileName, silence=True, print_warnings=True,
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = SVSextELGA1
+        rootClass = SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode, gds_collector_=gds_collector)
     if mapping is None:
@@ -1791,7 +1834,7 @@ def parseString(inString, silence=True, print_warnings=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = SVSextELGA1
+        rootClass = SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode, gds_collector_=gds_collector)
     if not SaveElementTreeNode:
@@ -1819,7 +1862,7 @@ def parseLiteral(inFileName, silence=True, print_warnings=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = SVSextELGA1
+        rootClass = SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode, gds_collector_=gds_collector)
     # Enable Python to collect the space used by the DOM.
@@ -1827,8 +1870,8 @@ def parseLiteral(inFileName, silence=True, print_warnings=True):
         doc = None
         rootNode = None
     if not silence:
-        sys.stdout.write('#from svsextelga1super import *\n\n')
-        sys.stdout.write('import svsextelga1super as model_\n\n')
+        sys.stdout.write('#from svsextelga2super import *\n\n')
+        sys.stdout.write('import svsextelga2super as model_\n\n')
         sys.stdout.write('rootObj = model_.rootClass(\n')
         rootObj.exportLiteral(sys.stdout, 0, name_=rootTag)
         sys.stdout.write(')\n')
@@ -1866,5 +1909,5 @@ NamespaceToDefMappings_ = {}
 __all__ = [
     "concept",
     "conceptList",
-    "SVSextELGA1"
+    "SVSextELGA2"
 ]

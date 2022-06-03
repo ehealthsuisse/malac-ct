@@ -1,29 +1,31 @@
 #!/usr/bin/env python
 
 #
-# Generated Tue Dec 21 08:23:47 2021 by generateDS.py version 2.40.6.
-# Python 3.9.4 (tags/v3.9.4:1f2e308, Apr  6 2021, 13:40:21) [MSC v.1928 64 bit (AMD64)]
+# Generated Wed Jun  1 13:33:35 2022 by generateDS.py version 2.40.12.
+# Python 3.10.2 (tags/v3.10.2:a58ebcc, Jan 17 2022, 14:12:15) [MSC v.1929 64 bit (AMD64)]
 #
 # Command line options:
-#   ('-o', 'svsextelga1super.py')
-#   ('-s', 'svsextelga1.py')
+#   ('-o', 'svsextelga1super2.py')
+#   ('-s', 'svsextelga2.py')
 #
 # Command line arguments:
-#   .\SVS-extELGA.xsd
+#   .\SVS-extELGA2.xsd
 #
 # Command line:
-#   generateDS.py -o "svsextelga1super.py" -s "svsextelga1.py" .\SVS-extELGA.xsd
+#   generateDS.py -o "svsextelga1super2.py" -s "svsextelga2.py" .\SVS-extELGA2.xsd
 #
 # Current working directory (os.getcwd()):
-#   generateDS-2.40.6
+#   generateDS-2.40.12
 #
 
+from datetime import date
+from fileinput import filename
 import os
 import re
 import sys
 from lxml import etree as etree_
 
-import svsextelga1super as supermod
+import svsextelga2super as supermod
 import prop_csv_and_master as pcam
 
 def parsexml_(infile, parser=None, **kwargs):
@@ -62,9 +64,9 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-
-class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
-    def __init__(self, beschreibung=None, description=None, displayName=None, effectiveDate=None, gueltigkeitsbereich=None, id=None, last_change_date=None, name=None, statusCode=None, status_date=None, verantw_Org=None, version=None, website=None, conceptList=None, **kwargs_):
+class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
+    def __init__(self, beschreibung=None, description=None, displayName=None, effectiveDate=None, gueltigkeitsbereich=None, id=None, last_change_date=None, name=None, statusCode=None, status_date=None, verantw_Org=None, version=None, website=None, conceptList=None, versionSVSextELGA=1, **kwargs_):
+        self.versionSVSextELGA = versionSVSextELGA
         super(SVSextELGA1Sub, self).__init__(beschreibung, description, displayName, effectiveDate, gueltigkeitsbereich, id, last_change_date, name, statusCode, status_date, verantw_Org, version, website, conceptList,  **kwargs_)
 
     # just for calling the outer method
@@ -74,6 +76,11 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
     def get_resource(self):
         if hasattr(self,"resource") and (res := self.resource):
             return res
+        elif hasattr(self,"filename") and (fn := self.filename):
+            if os.path.basename(fn).startswith("CodeSystem-"):
+                return pcam.Resource.CodeSystem.value
+            elif os.path.basename(fn).startswith("ValueSet-"):
+                return pcam.Resource.ValueSet.value
         else:
             return pcam.Resource.ValueSet.value
 
@@ -116,7 +123,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
         return tempRet
 
     def get_content(self):
-        if tmp := self.content:
+        if hasattr(self,"content") and (tmp := self.content):
             return tmp
         else:
             return pcam.Content.complete.value
@@ -288,6 +295,14 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                         if tmpLevel > 0:
                             theMemberParent[tmpLevel-1].member.append(theConcept)
 
+                    # read anyAttribute if version 2
+                    if self.versionSVSextELGA == 2:
+                        for oneAttrKey in oneCon.get_anyAttributes_():
+                            theDesig = pcam.ConceptDesignation()
+                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+oneAttrKey+"#"+oneAttrKey)
+                            theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
+                            theConcept.designation.append(theDesig)
+
                     retArr.append(theConcept)
 
             elif self.get_resource() == "CodeSystem":
@@ -372,11 +387,20 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                             theProperty.type = pcam.PropertyCodeType.code
                             theConcept.property.append(theProperty)
 
+                    # read anyAttribute if version 2
+                    if self.versionSVSextELGA == 2:
+                        for oneAttrKey in oneCon.get_anyAttributes_():
+                            theProp = pcam.CSConcept.ConceptProperty()
+                            theProp.code = oneAttrKey
+                            theProp.value = oneCon.get_anyAttributes_()[oneAttrKey]
+                            theProp.type = pcam.PropertyCodeType.string
+                            theConcept.property.append(theProp)
+
                     retArr.append(theConcept)
             self.concept = retArr
             return retArr
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionSVSextELGA=1):
         beschreibung = description = ""
         if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
             if "Beschreibung:" in tmp:
@@ -387,7 +411,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
             beschreibung = description = self.get_description()
 
         displayName = self.get_title()
-        effectiveDate = last_change_date = status_date = self.get_date() or ""
+        effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
         gueltigkeitsbereich = "empfohlen"
 
         if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
@@ -422,7 +446,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 else:
                     codeSystem = ''
             elif self.get_resource() == "ValueSet":
-                codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system)
+                if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
+                    codeSystem = self.gainOidFromCanonical(oneConcept.system) or ""
+                else:
+                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system) or ""
 
             # creating concept_beschreibung
             concept_beschreibung = None
@@ -555,17 +582,43 @@ class SVSextELGA1Sub(supermod.SVSextELGA1, pcam.PropCsvAndMaster):
                 else:
                     type_ = "L"
 
-            concepts.append(conceptSub(oneConcept.code or "",codeSystem or "", 1, self.get_date() or "",
+            concepts.append(conceptSub(oneConcept.code or "",codeSystem or "", 1, self.get_date() or date.today(), # TODO should here be the today date?
               concept_beschreibung or "", deutsch or "", oneConcept.display or "", displayNameAlt,
               einheit_codiert, einheit_print, hinweise or "", level, orderNumber,
               parentCodeSystemName or "", relationships or "", type_ or ""))
 
+            # create anyAttribute if version 2
+            if versionSVSextELGA == 2:
+                anyAttrDict = {}
+                if self.get_resource() == "CodeSystem":
+                    for oneProp in oneConcept.property:
+                        if (oneProp.code != "status" and oneProp.code != "notSelectable" and oneProp.code != "child"
+                        and oneProp.code != "relationships" and oneProp.code != "parent" and oneProp.code != "hinweise"
+                        and oneProp.code != "einheit_print" and oneProp.code != "einheit_codiert"
+                        and oneProp.code != "displayNameAlt" and oneProp.code != "concept_beschreibung"):
+                            anyAttrDict.update({oneProp.code: oneProp.value})
+                elif self.get_resource() == "ValueSet":
+                    for oneDesig in oneConcept.designation:
+                        if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
+                        and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
+                        and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
+                        and oneDesig.use.code != "concept_beschreibung"):
+                            anyAttrDict.update({oneDesig.use.code: oneDesig.value})
+                concepts[-1].set_anyAttributes_(anyAttrDict)
+
         conceptList = conceptListSub(concepts)
-        svsExtElga1 = SVSextELGA1Sub(beschreibung,description,displayName,effectiveDate,gueltigkeitsbereich,id,last_change_date,name,statusCode,status_date,verantw_Org,version,website,conceptList)
-        svsExtElga1.export(outfile, 0)
-supermod.SVSextELGA1.subclass = SVSextELGA1Sub
+        svsExtElga2 = SVSextELGA2Sub(beschreibung,description,displayName,effectiveDate,gueltigkeitsbereich,id,last_change_date,name,statusCode,status_date,verantw_Org,version,website,conceptList)
+        svsExtElga2.export(outfile, 0)
+supermod.SVSextELGA2.subclass = SVSextELGA1Sub
 # end class valueSetSub
 
+class SVSextELGA2Sub(SVSextELGA1Sub):
+    def __init__(self, beschreibung=None, description=None, displayName=None, effectiveDate=None, gueltigkeitsbereich=None, id=None, last_change_date=None, name=None, statusCode=None, status_date=None, verantw_Org=None, version=None, website=None, conceptList=None, versionSVSextELGA=2, **kwargs_):
+        SVSextELGA1Sub.__init__(self, beschreibung, description, displayName, effectiveDate, gueltigkeitsbereich, id, last_change_date, name, statusCode, status_date, verantw_Org, version, website, conceptList, versionSVSextELGA, **kwargs_)
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionSVSextELGA=2):
+        return SVSextELGA1Sub.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS, versionSVSextELGA)
+supermod.SVSextELGA2.subclass = SVSextELGA2Sub
 
 class conceptListSub(supermod.conceptList):
     def __init__(self, concept=None, **kwargs_):
@@ -597,7 +650,7 @@ def parse(inFilename, silence=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = supermod.SVSextELGA1
+        rootClass = supermod.SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.
@@ -620,7 +673,7 @@ def parseEtree(inFilename, silence=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = supermod.SVSextELGA1
+        rootClass = supermod.SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     mapping = {}
@@ -649,7 +702,7 @@ def parseString(inString, silence=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = supermod.SVSextELGA1
+        rootClass = supermod.SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.
@@ -670,7 +723,7 @@ def parseLiteral(inFilename, silence=True):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'valueSet'
-        rootClass = supermod.SVSextELGA1
+        rootClass = supermod.SVSextELGA2
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.

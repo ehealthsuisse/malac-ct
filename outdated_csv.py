@@ -1,31 +1,32 @@
 import csv
-from enum import Flag
 import re
 import prop_csv_and_master as pcam
 
-class OutdatedCsv(pcam.PropCsvAndMaster):
-    def __init__(self, inFile=None):
+class OutdatedCsv1(pcam.PropCsvAndMaster):
+    def __init__(self, inFile=None, versionOfOutdatedCsv=1):
         super().__init__()
+        self.versionOfOutdatedCsv = versionOfOutdatedCsv
 
         # open the file in read mode
         if inFile is not None:
             with open(inFile, 'r', encoding="utf8") as csvfile:
                 # creating dictreader object
-                file = csv.reader(csvfile, quotechar='\'')
+                file = csv.reader(csvfile, quotechar='\'', delimiter=';')
                 # iterating over the next row with headings for concepts
                 headingList = file.__next__()
 
                 # initializing header/metadata with mandatory fields from fhir
                 if "parentCodeSystemName" in headingList:
-                    self.resource = "ValueSet"
+                    self.resource = pcam.Resource["ValueSet"]
                 else:
-                    self.resource = "CodeSystem"
+                    self.resource = pcam.Resource["CodeSystem"]
                 self.version = "unknown due to outdated csv"
-                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', csvfile.name.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
-                self.title = csvfile.name
-                self.status = pcam.Status.active.value
+                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                self.title = csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0]
+                self.status = pcam.Status['active']
                 self.description = "unknown due to outdated csv"
-                if self.get_resource() == "CodeSystem": self.content = pcam.Content.complete.value
+                if self.get_resource() == "CodeSystem": self.content = pcam.Content['complete']
+                self.concept = []
 
                 # initializing the body/content
                 for row in file:
@@ -40,15 +41,16 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
 
                             if self.resource == self.resource.CodeSystem:
                                 if 'code' == headingList[i]: theConcept.code = row[i]
-                                if 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
+                                elif 'codeSystem' == headingList[i]: pass
+                                elif 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
                                 # codesystem and parentCodeSystem columns are beeing ignored, because they doesn't make sense
-                                if 'concept_Beschreibung' == headingList[i] and row[i] != "": theConcept.definition = row[i]
-                                if 'meaning' == headingList[i] and row[i] != "":
+                                elif 'concept_Beschreibung' == headingList[i] and row[i] != "": theConcept.definition = row[i]
+                                elif 'meaning' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.language = "de-AT"
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'hints' == headingList[i] and row[i] != "":
+                                elif 'hints' == headingList[i] and row[i] != "":
                                     if row[i].startswith("DEPRECATED") or row[i].startswith("inaktiv") and not retiredAlreadySet:
                                         self.set_statusToRetired(theConcept)
                                         retiredAlreadySet = True
@@ -58,17 +60,17 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                         theProp.value = row[i]
                                         theProp.type = pcam.PropertyCodeType.string
                                         theConcept.property.append(theProp)
-                                if 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
-                                if 'type' == headingList[i] and row[i] == "D" and not retiredAlreadySet:
+                                elif 'level' == headingList[i] and row[i] != "" and row[i].strip().isnumeric(): theConcept.level = int(row[i].strip())
+                                elif 'type' == headingList[i] and row[i] == "D" and not retiredAlreadySet:
                                     self.set_statusToRetired(theConcept)
                                     retiredAlreadySet = True
-                                if 'type' == headingList[i] and row[i] == "A":
+                                elif 'type' == headingList[i] and row[i] == "A":
                                     theProp = pcam.CSConcept.ConceptProperty()
                                     theProp.code = "notSelectable"
                                     theProp.value = True
                                     theProp.type = pcam.PropertyCodeType.boolean
                                     theConcept.property.append(theProp)
-                                if 'relationships' == headingList[i] and row[i] != "":
+                                elif 'relationships' == headingList[i] and row[i] != "":
                                     theProp = pcam.CSConcept.ConceptProperty()
                                     theProp.code = "relationships"
                                     theProp.value = row[i]
@@ -83,44 +85,59 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                                 #        theProp.type = pcam.PropertyCodeType.code
                                 #        theConcept.property.append(theProp)
 
+                                # read all the other properties/designations, if this is a outdated csv v2
+                                elif self.versionOfOutdatedCsv == 2 and headingList[i] != "" and row[i] != "":
+                                    theProp = pcam.CSConcept.ConceptProperty()
+                                    theProp.code = headingList[i]
+                                    theProp.value = row[i]
+                                    theProp.type = pcam.PropertyCodeType.string
+                                    theConcept.property.append(theProp)
+
                             elif self.resource == self.resource.ValueSet:
                                 if 'parentCodeSystemName' == headingList[i]: theConcept.system = row[i]
                                 # unknown due to outdated csv
                                 #if 'version' == headingList[i]: theConcept.version = row[i]
-                                if 'code' == headingList[i]: theConcept.code = row[i]
-                                if 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
-                                if 'concept_Beschreibung' == headingList[i] and row[i] != "":
+                                elif 'code' == headingList[i]: theConcept.code = row[i]
+                                elif 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
+                                elif 'concept_Beschreibung' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##concept_beschreibung#concept_beschreibung",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'meaning' == headingList[i] and row[i] != "":
+                                elif 'meaning' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.language = "de-AT"
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'hints' == headingList[i] and row[i] != "":
+                                elif 'hints' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##hinweise#hinweise",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
-                                if 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
-                                if 'type' == headingList[i] and row[i] == "A":
+                                elif 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
+                                elif 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
+                                elif 'type' == headingList[i] and row[i] == "A":
                                     theConcept.abstract = True
-                                if 'relationships' == headingList[i] and row[i] != "":
+                                elif 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##relationships#relationships",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'einheit codiert' == headingList[i] and row[i] != "":
+                                elif 'einheit codiert' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_codiert#einheit_codiert",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
-                                if 'einheit print' == headingList[i] and row[i] != "":
+                                elif 'einheit print' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_print#einheit_print",self.globalUrl)
+                                    theDesig.value = row[i]
+                                    theConcept.designation.append(theDesig)
+
+                                # read all the other properties/designations, if this is a outdated csv v2
+                                elif self.versionOfOutdatedCsv == 2 and headingList[i] != "" and row[i] != "":
+                                    theDesig = pcam.ConceptDesignation()
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+headingList[i]+"#"+headingList[i],self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
@@ -158,6 +175,8 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                             theProperty.type = pcam.PropertyCodeType.code
                             oneConcept.property.append(theProperty)
 
+    def parse(inFilename):
+        return OutdatedCsv1(inFilename)
 
     def get_url(self):
         if tempUrl := self.globalUrl:
@@ -165,7 +184,7 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
         else:
             return self.get_resource()+"-"+self.get_name()
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionOfOutdatedCsv=1):
         # to stay fully backwards compatible, don't do an other coding of file
         # do an new opening of the file, because of other coding
         #filePath = outfile.name
@@ -354,16 +373,62 @@ class OutdatedCsv(pcam.PropCsvAndMaster):
                 if foundIt == False:
                     conceptRow.append("")
 
+            # write all the other properties/designations, if this is a outdated csv v2
+            if versionOfOutdatedCsv == 2:
+                if hasattr(oneConcept,"property"):
+                    #oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code) # TODO discuss if sort should be done for properties
+                    for oneProp in oneConcept.property:
+                        if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
+                            # look up if there is already one column we could use
+                            if oneProp.code not in csv_list[0]:
+                                csv_list[0].append(oneProp.code)
+
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow) <= csv_list[0].index(oneProp.code):
+                                conceptRow.append("")
+
+                            conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
+                            #conceptRow.append(oneProp.value)
+
+                            csv_list[0][csv_list[0].index(oneProp.code)]
+                if hasattr(oneConcept,"designation"):
+                    for oneDesig in oneConcept.designation:
+                        if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
+                                oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
+                                oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
+                            # look up if there is already one column we could use
+                            if oneDesig.use.code not in csv_list[0]:
+                                csv_list[0].append(oneDesig.use.code)
+
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow)-1 <= csv_list[0].index(oneDesig.use.code):
+                                conceptRow.append("")
+
+                            conceptRow[csv_list[0].index(oneDesig.use.code)] = oneDesig.value
+
+
             # add conceptRow to csv list
             csv_list.append(conceptRow)
 
         for csvline in csv_list:
             newline = True
             for csvelement in csvline:
-                outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
+                if versionOfOutdatedCsv == 2 and csvelement == "":
+                    outfile.write((";" if not newline else ""))
+                else:
+                    outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'","´").replace(";",",") + "\'")
                 newline = False
             outfile.write("\n")
 
+class OutdatedCsv2(OutdatedCsv1):
+    def __init__(self, inFile=None, versionOfOutdatedCsv=2):
+        OutdatedCsv1.__init__(self, inFile, versionOfOutdatedCsv)
+
+    def parse(inFilename):
+        return OutdatedCsv2(inFilename)
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionOfOutdatedCsv=2):
+        return OutdatedCsv1.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS, versionOfOutdatedCsv)
 
 class VSConcept(pcam.VSConcept):
     def __init__(self) -> None:
