@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-64](https://jira-neu.elga.gv.at/browse/TERGI-64) Add `.2.outdatedcsv.xml` and `.2.svsextelga.xml` both of which will provide all concept properties.
+
 ## [2.0.3+20220516]
 
 ### Changed
