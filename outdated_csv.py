@@ -376,7 +376,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
             # write all the other properties/designations, if this is a outdated csv v2
             if versionOfOutdatedCsv == 2:
                 if hasattr(oneConcept,"property"):
-                    oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code)
+                    #oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code) # TODO discuss if sort should be done for properties
                     for oneProp in oneConcept.property:
                         if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
                             # look up if there is already one column we could use
