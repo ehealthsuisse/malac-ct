@@ -449,7 +449,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 if oneConcept.system.startswith('http://') or oneConcept.system.startswith('https://'):
                     codeSystem = self.gainOidFromCanonical(oneConcept.system) or ""
                 else:
-                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.name) or ""
+                    codeSystem = self.gainOidFromName("CodeSystem-"+oneConcept.system) or ""
 
             # creating concept_beschreibung
             concept_beschreibung = None
