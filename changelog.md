@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1+20220726]
+
+### Fixed
+- [TERGI-99](https://jira-neu.elga.gv.at/browse/TERGI-99) Fix sort 4 concepts with multiple parents, like there is in ucum
+
 ## [2.1.0+20220602]
 
 ### Added

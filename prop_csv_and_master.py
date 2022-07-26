@@ -401,7 +401,8 @@ class PropCsvAndMaster():
         sortedCons.append(oneCon)
         for oneProp in oneCon.property:
             if oneProp.code == "child":
-                self.storeSelfAndRecrCallChildren(conDict[oneProp.value], conDict, sortedCons)
+                if popdCon := conDict.pop(oneProp.value, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
+                    self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
 
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
