@@ -426,7 +426,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
         foundIt = False
         for oneConcept in self.get_contact():
-            if oneConcept.telecom[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value:
+            if tmp := oneConcept.telecom and tmp[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value:
                 website = oneConcept.telecom[0].value
                 foundIt = True
         if not foundIt:

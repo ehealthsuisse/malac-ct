@@ -633,10 +633,10 @@ class ContactDetail():
         if temp := self.name:
             tempStr += temp
         tempStr += "|"
-        if (temp := self.telecom[0]) and (temp := self.telecom[0].system):
+        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].system):
             tempStr += temp
         tempStr += "|"
-        if (temp := self.telecom[0]) and (temp := self.telecom[0].value):
+        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].value):
             tempStr += temp
         return tempStr
 
@@ -711,7 +711,7 @@ class CSConcept():
         def __str__(self) -> str:
             buildStr = ""
             buildStr = self.code
-            buildStr += "|"+ self.value
+            buildStr += "|"+ str(self.value)
             buildStr += "|"+ self.type.value
             return buildStr
 

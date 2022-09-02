@@ -336,9 +336,9 @@ class Fsh1(pcam.PropCsvAndMaster):
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
-                if tmpSystem := oneContact.telecom[0].system:
+                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system):
                     outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
-                if tmpValue := oneContact.telecom[0].value:
+                if tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
                     outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
                 i += 1
         if tmp := self.get_usecontext():
