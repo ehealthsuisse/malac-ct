@@ -310,7 +310,8 @@ def parse_concept_designation(designation_list):
             if tmp := one_use.get_display():
                 the_use.display = tmp.get_value()
 
-            # NOT SUPPORTED one_designation.get_use().get_userSelected()
+            if tmp := one_use.get_userSelected():
+                the_use.userSelected = tmp.get_value()
 
             the_designation.use = the_use
 
@@ -493,7 +494,8 @@ def exporto_concept_designation(globals, designation_class, designation_list):
             if tmp := one_use.display:
                 the_use.set_display(globals.get('stringSub')(value=tmp))
 
-            # NOT SUPPORTED Coding.userSelected
+            if tmp := one_use.userSelected:
+                the_use.set_userSelected(globals.get('booleanSub')(value=tmp))
 
             the_designation.set_use(the_use)
 

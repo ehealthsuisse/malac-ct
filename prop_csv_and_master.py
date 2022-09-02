@@ -783,22 +783,26 @@ class Coding():
             self.version = None
             self.code = None
             self.display = None
+            self.userSelected = None
         else:
-            splittedValue = str.split('#',3)
+            splittedValue = str.split('^',4)
             self.codesystem = splittedValue[0]
             self.version = splittedValue[1]
             self.code = splittedValue[2]
             self.display = splittedValue[3]
+            self.userSelected = splittedValue[4]
 
     def __str__(self) -> str:
         buildStr = ""
         if self.codesystem: buildStr += self.codesystem
-        buildStr += "#"
+        buildStr += "^"
         if self.version: buildStr += self.version
-        buildStr += "#"
+        buildStr += "^"
         if self.code: buildStr += self.code
-        buildStr += "#"
+        buildStr += "^"
         if self.display: buildStr += self.display
+        buildStr += "^"
+        if self.userSelected: buildStr += self.userSelected
         return buildStr
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
