@@ -290,7 +290,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             if authors is None:
                 authors = AuthorsSub()
             for oneContact in tmp:
-                oneAuthor = AuthorSub(oneContact.name or None, None, oneContact.telecom[0].value or None)
+                oneAuthor = AuthorSub(oneContact.name or None, None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
                 authors.get_Author().append(oneAuthor)
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
