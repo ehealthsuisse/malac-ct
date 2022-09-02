@@ -252,7 +252,10 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     the_property.description = tmp.get_value()
 
                 if tmp := one_property.get_type():
-                    the_property.type = pcam.PropertyCodeType(tmp.get_value().lower())
+                    if tmp.get_value() == "Coding":
+                        the_property.type = pcam.PropertyCodeType(tmp.get_value())
+                    else:
+                        the_property.type = pcam.PropertyCodeType(tmp.get_value()[:1].lower() + tmp.get_value()[1:])
 
                 the_property_list.append(the_property)
 
@@ -319,17 +322,18 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                                 (tmp := one_property.get_valueString()) or\
                                 (tmp := one_property.get_valueInteger()) or\
                                 (tmp := one_property.get_valueBoolean()) or\
-                                (tmp := one_property.get_valueDateTime()) or\
-                                (tmp := one_property.get_valueDecimal()):
+                                (tmp := one_property.get_valueDecimal()) or\
+                                (tmp := one_property.get_valueDateTime()):
                             # set the property's value
                             the_property.value = tmp.get_value()
                             # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                            the_property.type = pcam.PropertyCodeType(tmp.original_tagname_.replace('value','').lower())
+                            the_property.type = pcam.PropertyCodeType(tmp.original_tagname_.replace('value','')[:1].lower()
+                                + tmp.original_tagname_.replace('value','')[1:])
                         elif tmp_coding := one_property.get_valueCoding():
                             if tmp := tmp_coding.get_code():
                                 the_property.value = tmp.get_value()
-                                # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                                the_property.type = pcam.PropertyCodeType(tmp_coding.original_tagname_.replace('value','').lower())
+                                # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                                the_property.type = pcam.PropertyCodeType(tmp_coding.original_tagname_.replace('value',''))
 
                         the_concept.property.append(the_property)
 
