@@ -803,3 +803,5 @@ class Coding():
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
+# lower case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
+first_char_to_lower = lambda s: s[:1].lower() + s[1:] if s else ''

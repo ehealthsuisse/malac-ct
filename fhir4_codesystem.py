@@ -255,7 +255,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     if tmp.get_value() == "Coding":
                         the_property.type = pcam.PropertyCodeType(tmp.get_value())
                     else:
-                        the_property.type = pcam.PropertyCodeType(tmp.get_value()[:1].lower() + tmp.get_value()[1:])
+                        the_property.type = pcam.PropertyCodeType(pcam.first_char_to_lower(tmp.get_value()))
 
                 the_property_list.append(the_property)
 
@@ -327,8 +327,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                             # set the property's value
                             the_property.value = tmp.get_value()
                             # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                            the_property.type = pcam.PropertyCodeType(tmp.original_tagname_.replace('value','')[:1].lower()
-                                + tmp.original_tagname_.replace('value','')[1:])
+                            the_property.type = pcam.PropertyCodeType(pcam.first_char_to_lower(tmp.original_tagname_.replace('value','')))
                         elif tmp_coding := one_property.get_valueCoding():
                             if tmp := tmp_coding.get_code():
                                 the_property.value = tmp.get_value()
