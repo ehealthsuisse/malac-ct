@@ -500,7 +500,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=oneConcept.definition)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=supermod.quote_xml(str(oneDesignation)))]))
 
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
