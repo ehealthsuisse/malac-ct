@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- [TERGI-98](https://jira-neu.elga.gv.at/browse/TERGI-98) Fix errors that came up reading HL7 International CodeSystems per *.4.fhir.xml 
+- [TERGI-98](https://jira-neu.elga.gv.at/browse/TERGI-98) Fix errors that came up reading HL7 International CodeSystems per *.4.fhir.xml
+- Escape special XML characters for ClaML files.
 
 ## [2.1.1+20220726]
 
