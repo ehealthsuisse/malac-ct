@@ -391,7 +391,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
                             theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = oneAttrKey
+                            code = oneAttrKey.replace("groesser", ">")
+                            code = code.replace("kleiner", "<")
+                            theProp.code = code
                             theProp.value = oneCon.get_anyAttributes_()[oneAttrKey]
                             theProp.type = pcam.PropertyCodeType.string
                             theConcept.property.append(theProp)
@@ -596,13 +598,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         and oneProp.code != "relationships" and oneProp.code != "parent" and oneProp.code != "hinweise"
                         and oneProp.code != "einheit_print" and oneProp.code != "einheit_codiert"
                         and oneProp.code != "displayNameAlt" and oneProp.code != "concept_beschreibung"):
-                            anyAttrDict.update({oneProp.code: oneProp.value})
+                            code = oneProp.code.replace(">", "groesser")
+                            code = code.replace("<", "kleiner")
+                            anyAttrDict.update({code: oneProp.value})
                 elif self.get_resource() == "ValueSet":
                     for oneDesig in oneConcept.designation:
                         if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
                         and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
                         and oneDesig.use.code != "concept_beschreibung"):
+                            code = oneDesig.use.replace(">", "groesser")
+                            code = code.replace("<", "kleiner")
                             anyAttrDict.update({oneDesig.use.code: oneDesig.value})
                 concepts[-1].set_anyAttributes_(anyAttrDict)
 
