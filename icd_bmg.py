@@ -74,191 +74,188 @@ class ICDBMG(pcam.PropCsvAndMaster):
                 lstProperty.append(theProperty)
                 print(column)
 
-        row = cursor.fetchone()
-        #pcdict[row.D3SDiagnose] = "parent"
-        #dictConcept[row.DDiagnose] = 0
-        while row:
-            self.parseConcepts(dictConcept, pcdict, row)
-            row = cursor.fetchone()
+        self.parseConcepts(cursor)
 
         if lstProperty != []:
             self.property = lstProperty
         # if dictConcept != {}:
         #     self.concept = list(dictConcept.values())
 
-    def parseConcepts(self, dictConcept,pcdict, row):
-        theConcept = pcam.CSConcept()
-        #theConcept = pcam.VSConcept.__new__(pcam.VSConcept)
-        #theConcept.definition =
-
-        #oneConcept = dictConcept[row.DDiagnose]
-        #theConcept.code = row.DDiagnose
-        theConcept.property = []
-        #dictConcept[row.DDiagnose] = theConcept
+    def parseConcepts(self, cursor):
+        row = cursor.fetchone()
+        dictParents = {}
+        #pcdict[row.D3SDiagnose] = "parent"
         #dictConcept[row.DDiagnose] = 0
+        while row:
 
-        #if oneConcept := dictConcept[row.DDiagnose]:
-        theConcept.code = row.DDiagnose
-        theConcept.display = row.DKurzbezeichnung
-        #dictConcept[row.DDiagnose] = theConcept
+            theConcept = pcam.CSConcept()
+            #theConcept = pcam.VSConcept.__new__(pcam.VSConcept)
+            #theConcept.definition =
 
-            #oneConcept.code = row.DDiagnose
-            #oneConcept.display = row.DKurzbezeichnung
+            #oneConcept = dictConcept[row.DDiagnose]
+            #theConcept.code = row.DDiagnose
+            #dictConcept[row.DDiagnose] = theConcept
+            #dictConcept[row.DDiagnose] = 0
 
-            #for oneProperty in oneConcept.property:
-            #    theProperty = oneProperty
+            #if oneConcept := dictConcept[row.DDiagnose]:
+            theConcept.code = row.DDiagnose
+            theConcept.display = row.DKurzbezeichnung
+            #dictConcept[row.DDiagnose] = theConcept
 
-        #if theProperty is None:
-        theProperty = pcam.CSConcept.ConceptProperty()
+                #oneConcept.code = row.DDiagnose
+                #oneConcept.display = row.DKurzbezeichnung
 
-        #if row.DDiagnose is row.D3SDiagnose + '*':
-        theProperty.code = "parent"
-        theProperty.value = row.DKKapitel
-        theProperty.type = pcam.PropertyCodeType.code
-        theConcept.property.append(theProperty)
+                #for oneProperty in oneConcept.property:
+                #    theProperty = oneProperty
 
-        if row.DKennzeichen != " ":
+            #if theProperty is None:
             theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Kennzeichen"
-            theProperty.value = row.DKennzeichen
-            theProperty.type = pcam.PropertyCodeType.string
+
+            #if row.DDiagnose is row.D3SDiagnose + '*':
+            theProperty.code = "parent"
+            theProperty.value = row.D3SDiagnose
+            theProperty.type = pcam.PropertyCodeType.code
             theConcept.property.append(theProperty)
 
-        if row.DGruppe != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Gruppe"
-            theProperty.value = row.DGruppe
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            ### we are working on the lvl 1 parent (drei steller) ###
 
-        if row.DHDGruppe != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "HD_Gruppe"
-            theProperty.value = row.DHDGruppe
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            # if the parent cant be fount in the dict, create it
+            if row.D3SDiagnose not in dictParents:
+                theParentConcept = pcam.CSConcept()
+                theParentConcept.code = row.D3SDiagnose
+                theParentConcept.display = row.D3SBeschreibung
+                dictParents[row.D3SDiagnose] = theParentConcept
+                self.concept.append(theParentConcept)
 
-        if row.DZDGruppe != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "ZD_Gruppe"
-            theProperty.value = row.DZDGruppe
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            # create new child link to Parent
+            thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            thePropertyofParent.code = "child"
+            thePropertyofParent.value = row.DDiagnose
+            thePropertyofParent.type = pcam.PropertyCodeType.code
+            dictParents[row.D3SDiagnose].property.append(thePropertyofParent)
 
-        if row.DGeschlecht != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Geschlecht"
-            theProperty.value = row.DGeschlecht
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            # create new parent link to parent of parent
+            thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            thePropertyofParent.code = "parent"
+            thePropertyofParent.value = row.DUKUnterkapitel
+            thePropertyofParent.type = pcam.PropertyCodeType.code
+            dictParents[row.D3SDiagnose].property.append(thePropertyofParent)
 
-        if row.DMindestalter != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Mindestalter"
-            theProperty.value = row.DMindestalter
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            ### we are working on the lvl 2 parent (unterkapitel) ###
 
-        if row.DHöchstalter != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Höchstalter"
-            theProperty.value = row.DHöchstalter
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            if row.DUKUnterkapitel not in dictParents:
+                theParentConcept = pcam.CSConcept()
+                theParentConcept.code = row.DUKUnterkapitel
+                theParentConcept.display = row.DUKBeschreibung
+                dictParents[row.DUKUnterkapitel] = theParentConcept
+                self.concept.append(theParentConcept)
 
-        if row.DUnwahrscheinlich != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Unwahrscheinlich"
-            theProperty.value = row.DUnwahrscheinlich
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            # create new child link to Parent
+            thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            thePropertyofParent.code = "child"
+            thePropertyofParent.value = row.D3SDiagnose
+            thePropertyofParent.type = pcam.PropertyCodeType.code
+            dictParents[row.DUKUnterkapitel].property.append(thePropertyofParent)
 
-        if row.DHDambulant != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "HD_ambulant"
-            theProperty.value = row.DHDambulant
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            # create new parent link to parent of parent
+            thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            thePropertyofParent.code = "parent"
+            thePropertyofParent.value = row.DKKapitel
+            thePropertyofParent.type = pcam.PropertyCodeType.code
+            dictParents[row.DUKUnterkapitel].property.append(thePropertyofParent)
 
-        if row.DHDZTage != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Gruppe"
-            theProperty.value = row.DHDZTage
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            ### we are working on the lvl 3 parent (kapitel) ###
 
-        if row.DMeldepflicht != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Meldepflicht"
-            theProperty.value = row.DMeldepflicht
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
+            if row.DKKapitel not in dictParents:
+                theParentConcept = pcam.CSConcept()
+                theParentConcept.code = row.DKKapitel
+                theParentConcept.display = row.DKBeschreibung
+                dictParents[row.DKKapitel] = theParentConcept
+                self.concept.append(theParentConcept)
 
-        if row.DStationärerworben != " ":
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "Stationär_erworben"
-            theProperty.value = row.DStationärerworben
-            theProperty.type = pcam.PropertyCodeType.string
-            theConcept.property.append(theProperty)
-
-        #print("hi")
-
-        # if row.HD_Gruppe != " ":
-        #     theProperty = pcam.CSConcept.ConceptProperty()
-        #     theProperty.code = "Gruppe"
-        #     theProperty.value = row.HD_Gruppe
-        #     theProperty.type = pcam.PropertyCodeType.string
-        #     theConcept.property.append(theProperty)
-       # print("hi")
-        #if row.
-
-        # if row.D3SDiagnose != list(pcdict)[-1]:
-        #     #pcdict[row.D3SDiagnose] = "parent"
-        #     theProperty.code = "parent"
-        #     theProperty.value = row.D3SDiagnose
-        #     theProperty.type = pcam.PropertyCodeType.code
-        #     theConcept.property.append(theProperty)
-        #
-        # elif row.DDiagnose != list(pcdict)[-1]:
-        #     #pcdict[row.DDiagnose] = "child"
-        #     theProperty.code = "child"
-        #     theProperty.value = row.D3SDiagnose
-        #     theProperty.type = pcam.PropetyCodeType.code
-        #     theConcept.property.append(theProperty)
-
-#('101.0', 'Revisionsgrund: Pfannenlockerung', '!', ' ', 'Revisionsgrund: Pfannenlockerung', '101', 'A1.01', 'Revisionsgründe in der Endoprothetik (101-199)', 'Revisionsgründe in der Endoprothetik (101-199)', 'A1')
-        # if row.DKennzeichen != " ":
-        #      print(row.DDiagnose, row.DKennzeichen)
-        # else:
-        #     print(row.DDiagnose, "haha")
-        #if row.DGruppe == None:
-         #   print (row.DDiagnose)
-
-        #dictConcept[row.DDiagnose] = theConcept
+            # create new child link to Parent
+            thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            thePropertyofParent.code = "child"
+            thePropertyofParent.value = row.DUKUnterkapitel
+            thePropertyofParent.type = pcam.PropertyCodeType.code
+            dictParents[row.DKKapitel].property.append(thePropertyofParent)
 
 
+            parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
+            parseProp(theConcept.property, row.DGruppe, "Gruppe")
+            parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
+            parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
+            parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
+            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
+            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
+            parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
+            parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
+            parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
+            parseProp(theConcept.property, row.DDStationärerworben, "Stationär_erworben")
 
-            #check through all properties and add them to the property
-            #if
+            #print("hi")
 
-            #theConcept.property.
-        # theConcept.designation = []
-        # theConcept.property = []
-        # dictConcept[tempindex] = theConcept
-        #dictConcept[row.DUKUnterkapitel] = theConcept
-        #dictConcept['Kapitel'] = row.KKapitel
-        # self.name = row.DDiagnose
-        # self.title = row.DBezeichnung
-        # self.status = "draft"
-        # self.description=row.DKurzbezeichnung
-        # self.resource = pcam.Resource.CodeSystem.value
-        #print(self.name,self.title,self.status,self.description,self.resource)
-        # for x in range(len(theConcept.property)):
-        #      print (theConcept.property[x])
+            # if row.HD_Gruppe != " ":
+            #     theProperty = pcam.CSConcept.ConceptProperty()
+            #     theProperty.code = "Gruppe"
+            #     theProperty.value = row.HD_Gruppe
+            #     theProperty.type = pcam.PropertyCodeType.string
+            #     theConcept.property.append(theProperty)
+        # print("hi")
+            #if row.
+
+            # if row.D3SDiagnose != list(pcdict)[-1]:
+            #     #pcdict[row.D3SDiagnose] = "parent"
+            #     theProperty.code = "parent"
+            #     theProperty.value = row.D3SDiagnose
+            #     theProperty.type = pcam.PropertyCodeType.code
+            #     theConcept.property.append(theProperty)
+            #
+            # elif row.DDiagnose != list(pcdict)[-1]:
+            #     #pcdict[row.DDiagnose] = "child"
+            #     theProperty.code = "child"
+            #     theProperty.value = row.D3SDiagnose
+            #     theProperty.type = pcam.PropetyCodeType.code
+            #     theConcept.property.append(theProperty)
+
+    #('101.0', 'Revisionsgrund: Pfannenlockerung', '!', ' ', 'Revisionsgrund: Pfannenlockerung', '101', 'A1.01', 'Revisionsgründe in der Endoprothetik (101-199)', 'Revisionsgründe in der Endoprothetik (101-199)', 'A1')
+            # if row.DKennzeichen != " ":
+            #      print(row.DDiagnose, row.DKennzeichen)
+            # else:
+            #     print(row.DDiagnose, "haha")
+            #if row.DGruppe == None:
+            #   print (row.DDiagnose)
+
+            #dictConcept[row.DDiagnose] = theConcept
 
 
-        #print(row.D3SDiagnose, theConcept.code, theConcept.display, theConcept.property)
-        #print(row.DDiagnose, pcdict)
+
+                #check through all properties and add them to the property
+                #if
+
+                #theConcept.property.
+            # theConcept.designation = []
+            # theConcept.property = []
+            # dictConcept[tempindex] = theConcept
+            #dictConcept[row.DUKUnterkapitel] = theConcept
+            #dictConcept['Kapitel'] = row.KKapitel
+            # self.name = row.DDiagnose
+            # self.title = row.DBezeichnung
+            # self.status = "draft"
+            # self.description=row.DKurzbezeichnung
+            # self.resource = pcam.Resource.CodeSystem.value
+            #print(self.name,self.title,self.status,self.description,self.resource)
+            # for x in range(len(theConcept.property)):
+            #      print (theConcept.property[x])
+
+
+            #print(row.D3SDiagnose, theConcept.code, theConcept.display, theConcept.property)
+            #print(row.DDiagnose, pcdict)
+
+
+            self.concept.append(theConcept)
+            row = cursor.fetchone()
 
 
     # just for calling the outer method
@@ -267,6 +264,13 @@ class ICDBMG(pcam.PropCsvAndMaster):
     # name-title-url-status
     # infile:C:
 
+def parseProp(conceptPropList, propertyInRow, nameOfProperty):
+    if propertyInRow != " ":
+        theProperty = pcam.CSConcept.ConceptProperty()
+        theProperty.code = nameOfProperty
+        theProperty.value = propertyInRow
+        theProperty.type = pcam.PropertyCodeType.string
+        conceptPropList.append(theProperty)
 
 inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
 ICDBMG(inFile)
