@@ -28,6 +28,9 @@ from lxml import etree as etree_
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
 
+XML_ESCAPE_GREATER_THAN = "groesser"
+XML_ESCAPE_LOWER_THAN = "kleiner"
+
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
         # Use the lxml ElementTree compatible parser so that, e.g.,
@@ -391,8 +394,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
                             theProp = pcam.CSConcept.ConceptProperty()
-                            code = oneAttrKey.replace("groesser", ">")
-                            code = code.replace("kleiner", "<")
+                            code = oneAttrKey.replace(XML_ESCAPE_GREATER_THAN, ">")
+                            code = code.replace(XML_ESCAPE_LOWER_THAN, "<")
                             theProp.code = code
                             theProp.value = oneCon.get_anyAttributes_()[oneAttrKey]
                             theProp.type = pcam.PropertyCodeType.string
@@ -598,8 +601,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         and oneProp.code != "relationships" and oneProp.code != "parent" and oneProp.code != "hinweise"
                         and oneProp.code != "einheit_print" and oneProp.code != "einheit_codiert"
                         and oneProp.code != "displayNameAlt" and oneProp.code != "concept_beschreibung"):
-                            code = oneProp.code.replace(">", "groesser")
-                            code = code.replace("<", "kleiner")
+                            code = oneProp.code.replace(">", XML_ESCAPE_GREATER_THAN)
+                            code = code.replace("<", XML_ESCAPE_LOWER_THAN)
                             anyAttrDict.update({code: oneProp.value})
                 elif self.get_resource() == "ValueSet":
                     for oneDesig in oneConcept.designation:
@@ -607,8 +610,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
                         and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
                         and oneDesig.use.code != "concept_beschreibung"):
-                            code = oneDesig.use.replace(">", "groesser")
-                            code = code.replace("<", "kleiner")
+                            code = oneDesig.use.replace(">", XML_ESCAPE_GREATER_THAN)
+                            code = code.replace("<", XML_ESCAPE_LOWER_THAN)
                             anyAttrDict.update({oneDesig.use.code: oneDesig.value})
                 concepts[-1].set_anyAttributes_(anyAttrDict)
 
