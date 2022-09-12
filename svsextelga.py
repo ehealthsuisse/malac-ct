@@ -28,6 +28,15 @@ from lxml import etree as etree_
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
 
+class XMLEscapeSpecialChar:
+
+    def __init__(self, xml, escape):
+        self.xml = xml
+        self.escape = escape
+
+xml_escape_special_char = [XMLEscapeSpecialChar('>', 'groesser'),
+                           XMLEscapeSpecialChar('<', 'kleiner')]
+
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
         # Use the lxml ElementTree compatible parser so that, e.g.,
@@ -299,7 +308,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
                             theDesig = pcam.ConceptDesignation()
-                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+oneAttrKey+"#"+oneAttrKey)
+
+                            code = oneAttrKey
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+
+                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+code+"#"+code)
                             theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
                             theConcept.designation.append(theDesig)
 
@@ -391,7 +405,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
                             theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = oneAttrKey
+
+                            code = oneAttrKey
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+                            theProp.code = code
+
                             theProp.value = oneCon.get_anyAttributes_()[oneAttrKey]
                             theProp.type = pcam.PropertyCodeType.string
                             theConcept.property.append(theProp)
@@ -596,14 +615,20 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         and oneProp.code != "relationships" and oneProp.code != "parent" and oneProp.code != "hinweise"
                         and oneProp.code != "einheit_print" and oneProp.code != "einheit_codiert"
                         and oneProp.code != "displayNameAlt" and oneProp.code != "concept_beschreibung"):
-                            anyAttrDict.update({oneProp.code: oneProp.value})
+                            code = oneProp.code
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
+                            anyAttrDict.update({code: oneProp.value})
                 elif self.get_resource() == "ValueSet":
                     for oneDesig in oneConcept.designation:
                         if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
                         and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
                         and oneDesig.use.code != "concept_beschreibung"):
-                            anyAttrDict.update({oneDesig.use.code: oneDesig.value})
+                            code = oneDesig.use.code
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
+                            anyAttrDict.update({code: oneDesig.value})
                 concepts[-1].set_anyAttributes_(anyAttrDict)
 
         conceptList = conceptListSub(concepts)

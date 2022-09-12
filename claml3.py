@@ -332,7 +332,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     theClass.add_Rubric(RubricSub(id="definition",Label=[LabelSub(valueOf_=oneConcept.definition)]))
                 if hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=str(oneDesignation))]))
 
                 if hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
