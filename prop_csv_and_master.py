@@ -762,7 +762,9 @@ class VSConcept():
         self.filter = [] # VSConceptFilter
         self.exclude = False
         self.member = [] # simple hirarchie that stores all children, needs a extension
-        self.level = -1 # additional information in what level the concept can be found, just for easier writing concepts
+        self.level = 0 # Additional information in what level the concept can be found.
+                       # The default value implies that this concept is a top level concept.
+                       # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
 
     # created only for sorting, shouldn't be used for anything else
