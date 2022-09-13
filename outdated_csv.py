@@ -155,7 +155,11 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                     for oneConcept in self.concept:
                         theMemberParent[oneConcept.level] = oneConcept
                         if oneConcept.level > 0:
-                            theMemberParent[oneConcept.level-1].member.append(oneConcept)
+                            parent = theMemberParent[oneConcept.level-1]
+                            # setting oneConcept as child of the parent
+                            parent.member.append(oneConcept)
+                            # setting the parent of oneConcept
+                            oneConcept.parent = parent
 
                 if self.resource == self.resource.CodeSystem:
                     # set parent and child after everything is read

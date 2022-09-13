@@ -302,7 +302,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.level = tmpLevel
                         theMemberParent[tmpLevel] = theConcept
                         if tmpLevel > 0:
-                            theMemberParent[tmpLevel-1].member.append(theConcept)
+                            parent = theMemberParent[tmpLevel-1]
+                            # setting theConcept as child of the parent
+                            parent.member.append(theConcept)
+                            # setting the parent of theConcept
+                            theConcept.parent = parent
+
 
                     # read anyAttribute if version 2
                     if self.versionSVSextELGA == 2:

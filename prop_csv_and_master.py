@@ -143,6 +143,8 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
+                                if 'parent' == headingList[i]:
+                                    tempConcept.parent = row[i]
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -160,6 +162,27 @@ class PropCsvAndMaster():
                                         tempConcept.exclude = True
 
                     self.concept.append(tempConcept)
+
+                # fill members of parents
+                if self.resource == self.resource.ValueSet:
+                    concept_dict = self.buildConceptDictWithAttr('code')
+
+                    for one_concept in self.concept:
+                        if one_concept.parent:
+                            parent = concept_dict[one_concept.parent]
+                            # setting one_concept as child of the parent
+                            parent.member.append(one_concept)
+                            # setting the parent of one_concept
+                            one_concept.parent = parent
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level(concept_dict, one_concept)
+
+    def retrieve_level(self, concept_dict, concept):
+        if concept.parent:
+            level = self.retrieve_parent_and_level(concept_dict, concept_dict[concept.parent])
+            return level + 1
+        else:
+            return 0
 
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
@@ -546,6 +569,12 @@ class PropCsvAndMaster():
                                     csv_line.append('')
                                 headerFilterIterator += 1
 
+                            elif csv_header_element == 'parent':
+                                if oneConcept.parent and (tmp := oneConcept.parent.code):
+                                    csv_line.append(tmp)
+                                else:
+                                    csv_line.append('')
+
                             elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                                 csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                             else:
@@ -564,6 +593,12 @@ class PropCsvAndMaster():
                         if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                             csv_header.append('display')
                             csv_line.append(tmp)
+                        if 'parent' not in csv_header and (tmp := oneConcept.parent):
+                            csv_header.append('parent')
+                            if tmp.code:
+                                csv_line.append(tmp.code)
+                            else:
+                                csv_line.append('')
                         while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
                             csv_header.append('designation')
                             csv_line.append(conceptDesig[headerDesignationIterator])
@@ -761,6 +796,7 @@ class VSConcept():
         self.designation = [] # ConceptDesignation
         self.filter = [] # VSConceptFilter
         self.exclude = False
+        self.parent = None
         self.member = [] # simple hirarchie that stores all children, needs a extension
         self.level = 0 # Additional information in what level the concept can be found.
                        # The default value implies that this concept is a top level concept.
