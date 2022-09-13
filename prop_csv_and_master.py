@@ -81,7 +81,7 @@ class PropCsvAndMaster():
                     if 'date' == metaObj: self.date = metaList[1][i]
                     if 'experimental' == metaObj: self.experimental = metaList[1][i]
                     if 'publisher' == metaObj: self.publisher = metaList[1][i]
-                    if 'contact' == metaObj: self.contact.append(metaList[1][i])
+                    if 'contact' == metaObj: self.contact.append(ContactDetail.from_string(metaList[1][i]))
                     if 'useContext' == metaObj: self.usecontext.append(metaList[1][i])
                     if 'jurisdiction' == metaObj: self.jurisdiction.append(metaList[1][i])
                     if 'purpose' == metaObj: self.purpose = metaList[1][i]
@@ -624,30 +624,67 @@ class PropertyCodeType(enum.Enum):
     decimal = "decimal"
 
 class ContactDetail():
-    def __init__(self):
-        self.name = None
-        self.telecom = []
+    def __init__(self, name=None, telecom=[]):
+        self.name = name
+        self.telecom = telecom
+
+    @classmethod
+    def from_string(cls, str):
+        splitted_contact = str.split('|',2)
+        name = splitted_contact[0]
+
+        splitted_telecom = splitted_contact[1].split('~')
+        telecom_list = []
+        for telecom in splitted_telecom:
+            telecom_list.append(cls.ContactPoint.from_string(telecom))
+
+        return cls(name, telecom_list)
 
     def __str__(self) -> str:
-        tempStr = ""
+        tmp_str = ""
         if temp := self.name:
-            tempStr += temp
-        tempStr += "|"
-        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].system):
-            tempStr += temp
-        tempStr += "|"
-        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].value):
-            tempStr += temp
-        return tempStr
+            tmp_str += temp
+        tmp_str += "|"
+        telecom_list = []
+        for telecom in self.telecom:
+            telecom_list.append(str(telecom))
+        tmp_str += "~".join(telecom_list)
+        return tmp_str
 
     class ContactPoint():
-        def __init__(self):
-            self.system = None # ContactPointSystem
-            self.value = None
-            self.use = None # ContactPointUse
-            self.rank = None
-            self.period_start = None
-            self.period_end = None
+        def __init__(self, system=None, value=None, use=None, rank=None, period_start=None, period_end=None):
+            self.system = system # ContactPointSystem
+            self.value = value
+            self.use = use # ContactPointUse
+            self.rank = rank
+            self.period_start = period_start
+            self.period_end = period_end
+
+        @classmethod
+        def from_string(cls, str):
+            splitted_contact_point = str.split('^',6)
+            return cls(cls.ContactPointSystem(splitted_contact_point[0]) if splitted_contact_point[0] else None, splitted_contact_point[1], cls.ContactPointUse(splitted_contact_point[2]) if splitted_contact_point[2] else None, splitted_contact_point[3], splitted_contact_point[4], splitted_contact_point[5])
+
+        def __str__(self) -> str:
+            tmp_str = ""
+            if tmp := self.system:
+                tmp_str += tmp.value
+            tmp_str += "^"
+            if tmp := self.value:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.use:
+                tmp_str += tmp.value
+            tmp_str += "^"
+            if tmp := self.rank:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.period_start:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.period_end:
+                tmp_str += tmp
+            return tmp_str
 
         class ContactPointSystem(enum.Enum):
             phone = "phone"
