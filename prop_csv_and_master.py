@@ -179,7 +179,7 @@ class PropCsvAndMaster():
 
     def retrieve_level(self, concept_dict, concept):
         if concept.parent:
-            level = self.retrieve_parent_and_level(concept_dict, concept_dict[concept.parent])
+            level = self.retrieve_level(concept_dict, concept_dict[concept.parent])
             return level + 1
         else:
             return 0
