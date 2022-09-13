@@ -180,7 +180,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom.append(oneConPoi)
             tempConDetS.append(oneConDet)
         return tempConDetS
@@ -445,7 +445,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
         foundIt = False
         for oneConcept in self.get_contact():
-            if (tmp := oneConcept.telecom) and tmp[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value:
+            if (tmp := oneConcept.telecom) and tmp[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
                 website = oneConcept.telecom[0].value
                 foundIt = True
         if not foundIt:
