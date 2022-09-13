@@ -172,10 +172,10 @@ class PropCsvAndMaster():
                             parent = concept_dict[one_concept.parent]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
-                            # setting the parent of one_concept
-                            one_concept.parent = parent
                             # setting the hierarchy level
                             one_concept.level = self.retrieve_level(concept_dict, one_concept)
+                            # setting the parent of one_concept
+                            one_concept.parent = parent
 
     def retrieve_level(self, concept_dict, concept):
         if concept.parent:
