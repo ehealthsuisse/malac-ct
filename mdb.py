@@ -44,25 +44,36 @@ import pyodbc
 #     #1min 23sec
 conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\Users\gralf\OneDrive\Desktop\FH Technikum\Bachelor\SYSTEMDATEN2022.mdb;')
 cursor = conn.cursor()
-cursor.execute("SELECT [D].*, [D3S].*, [DUK].*, [DK].* "
-               "FROM [DIAGLIST] AS [D], [DIAGLIST - 3 STELLER] AS [D3S], [DIAGLIST - UNTERKAPITEL] AS [DUK], [DIAGLIST - KAPITEL] AS [DK]"
-               "WHERE [D].Diagnose LIKE [D3S].Diagnose + '%' "
-               "AND [D3S].Diagnose BETWEEN [DUK].Diagnose_von AND [DUK].Diagnose_bis "
-               "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
-dict = {}
+cursor.execute( "SELECT [D].Diagnose AS [DDiagnose], [D].Kennzeichen AS [DKennzeichen],[D].Gruppe AS [DGruppe], [D].HD_Gruppe AS [DHDGruppe], [D].ZD_Gruppe AS [DZDGruppe], [D].Geschlecht AS [DGeschlecht], [D].Mindestalter AS [DMindestalter], [D].Höchstalter AS [DHöchstalter], [D].Unwahrscheinlich AS [DUnwahrscheinlich], [D].HD_ambulant AS [DHDambulant], [D].[HD_>0_Tage] AS [DHDZTage], [D].Bezeichnung AS [DBezeichnung],[D].Meldepflicht AS [DMeldepflicht], [D].Stationär_erworben AS [DStationärerworben],[D].Kurzbezeichnung AS [DKurzbezeichnung],[D3S].Diagnose AS [D3SDiagnose], [DUK].Unterkapitel AS [DUKUnterkapitel], [DUK].Beschreibung AS [DUKBeschreibung], [DK].Beschreibung AS [DKBeschreibung], [DK].Kapitel AS [DKKapitel]"
+    "FROM [DIAGLIST] AS [D], [DIAGLIST - 3 STELLER] AS [D3S], [DIAGLIST - UNTERKAPITEL] AS [DUK], [DIAGLIST - KAPITEL] AS [DK]"
+    "WHERE [D].Diagnose LIKE [D3S].Diagnose + '%' "
+    "AND [D3S].Diagnose BETWEEN [DUK].Diagnose_von AND [DUK].Diagnose_bis "
+    "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
+row = cursor.fetchone()
+while row:
+    if row.DBezeichnung == row.DKurzbezeichnung:
+        print(row.DDiagnose)
+       # print(row.DBezeichnung)
+
+
+    row=cursor.fetchone()
+
+
+print("done")
+#dict = {}
 #hi="hi"
 #hi2="hi2"
 #dict[hi] = "string"
 #dict[hi2] = "string"
-dict[1]="hewo"
-num =[1,2,3,4,5,6,7,8,9]
-for row in num:
-    if row != list(dict)[-1]:
-        dict[row] = "hello"
+#dict[1]="hewo"
+#num =[1,2,3,4,5,6,7,8,9]
+#for row in num:
+ #   if row != list(dict)[-1]:
+  #      dict[row] = "hello"
 
 
 
-print(dict)
+#print(dict)
 # row = cursor.fetchone()
 # while row:
 #     print(row[0])
