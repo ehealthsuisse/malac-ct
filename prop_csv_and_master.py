@@ -81,7 +81,11 @@ class PropCsvAndMaster():
                     if 'date' == metaObj: self.date = metaList[1][i]
                     if 'experimental' == metaObj: self.experimental = metaList[1][i]
                     if 'publisher' == metaObj: self.publisher = metaList[1][i]
+
+                    # TODO support multiple ContactDetails
                     if 'contact' == metaObj: self.contact.append(ContactDetail.from_string(metaList[1][i]))
+
+
                     if 'useContext' == metaObj: self.usecontext.append(metaList[1][i])
                     if 'jurisdiction' == metaObj: self.jurisdiction.append(metaList[1][i])
                     if 'purpose' == metaObj: self.purpose = metaList[1][i]
