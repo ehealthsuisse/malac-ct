@@ -660,8 +660,14 @@ class PropertyCodeType(enum.Enum):
     decimal = "decimal"
 
 class ContactDetail():
-    def __init__(self, name=None, telecom=[]):
+    def __init__(self, name=None, telecom=None):
         self.name = name
+        # see https://stackoverflow.com/questions/73714169/why-are-there-two-elements-in-the-collection
+        #     https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument
+        #     https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
+        #     https://docs.python.org/3/reference/compound_stmts.html#function-definitions
+        if telecom is None:
+            telecom = []
         self.telecom = telecom
 
     @classmethod
