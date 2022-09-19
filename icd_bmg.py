@@ -26,55 +26,51 @@ class ICDBMG(pcam.PropCsvAndMaster):
         self.url = "https://termgit.elga.gv.at/CodeSystem-icd-10-bmg-2022"
         self.name = "icd-10-bmg-2022"
         self.title = "ICD-10 BMG 2022"
-        self.status = "draft"
-        self.content = "complete"
+        self.status = pcam.Status.draft
+        self.content = pcam.Content.complete
         self.version = "Version 2022"
         self.count = "13166"
-        self.resource = pcam.Resource.CodeSystem.value
-        print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
+        self.resource = pcam.Resource.CodeSystem
+        #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
 
         # generating a list full of properties
-        lstProperty = []
-
-        theProperty = pcam.Property()
-        theProperty.code = "child"
-        theProperty.type = pcam.PropertyCodeType.code
-        lstProperty.append(theProperty)
-
-        theProperty = pcam.Property()
-        theProperty.code = "parent"
-        theProperty.type = pcam.PropertyCodeType.code
-        lstProperty.append(theProperty)
-        # https://stackoverflow.com/questions/12704305/return-column-names-from-pyodbc-execute-statement
-        columns = [column[0] for column in cursor.description]
-
-        # looks for properties and adds them to the list
-        for column in columns:
-            if column == 'DDiagnose' or column == 'DBezeichnung' or column == 'DKapitel' or column == 'DUnterkapitel' or column == 'DKurzbezeichnung' or column == 'D3SDiagnose' or column == 'D3SBezeichnung' or column == "DUKUnterkapitel" or column == "DUKBeschreibung" or column == "DKBeschreibung" or column == "DKKapitel":
-                continue
-            else:
-                theProperty = pcam.Property()
-                theProperty.code = column
-                theProperty.type = pcam.PropertyCodeType.string
-                lstProperty.append(theProperty)
-                #print(column)
+        # lstProperty = []
+        #
+        # theProperty = pcam.Property()
+        # theProperty.code = "child"
+        # theProperty.type = pcam.PropertyCodeType.code
+        # lstProperty.append(theProperty)
+        #
+        # theProperty = pcam.Property()
+        # theProperty.code = "parent"
+        # theProperty.type = pcam.PropertyCodeType.code
+        # lstProperty.append(theProperty)
+        # # https://stackoverflow.com/questions/12704305/return-column-names-from-pyodbc-execute-statement
+        # columns = [column[0] for column in cursor.description]
+        #
+        # # looks for properties and adds them to the list
+        # for column in columns:
+        #     if column == 'DDiagnose' or column == 'DBezeichnung' or column == 'DKapitel' or column == 'DUnterkapitel' or column == 'DKurzbezeichnung' or column == 'D3SDiagnose' or column == 'D3SBezeichnung' or column == "DUKUnterkapitel" or column == "DUKBeschreibung" or column == "DKBeschreibung" or column == "DKKapitel":
+        #         continue
+        #     else:
+        #         theProperty = pcam.Property()
+        #         theProperty.code = column
+        #         theProperty.type = pcam.PropertyCodeType.string
+        #         lstProperty.append(theProperty)
+        #         print(column)
 
         # processing the concepts
         self.parseConcepts(cursor)
-
-        if lstProperty != []:
-            self.property = lstProperty
+        #
+        # if lstProperty != []:
+        #     self.property = lstProperty
+        print("finish")
 
     def parseConcepts(self, cursor):
         row = cursor.fetchone()
         dictParents = {}
 
         while row:
-            theConcept = pcam.CSConcept()
-
-            theConcept.code = row.DDiagnose
-            theConcept.display = row.DKurzbezeichnung
-            theConcept.definition = row.DBezeichnung
             ### we are working on the lvl 1 parent (drei steller) ###
 
             # if the parent cant be fount in the dict, create it
@@ -143,9 +139,13 @@ class ICDBMG(pcam.PropCsvAndMaster):
             # thePropertyofParent.type = pcam.PropertyCodeType.code
             # dictParents[row.DKKapitel].property.append(thePropertyofParent)
 
+            theConcept = pcam.CSConcept()
+            theConcept.code = row.DDiagnose
+            theConcept.display = row.DKurzbezeichnung
+            theConcept.definition = row.DBezeichnung
+
             # adding parent-property to the concept
             theProperty = pcam.CSConcept.ConceptProperty()
-
             theProperty.code = "parent"
             theProperty.value = row.D3SDiagnose
             theProperty.type = pcam.PropertyCodeType.code
@@ -199,6 +199,6 @@ def parseParent(dictConceptParents, propertyOfConcept, nameOfParentProperty):
 
 
 
-
+#https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
 inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
 ICDBMG(inFile)
