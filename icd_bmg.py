@@ -3,6 +3,11 @@ import pyodbc
 import math
 import argparse
 
+# database has been downloaded from
+# https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
+# https://www.sozialministerium.at/dam/jcr:8dfa64f6-fe02-4f1a-924c-6d082388865b/Stammdaten_2022_SP2.zip
+
+
 # python environment and Acces ODBC need the same bit rate either 64 - 64 or 32 - 32
 # for checking python version, start python by typing "python" in a console and see if the MSC Version in the info text is 32 or 64 bit
 # for checking the MS Access Driver loaded be pyodbc, type following into the console with the already started python:
@@ -80,15 +85,20 @@ class ICDBMG(pcam.PropCsvAndMaster):
             ### we are working on the lvl 1 parent (drei steller) ###
 
             # if the parent cant be fount in the dict, create it
+            new_d3sdiagnose = False
             if row.D3SDiagnose not in dictParents:
+                new_d3sdiagnose = True
+
                 theParentConcept = pcam.CSConcept()
                 theParentConcept.code = row.D3SDiagnose
                 theParentConcept.display = row.D3SBezeichnung
                 dictParents[row.D3SDiagnose] = theParentConcept
                 self.concept.append(theParentConcept)
+                # setting the parent upon creation of the concept
+                parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
 
             parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
-            parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
+
             # create new child link to Parent
             # thePropertyofParent = pcam.CSConcept.ConceptProperty()
             # thePropertyofParent.code = "child"
@@ -105,15 +115,22 @@ class ICDBMG(pcam.PropCsvAndMaster):
 
             ### we are working on the lvl 2 parent (unterkapitel) ###
 
+            new_dukunterkapitel = False
             if row.DUKUnterkapitel not in dictParents:
+                new_dukunterkapitel = True
+
                 theParentConcept = pcam.CSConcept()
                 theParentConcept.code = row.DUKUnterkapitel
                 theParentConcept.display = row.DUKBeschreibung
                 dictParents[row.DUKUnterkapitel] = theParentConcept
                 self.concept.append(theParentConcept)
+                # setting the parent upon creation of the concept
+                parseParent(dictParents,row.DUKUnterkapitel,row.DKKapitel)
 
-            parseChild(dictParents,row.DUKUnterkapitel,row.D3SDiagnose)
-            parseParent(dictParents,row.DUKUnterkapitel,row.DKKapitel)
+            # adding child only if it is a new child
+            if new_d3sdiagnose:
+                parseChild(dictParents,row.DUKUnterkapitel,row.D3SDiagnose)
+
             # create new child link to Parent
             # thePropertyofParent = pcam.CSConcept.ConceptProperty()
             # thePropertyofParent.code = "child"
@@ -137,7 +154,9 @@ class ICDBMG(pcam.PropCsvAndMaster):
                 dictParents[row.DKKapitel] = theParentConcept
                 self.concept.append(theParentConcept)
 
-            parseChild(dictParents,row.DKKapitel,row.DUKUnterkapitel)
+            # adding child only if it is a new child
+            if new_dukunterkapitel:
+                parseChild(dictParents,row.DKKapitel,row.DUKUnterkapitel)
             # # create new child link to Parent
             # thePropertyofParent = pcam.CSConcept.ConceptProperty()
             # thePropertyofParent.code = "child"
