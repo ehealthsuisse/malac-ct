@@ -2,17 +2,23 @@ import prop_csv_and_master as pcam
 import pyodbc
 import math
 import argparse
-# #python 64 bit
-# #python environment and Acces ODBC need the same bit rate either 64 - 64 or 32 - 32
-# #usefull links for adjusting your Microsoft Access Driver:
-# #find bit rate of your python https://stackoverflow.com/questions/32662123/pyodbc-error-data-source-name-not-found-and-no-default-driver-specified-paradox
-# #How to connect to Microsoft Access with ODBC from Windows 10 https://help.interfaceware.com/v6/connect-to-microsoft-access-odbc
+
+# python environment and Acces ODBC need the same bit rate either 64 - 64 or 32 - 32
+# for checking python version, start python by typing "python" in a console and see if the MSC Version in the info text is 32 or 64 bit
+# for checking the MS Access Driver loaded be pyodbc, type following into the console with the already started python:
+# first "import pyodbc" and then "[i for i in pyodbc.drivers() if i.startswith('Microsoft Access Driver')]".
+# If there is any output, a functioning driver has been found, the name there is the diver name that should be used for the connect string!
+# If there is no output, try installing from here the driver for your bit rate: https://www.microsoft.com/en-US/download/details.aspx?id=13255
+
+# If above does not help, here are other usefull links for adjusting your Microsoft Access Driver:
+# How to connect to Microsoft Access with ODBC from Windows 10 https://help.interfaceware.com/v6/connect-to-microsoft-access-odbc
 
 class ICDBMG(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
-        # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
+        # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
+        # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
         cursor = conn.cursor()
         # jointable between "DIAGLIST", "DIAGLIST- 3 STELLER", "DIAGLIST - UNTERKAPITEL", "DIAGLIST-KAPITEL"
         cursor.execute(
