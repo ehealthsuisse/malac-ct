@@ -69,7 +69,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
         #         theProperty.type = pcam.PropertyCodeType.string
         #         lstProperty.append(theProperty)
         #         print(column)
-
+        #dictParents = {}
         # processing the concepts
         self.parseConcepts(cursor)
         #
@@ -86,18 +86,22 @@ class ICDBMG(pcam.PropCsvAndMaster):
 
             # if the parent cant be fount in the dict, create it
             new_d3sdiagnose = False
-            if row.D3SDiagnose not in dictParents:
-                new_d3sdiagnose = True
 
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.D3SDiagnose
-                theParentConcept.display = row.D3SBezeichnung
-                dictParents[row.D3SDiagnose] = theParentConcept
-                self.concept.append(theParentConcept)
-                # setting the parent upon creation of the concept
-                parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
+            if row.D3SDiagnose != row.DDiagnose:
+                if row.D3SDiagnose not in dictParents:
+                    new_d3sdiagnose = True
 
-            parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
+                    theParentConcept = pcam.CSConcept()
+                    theParentConcept.code = row.D3SDiagnose
+                    theParentConcept.display = row.D3SBezeichnung
+                    dictParents[row.D3SDiagnose] = theParentConcept
+                    self.concept.append(theParentConcept)
+                    # setting the parent upon creation of the concept
+                    parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
+
+                parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
+            else:
+                new_d3sdiagnose=True
 
             # create new child link to Parent
             # thePropertyofParent = pcam.CSConcept.ConceptProperty()
@@ -225,5 +229,5 @@ def parseParent(dictConceptParents, propertyOfConcept, nameOfParentProperty):
 
 
 #https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
-inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
-ICDBMG(inFile)
+#inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
+#ICDBMG(inFile)
