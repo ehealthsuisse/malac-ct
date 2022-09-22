@@ -28,7 +28,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
         # jointable between "DIAGLIST", "DIAGLIST- 3 STELLER", "DIAGLIST - UNTERKAPITEL", "DIAGLIST-KAPITEL"
         cursor.execute(
             "SELECT [D].Diagnose AS [DDiagnose], [D].Kennzeichen AS [DKennzeichen],[D].Gruppe AS [DGruppe], [D].HD_Gruppe AS [DHDGruppe], [D].ZD_Gruppe AS [DZDGruppe], [D].Geschlecht AS [DGeschlecht], [D].Mindestalter AS [DMindestalter], [D].Höchstalter AS [DHöchstalter], [D].Unwahrscheinlich AS [DUnwahrscheinlich], [D].HD_ambulant AS [DHDambulant], [D].[HD_>0_Tage] AS [DHDZTage], [D].Bezeichnung AS [DBezeichnung],[D].Meldepflicht AS [DMeldepflicht], [D].Stationär_erworben AS [DStationärerworben],[D].Kurzbezeichnung AS [DKurzbezeichnung],[D3S].Diagnose AS [D3SDiagnose], [D3S].Bezeichnung AS [D3SBezeichnung], [DUK].Unterkapitel AS [DUKUnterkapitel], [DUK].Beschreibung AS [DUKBeschreibung], [DK].Beschreibung AS [DKBeschreibung], [DK].Kapitel AS [DKKapitel]"
-            "FROM [DIAGLIST] AS [D], [DIAGLIST - 3 STELLER] AS [D3S], [DIAGLIST - UNTERKAPITEL] AS [DUK], [DIAGLIST - KAPITEL] AS [DK]"
+            "FROM [DIAGLIST] AS [D], [DIAGLIST - 3STELLER] AS [D3S], [DIAGLIST - UNTERKAPITEL] AS [DUK], [DIAGLIST - KAPITEL] AS [DK]"
             "WHERE [D].Diagnose LIKE [D3S].Diagnose + '%' "
             "AND [D3S].Diagnose BETWEEN [DUK].Diagnose_von AND [DUK].Diagnose_bis "
             "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
@@ -40,7 +40,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
         self.status = pcam.Status.draft
         self.content = pcam.Content.complete
         self.version = "Version 2022"
-        self.count = "13166"
+        #self.count = "13166"
         self.resource = pcam.Resource.CodeSystem
         #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
 
@@ -88,6 +88,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
             new_d3sdiagnose = False
 
             if row.D3SDiagnose != row.DDiagnose:
+                conceptparent = row.D3SDiagnose
                 if row.D3SDiagnose not in dictParents:
                     new_d3sdiagnose = True
 
@@ -99,9 +100,11 @@ class ICDBMG(pcam.PropCsvAndMaster):
                     # setting the parent upon creation of the concept
                     parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
 
+
                 parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
             else:
                 new_d3sdiagnose=True
+                conceptparent = row.DUKUnterkapitel
 
             # create new child link to Parent
             # thePropertyofParent = pcam.CSConcept.ConceptProperty()
@@ -176,7 +179,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
             # adding parent-property to the concept
             theProperty = pcam.CSConcept.ConceptProperty()
             theProperty.code = "parent"
-            theProperty.value = row.D3SDiagnose
+            theProperty.value = conceptparent
             theProperty.type = pcam.PropertyCodeType.code
             theConcept.property.append(theProperty)
             # parsing respective properties to one concept
@@ -229,5 +232,5 @@ def parseParent(dictConceptParents, propertyOfConcept, nameOfParentProperty):
 
 
 #https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
-#inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
-#ICDBMG(inFile)
+# inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
+# ICDBMG(inFile)
