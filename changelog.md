@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [TERGI-111](https://jira-neu.elga.gv.at/browse/TERGI-111) Support `.1.svsextelga.xml` if concepts do not have `parentCodeSytemName` property.
+
 ## [2.1.2+20220913]
 
 ### Fixed
