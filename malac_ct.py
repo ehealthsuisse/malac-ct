@@ -47,6 +47,9 @@ def init_argparse() -> argparse.ArgumentParser:
         '"FHIRServerUser" "FHIRServerPassword""', required=False
     )
     parser.add_argument(
+        "-ttt", "--tergiTunnelToken", help='A token that may be required in order to access the FHIR server', required=False
+    )
+    parser.add_argument(
         "-up", "--upload2FhirServer", action="store_true", help='Directly upload the converted FHIR json to the given FHIR Server. Can only be run if all the j2x argument(s) are given.', required=False
     )
     parser.add_argument(
@@ -66,7 +69,7 @@ def detectClassByEnding(filename):
             return listClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
-def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None):
+def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
     import os
     import requests
     import json
@@ -74,6 +77,8 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
 
     headers={'Content-Type':'application/fhir+' + source_format + '; charset=utf-8',
              'Accept':'application/fhir+' + target_format + '; charset=utf-8'}
+    if (tergi_tunnel_token):
+        headers['tergi-tunnel-token'] = tergi_tunnel_token
 
     auth = None
     if (fhir_server_user and fhir_server_password):
@@ -126,7 +131,7 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -181,13 +186,15 @@ def main() -> None:
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer):
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
 
         if (args.upload2FhirServer):
             import requests
             import os
 
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
+            if (args.tergiTunnelToken):
+                headers['tergi-tunnel-token'] = args.tergiTunnelToken
 
             auth = None
             if (args.json2xmlFHIRServerUser and args.json2xmlFHIRServerUserPassword):

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Add parameter `tergiTunnelToken` which allows access to all API endpoints of a tergi.
+
 ## [2.1.2+20220913]
 
 ### Fixed
