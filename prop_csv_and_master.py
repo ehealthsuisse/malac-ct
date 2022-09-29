@@ -1,6 +1,8 @@
 import enum
 from unittest import skip
 
+TERMINOLOGY_METADATA_CSV_COLUMNS = ['name', 'canonical', 'oid', 'version']
+
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
@@ -310,7 +312,7 @@ class PropCsvAndMaster():
             f.close()
         except IOError:
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write("name,canonical,oid,version\n")
+                csvfile.write(','.join(TERMINOLOGY_METADATA_CSV_COLUMNS)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
@@ -329,8 +331,7 @@ class PropCsvAndMaster():
             for line in csvlist:
                 outfile.write(line)
 
-
-    def gainOidFromSystemByIndexAndValue(self, index, value):
+    def resolveTerminologyMapping(self, search_column, search_value, target_column):
         # check if the needed argument is given
         if not hasattr(self, "processedTerminologies"):
             import sys
@@ -339,26 +340,32 @@ class PropCsvAndMaster():
         # import the csv when its the first time used
         if type(self.processedTerminologies) is not list:
             import csv
-            with open(self.processedTerminologies, mode ='r')as file:
-                csvFile = csv.reader(file)
+            with open(self.processedTerminologies, 'r', newline='') as file:
+                csvFile = csv.DictReader(file, delimiter=',')
                 self.processedTerminologies = []
                 # displaying the contents of the CSV file
-                for line in csvFile:
-                    self.processedTerminologies.append(line)
+                for csv_line in csvFile:
+                    line_dict = {}
+                    for column in TERMINOLOGY_METADATA_CSV_COLUMNS:
+                        line_dict[column] = csv_line[column]
+                    self.processedTerminologies.append(line_dict)
 
         # search for the Name in the list and return oid
-        for line in self.processedTerminologies:
-            if line[index] == value:
-                if line[2]:
-                    return line[2]
-        print('Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % value)
-        return value
+        for line_dict in self.processedTerminologies:
+            if line_dict[search_column] == search_value:
+                if line_dict[target_column]:
+                    return line_dict[target_column]
+        print('Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % search_value)
+        return search_value
 
     def gainOidFromName(self, name):
-        return self.gainOidFromSystemByIndexAndValue(0, name)
+        return self.resolveTerminologyMapping('name', name, 'oid')
 
     def gainOidFromCanonical(self, canonical):
-        return self.gainOidFromSystemByIndexAndValue(1, canonical)
+        return self.resolveTerminologyMapping('canonical', canonical, 'oid')
+
+    def gainCanonicalFromOid(self, oid):
+        return self.resolveTerminologyMapping('oid', oid, 'canonical')
 
     def buildConceptDictWithAttr(self, stringAttrAsKey):
         tmpDict = {}
