@@ -47,7 +47,7 @@ def init_argparse() -> argparse.ArgumentParser:
         '"FHIRServerUser" "FHIRServerPassword""', required=False
     )
     parser.add_argument(
-        "-ttt", "--tergiTunnelToken", help='A token that may be required in order to access the FHIR server', required=False
+        "-ttt", "--tergiTunnelToken", help='A HTTP header token that may be required in order to access the FHIR server', required=False
     )
     parser.add_argument(
         "-up", "--upload2FhirServer", action="store_true", help='Directly upload the converted FHIR json to the given FHIR Server. Can only be run if all the j2x argument(s) are given.', required=False
