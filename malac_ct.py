@@ -89,9 +89,9 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
 
     with open(source_filename, 'rb') as source_file:
         if auth is None:
-            res = requests.post(fhir_server_url+"$convert", headers=headers, data=source_file)
+            res = requests.post(fhir_server_url+"$convert", headers=headers, data=source_file, verify="./star_elga-services_at.pem")
         else:
-            res = requests.post(fhir_server_url+"$convert", headers=headers, auth=auth, data=source_file)
+            res = requests.post(fhir_server_url+"$convert", headers=headers, auth=auth, data=source_file, verify="./star_elga-services_at.pem")
 
     # remove old target file if it has existed
     if os.path.exists(target_filename):
@@ -209,9 +209,9 @@ def main() -> None:
 
             with open(args.input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
                 if auth is None:
-                    res = requests.put(url, headers=headers, data=json_format_file) # files={'upload_file': json_format_file})
+                    res = requests.put(url, headers=headers, data=json_format_file, verify="./star_elga-services_at.pem")# files={'upload_file': json_format_file})
                 else:
-                    res = requests.put(url, headers=headers, auth=auth, data=json_format_file) # files={'upload_file': json_format_file})
+                    res = requests.put(url, headers=headers, auth=auth, data=json_format_file, verify="./star_elga-services_at.pem")# files={'upload_file': json_format_file})
 
             print(res.text)
             res.raise_for_status()
