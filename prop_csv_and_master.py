@@ -309,9 +309,9 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
-            TERMINOLOGY_METADATA_CSV_COLUMNS = ['name', 'canonical', 'oid', 'version']
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write(','.join(TERMINOLOGY_METADATA_CSV_COLUMNS)+'\n')
+                csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
