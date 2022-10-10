@@ -168,11 +168,11 @@ class Fsh2(Fsh1):
             for oneConcept in conceptList:
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
-                    if hasattr(oneConcept, 'display'):
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* #%s "%s"\n' % (oneConcept.code, oneConcept.display.replace('"','\\"')))
                     else:
                         outfile.write('* #%s\n' % (oneConcept.code))
-                    if hasattr(oneConcept, 'definition'):
+                    if hasattr(oneConcept, 'definition') and oneConcept.definition:
                         outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = 0
@@ -188,7 +188,7 @@ class Fsh2(Fsh1):
                                     outfile.write('* #%s ^designation[%s].use.userSelected = %s \n' % (oneConcept.code, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
-                    if hasattr(oneConcept, 'property'):
+                    if hasattr(oneConcept, 'property') and oneConcept.property:
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
@@ -202,13 +202,13 @@ class Fsh2(Fsh1):
                         k = -1
                         tempConcept = oneConcept
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
-                        if hasattr(oneConcept, 'version'):
+                        if hasattr(oneConcept, 'version') and oneConcept.version:
                             outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
 
                     if hasattr(oneConcept, 'code'):
                         k += 1
                         outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
-                    if hasattr(oneConcept, 'display'):
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = -1
@@ -224,12 +224,12 @@ class Fsh2(Fsh1):
                                 if tmp := oneDesignation.use.userSelected:
                                     outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
-                    if hasattr(oneConcept, 'filter'):
+                    if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
                         for oneFilter in oneConcept.filter:
-                            if hasattr(oneFilter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
-                            if hasattr(oneFilter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
-                            if hasattr(oneFilter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
+                            if hasattr(oneFilter, 'property') and oneFilter.property: outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
+                            if hasattr(oneFilter, 'op') and oneFilter.op: outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
+                            if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
 
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension

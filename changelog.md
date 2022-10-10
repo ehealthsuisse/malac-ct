@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0+20220929]
+
+### Added
+
+- [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Add parameter `tergiTunnelToken` which allows access to all API endpoints of a tergi.
+
+### Fixed
+
+- [TERGI-111](https://jira-neu.elga.gv.at/browse/TERGI-111) Support `.1.svsextelga.xml` and `.2.svsextelga.xml` if concepts do not have `parentCodeSytemName` property.
+
+## [2.1.2+20220913]
+
+### Fixed
+- [TERGI-98](https://jira-neu.elga.gv.at/browse/TERGI-98) Fix errors that came up reading HL7 International CodeSystems per *.4.fhir.xml
+- [CSD-2288](https://jira-neu.elga.gv.at/browse/CSD-2288) Escape special XML characters for ClaML v2, ClaML v3, and for SVSextELGA v2 files.
+
 ## [2.1.1+20220726]
 
 ### Fixed

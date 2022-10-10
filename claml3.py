@@ -284,7 +284,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             if authors is None:
                 authors = AuthorsSub()
             for oneContact in tmp:
-                oneAuthor = AuthorSub(oneContact.name or None, None, oneContact.telecom[0].value or None)
+                oneAuthor = AuthorSub(oneContact.name or None, None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
                 authors.get_Author().append(oneAuthor)
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
@@ -326,7 +326,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     theClass.add_Rubric(RubricSub(id="definition",Label=[LabelSub(valueOf_=oneConcept.definition)]))
                 if hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
-                        theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=oneDesignation)]))
+                        theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=str(oneDesignation))]))
 
                 if hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
