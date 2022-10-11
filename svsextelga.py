@@ -252,10 +252,15 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 for oneCon in sortedConceptList:
                     theConcept = pcam.VSConcept()
 
-                    if (tmp := oneCon.get_parentCodeSystemName()) and (tmp.startswith('http://') or tmp.startswith('https://')):
-                        theConcept.system = tmp
+                    if tmp := oneCon.get_parentCodeSystemName():
+                        if tmp.startswith('http://') or tmp.startswith('https://'):
+                            theConcept.system = tmp
+                        else:
+                            theConcept.system = self.globalUrl+"CodeSystem-"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                    elif tmp:= oneCon.get_codeSystem():
+                        theConcept.system = self.gainCanonicalFromOid(tmp)
                     else:
-                        theConcept.system = self.globalUrl+"CodeSystem-"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                        sys.exit('Neither OID nor name of the parent CodeSytem is present. Cannot process ValueSet.')
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
