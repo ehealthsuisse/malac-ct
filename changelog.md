@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Allow definition of hierarchies in `.2.propcsv.csv` by using a `parent` column.
+
+### Fixed
+
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Fix reading and writing of `contact` information within `.1.propcsv.csv`.
+
 ## [2.2.0+20220929]
 
 ### Added
