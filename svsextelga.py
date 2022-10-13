@@ -105,7 +105,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
     def get_title(self):
-        return super(SVSextELGA1Sub,self).get_name()
+        return super(SVSextELGA1Sub,self).get_displayName()
 
     def get_status(self):
         return pcam.Status.active.value
