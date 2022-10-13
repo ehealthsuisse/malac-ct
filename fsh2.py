@@ -36,16 +36,21 @@ class Fsh2(Fsh1):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                if 'userSelected' in splittedLine[0].split('.')[1].strip():
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif 'value' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.value = value
                         elif 'property' in line:
@@ -119,16 +124,21 @@ class Fsh2(Fsh1):
                             if '.language' in line:
                                 theDesignation.language = value
                             elif '.use' in line:
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                if 'userSelected' in line:
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif '.value' in line:
                                 theDesignation.value = value
                 if '.filter' in line:
@@ -174,6 +184,8 @@ class Fsh2(Fsh1):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* #%s ^designation[%s].use = %s \n' % (oneConcept.code, i, tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* #%s ^designation[%s].use.userSelected = %s \n' % (oneConcept.code, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
                     if hasattr(oneConcept, 'property') and oneConcept.property:
@@ -209,6 +221,8 @@ class Fsh2(Fsh1):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.include[%s].concept[%s].designation[%s].use = %s \n' % (j, k, i, tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
