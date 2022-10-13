@@ -246,11 +246,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         retArr = []
         for oneMeta in self.get_Meta():
             if oneMeta.get_name() == 'property':
-                oneProperty = pcam.Filter()
+                oneProperty = pcam.Property()
                 oneProperty.code = oneMeta.get_value().split('|')[0]
                 oneProperty.uri = oneMeta.get_value().split('|')[1]
                 oneProperty.description = oneMeta.get_value().split('|')[2]
-                oneProperty.type = oneMeta.get_value().split('|')[3]
+                oneProperty.type = pcam.PropertyCodeType(oneMeta.get_value().split('|')[3])
                 retArr.append(oneProperty)
         return self.appendAdditionalConceptProperties(retArr)
 
