@@ -108,9 +108,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
-    # primär: meta.titleLong / sekundär: title.name)
+    # 1: meta.titleLong
+    # 2: title if title is not the same like description.value
+    # 3: title.name
     def get_title(self):
         if tempTitle := get_Meta_with_name(self,'titleLong'):
+            return tempTitle
+        elif (tempTitle := self.get_Title().get_valueOf_()) and (get_Meta_with_name(self,'description') != tempTitle):
             return tempTitle
         else:
             return self.get_Title().get_name()
