@@ -457,7 +457,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             for oneIdentifier in tmp:
                 identifiers.append(IdentifierSub(None,oneIdentifier))
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
-        if tmp := self.get_date(): title.date = datetime.datetime.strptime(tmp, '%Y-%m-%d')
+        if tmp := self.get_date(): title.date = tmp
         authors = None
         if tmp := self.get_publisher():
             authors = AuthorsSub([AuthorSub(tmp)])
