@@ -441,7 +441,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             if "Description:" in tmp:
                 description = tmp[tmp.index("Description:")+1].strip()
         else:
-            beschreibung = description = self.get_description()
+            beschreibung = self.get_description()
 
         displayName = self.get_title()
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
