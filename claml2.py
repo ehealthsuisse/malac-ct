@@ -168,16 +168,25 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_description(self):
         tempRet = ""
         boolAddedSomething = False
-        if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
-            tempRet += "**Description:** "
-            tempRet += tempDescEn
-            boolAddedSomething = True
 
-        if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            if boolAddedSomething:
-                tempRet += "\n\n"
-            tempRet += "**Beschreibung:** "
+        # if description AND description_eng exist AND if they are not empty, they will be concatenated
+        if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
+            if tempDescEn:
+                tempRet += "**Description:** "
+                tempRet += tempDescEn
+                boolAddedSomething = True
+
+            if tempDesc:
+                if boolAddedSomething:
+                    tempRet += "\n\n"
+                tempRet += "**Beschreibung:** "
+                tempRet += tempDesc
+                boolAddedSomething = True
+        elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             tempRet += tempDesc
+            boolAddedSomething = True
+        elif (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+            tempRet += tempDescEn
             boolAddedSomething = True
 
         if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
