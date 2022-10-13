@@ -149,6 +149,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         return Fsh1(inFilename)
 
     def parseConcepts(self, dictConcept, line, splittedLine, value):
+        # TODO: big refactoring for parseConcepts for fsh1 and fsh2, since more than half is the same code
         if '* concept' in splittedLine[0]:
             theConcept = None
             #split here for CS and VS
@@ -190,6 +191,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
+                                # see http://hl7.org/fhir/uv/shorthand/reference.html#codes-and-codings for fsh notation for codings
                                 if 'userSelected' in splittedLine[0].split('.')[1].strip():
                                     theDesignation.use.userSelected = value
                                 else:
@@ -482,7 +484,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmpCoding))
                                 if tmp := oneDesignation.use.userSelected:
-                                    outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmp))
+                                    outfile.write('* compose.%s[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter') and oneConcept.filter != []:
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
