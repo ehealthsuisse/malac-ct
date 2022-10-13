@@ -391,6 +391,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProp.type = pcam.PropertyCodeType.code
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
+                        elif oneMeta.get_name() == "status":
+                            if not retiredAlreadySet and oneMeta.get_value() == "DEPRECATED":
+                                theProp = pcam.CSConcept.ConceptProperty()
+                                theProp.code = "status"
+                                theProp.value = "retired"
+                                theProp.type = pcam.PropertyCodeType.code
+                                thePropertys.append(theProp)
+                                retiredAlreadySet = True
                         elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                             theProperty.code = oneMeta.get_name()
                             theProperty.value = oneMeta.get_value()
