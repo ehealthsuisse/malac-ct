@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [TERGI-60](https://jira-neu.elga.gv.at/browse/TERGI-60) Update split char from # to ^ for designations, also add support for *.use.userSelected
+- [TERGI-60](https://jira-neu.elga.gv.at/browse/TERGI-60) Update split char from `#` to `^` for designations, also add support for `designation.use.userSelected`.
 
 ## [2.2.0+20220929]
 

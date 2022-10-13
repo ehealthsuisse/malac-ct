@@ -592,7 +592,7 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
             if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
             outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
             if tmp := oneDesignation.use.userSelected:
-                outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmp))
+                outfile.write('* expansion%s.designation[%s].use.userSelected = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmp))
         if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.value.replace('"','\\"')))
         dCnt += 1
     # following block is only when zuppl are used
