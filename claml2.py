@@ -108,12 +108,26 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
-    # primär: meta.titleLong / sekundär: title.name)
+    # 1: meta.titleLong
+    # 2: title value if title does not start with description.value (bug in termpub (= old austrian terminology server), that sometimes puts the description into the title value)
+    # 3: title.name
     def get_title(self):
         if tempTitle := get_Meta_with_name(self,'titleLong'):
             return tempTitle
         else:
-            return self.get_Title().get_name()
+            title = self.get_Title().get_valueOf_()
+            if title:
+                # the title and the description will be stripped from any special characters in order to make them comparable
+                stripped_title = (re.sub(r'[^A-Za-z0-9\-]+', '', title.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                stripped_description = None
+                if temp_description := get_Meta_with_name(self,'description'):
+                    stripped_description = (re.sub(r'[^A-Za-z0-9\-]+', '', temp_description.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                if not stripped_title.startswith(stripped_description):
+                    return title
+                else:
+                    return self.get_Title().get_name()
+            else:
+                    return self.get_Title().get_name()
 
     def get_status(self):
         if (tempStatus := get_Meta_with_name(self,'status')) in set(item.value for item in pcam.Status):
@@ -156,7 +170,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
         return tempConDetS
@@ -164,23 +178,35 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
     def get_description(self):
         tempRet = ""
         boolAddedSomething = False
-        if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+
+        version_description = None
+        if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
+            version_description = "**Versions-Beschreibung:** " + tempVerDesc
+
+        # if description AND description_eng exist AND if they are not empty, they will be concatenated
+        if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             tempRet += "**Description:** "
             tempRet += tempDescEn
-            boolAddedSomething = True
+            tempRet += "\n\n"
 
-        if (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            if boolAddedSomething:
-                tempRet += "\n\n"
             tempRet += "**Beschreibung:** "
             tempRet += tempDesc
             boolAddedSomething = True
+        elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
+            if version_description:
+                tempRet += "**Beschreibung:** "
+            tempRet += tempDesc
+            boolAddedSomething = True
+        elif (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+            if version_description:
+                tempRet += "**Description:** "
+            tempRet += tempDescEn
+            boolAddedSomething = True
 
-        if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
+        if version_description:
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "**Versions-Beschreibung:** "
-            tempRet += tempVerDesc
+            tempRet += version_description
 
         if tempRet == "":
             tempRet = None
@@ -246,11 +272,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         retArr = []
         for oneMeta in self.get_Meta():
             if oneMeta.get_name() == 'property':
-                oneProperty = pcam.Filter()
+                oneProperty = pcam.Property()
                 oneProperty.code = oneMeta.get_value().split('|')[0]
                 oneProperty.uri = oneMeta.get_value().split('|')[1]
                 oneProperty.description = oneMeta.get_value().split('|')[2]
-                oneProperty.type = oneMeta.get_value().split('|')[3]
+                oneProperty.type = pcam.PropertyCodeType(oneMeta.get_value().split('|')[3])
                 retArr.append(oneProperty)
         return self.appendAdditionalConceptProperties(retArr)
 
@@ -391,6 +417,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProp.type = pcam.PropertyCodeType.code
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
+                        elif oneMeta.get_name() == "status":
+                            if not retiredAlreadySet and oneMeta.get_value() == "DEPRECATED":
+                                theProp = pcam.CSConcept.ConceptProperty()
+                                theProp.code = "status"
+                                theProp.value = "retired"
+                                theProp.type = pcam.PropertyCodeType.code
+                                thePropertys.append(theProp)
+                                retiredAlreadySet = True
                         elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                             theProperty.code = oneMeta.get_name()
                             theProperty.value = oneMeta.get_value()
@@ -449,7 +483,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             for oneIdentifier in tmp:
                 identifiers.append(IdentifierSub(None,oneIdentifier))
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
-        if tmp := self.get_date(): title.date = datetime.datetime.strptime(tmp, '%Y-%m-%d')
+        if tmp := self.get_date(): title.date = tmp
         authors = None
         if tmp := self.get_publisher():
             authors = AuthorsSub([AuthorSub(tmp)])

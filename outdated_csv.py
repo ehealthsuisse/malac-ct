@@ -101,7 +101,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                 elif 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
                                 elif 'concept_Beschreibung' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##concept_beschreibung#concept_beschreibung",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'meaning' == headingList[i] and row[i] != "":
@@ -111,7 +111,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 elif 'hints' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##hinweise#hinweise",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
@@ -120,24 +120,24 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theConcept.abstract = True
                                 elif 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##relationships#relationships",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'einheit codiert' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_codiert#einheit_codiert",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_codiert^einheit_codiert^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'einheit print' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_print#einheit_print",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_print^einheit_print^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
                                 # read all the other properties/designations, if this is a outdated csv v2
                                 elif self.versionOfOutdatedCsv == 2 and headingList[i] != "" and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+headingList[i]+"#"+headingList[i],self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^",self.globalUrl)
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
@@ -155,7 +155,11 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                     for oneConcept in self.concept:
                         theMemberParent[oneConcept.level] = oneConcept
                         if oneConcept.level > 0:
-                            theMemberParent[oneConcept.level-1].member.append(oneConcept)
+                            parent = theMemberParent[oneConcept.level-1]
+                            # setting oneConcept as child of the parent
+                            parent.member.append(oneConcept)
+                            # setting the parent of oneConcept
+                            oneConcept.parent = parent
 
                 if self.resource == self.resource.CodeSystem:
                     # set parent and child after everything is read

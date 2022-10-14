@@ -212,13 +212,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     elif oneRubric.get_kind() == "definition":
                         theConcept.definition = oneRubric.get_Label()[0].get_valueOf_()
                     elif oneRubric.get_kind() == "designation":
-                        splittedValue = oneRubric.get_Label()[0].get_valueOf_().split('|')
-                        theDesignation = None
-                        theDesignation = pcam.ConceptDesignation()
-                        theDesignation.language = splittedValue[0]
-                        theDesignation.use = splittedValue[1]
-                        theDesignation.value = splittedValue[2]
-                        theConcept.designation.append(theDesignation)
+                        theConcept.designation.append(pcam.ConceptDesignation(oneRubric.get_Label()[0].get_valueOf_()))
                 for oneSuperClass in oneClass.get_SuperClass():
                     theProperty = None
                     theProperty = pcam.CSConcept.ConceptProperty

@@ -149,6 +149,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         return Fsh1(inFilename)
 
     def parseConcepts(self, dictConcept, line, splittedLine, value):
+        # TODO: big refactoring for parseConcepts for fsh1 and fsh2, since more than half is the same code
         if '* concept' in splittedLine[0]:
             theConcept = None
             #split here for CS and VS
@@ -190,16 +191,22 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                # see http://hl7.org/fhir/uv/shorthand/reference.html#codes-and-codings for fsh notation for codings
+                                if 'userSelected' in splittedLine[0].split('.')[1].strip():
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif 'value' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.value = value
                         elif 'property' in line:
@@ -268,16 +275,21 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if '.language' in line:
                                 theDesignation.language = value
                             elif '.use' in line:
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                if 'userSelected' in splittedLine[0].split('.')[1].strip():
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif '.value' in line:
                                 theDesignation.value = value
                 if '.filter' in line:
@@ -290,7 +302,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     if theFilter is None:
                         theFilter.idInFsh = line.split(']')[0]
                         oneConcept.filter = theFilter
-                                # add the data to the designation
+                                # add the data
                     if '.property' in line:
                         theFilter.property = value
                     elif '.op' in line:
@@ -336,7 +348,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
-                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system):
+                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system.value):
                     outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
                 if tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
                     outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
@@ -429,6 +441,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* concept[%s].designation[%s].use = %s \n' % (cntCSConcept, i, tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* concept[%s].designation[%s].use.userSelected = %s \n' % (cntCSConcept, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* concept[%s].designation[%s].value = "%s" \n' % (cntCSConcept, i, oneDesignation.value.replace('"','\\"')))
                             i += 1
                     if hasattr(oneConcept, 'property') and oneConcept.property != []:
@@ -469,6 +483,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.%s[%s].concept[%s].designation[%s].use = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* compose.%s[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i,  tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.%s[%s].concept[%s].designation[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, i, oneDesignation.value))
                     if hasattr(oneConcept, 'filter') and oneConcept.filter != []:
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
@@ -559,6 +575,8 @@ class Fsh1(pcam.PropCsvAndMaster):
 def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
+    if oneConcept.version:
+        outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.version))
     # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
     # That given, a fsh valueset cant be used for input, if having abstract codes
     if oneConcept.abstract:
@@ -575,6 +593,8 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
             tmpCoding += "#"+oneDesignation.use.code
             if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
             outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
+            if tmp := oneDesignation.use.userSelected:
+                outfile.write('* expansion%s.designation[%s].use.userSelected = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmp))
         if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneDesignation.value.replace('"','\\"')))
         dCnt += 1
     # following block is only when zuppl are used

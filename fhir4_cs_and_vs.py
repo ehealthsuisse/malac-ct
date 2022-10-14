@@ -194,13 +194,13 @@ def get_contact(self):
             the_contact_point = pcam.ContactDetail.ContactPoint()
 
             if tmp := one_contact_point.get_system():
-                the_contact_point.system = tmp.get_value()
+                the_contact_point.system = pcam.ContactDetail.ContactPoint.ContactPointSystem(tmp.get_value())
 
             if tmp := one_contact_point.get_value():
                 the_contact_point.value = tmp.get_value()
 
             if tmp := one_contact_point.get_use():
-                the_contact_point.use = tmp.get_value()
+                the_contact_point.use = pcam.ContactDetail.ContactPoint.ContactPointUse(tmp.get_value())
 
             if tmp := one_contact_point.get_rank():
                 the_contact_point.value = tmp.get_value()
@@ -310,7 +310,8 @@ def parse_concept_designation(designation_list):
             if tmp := one_use.get_display():
                 the_use.display = tmp.get_value()
 
-            # NOT SUPPORTED one_designation.get_use().get_userSelected()
+            if tmp := one_use.get_userSelected():
+                the_use.userSelected = tmp.get_value()
 
             the_designation.use = the_use
 
@@ -422,13 +423,13 @@ def exporto(self, globals, fhir_resource):
                     the_contact_point = globals.get('ContactPointSub')()
 
                     if tmp := one_contact_point.system:
-                        the_contact_point.set_system(globals.get('ContactPointSystemSub')(value=tmp))
+                        the_contact_point.set_system(globals.get('ContactPointSystemSub')(value=tmp.value))
 
                     if tmp := one_contact_point.value:
                         the_contact_point.set_value(globals.get('stringSub')(value=tmp))
 
                     if tmp := one_contact_point.use:
-                        the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp))
+                        the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp.value))
 
                     if tmp := one_contact_point.rank:
                         the_contact_point.set_rank(globals.get('positiveIntSub')(value=tmp))
@@ -493,7 +494,8 @@ def exporto_concept_designation(globals, designation_class, designation_list):
             if tmp := one_use.display:
                 the_use.set_display(globals.get('stringSub')(value=tmp))
 
-            # NOT SUPPORTED Coding.userSelected
+            if tmp := one_use.userSelected:
+                the_use.set_userSelected(globals.get('booleanSub')(value=tmp))
 
             the_designation.set_use(the_use)
 

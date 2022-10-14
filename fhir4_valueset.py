@@ -393,7 +393,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
+                        # setting theConcept as child of the parent
                         parent.member.append(the_concept)
+                        # setting the parent of one_concept
+                        the_concept.parent = parent
 
                     # if one_contains contains a list of contains go into recursion
                     if tmp := one_contains.get_contains():

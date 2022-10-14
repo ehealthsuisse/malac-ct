@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0+20221014]
+
+### Added
+
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Allow definition of hierarchies in `.1.propcsv.csv` by using a `parent` column.
+
+### Fixed
+
+- [TERGI-60](https://jira-neu.elga.gv.at/browse/TERGI-60) Update split char from `#` to `^` for designations, also add support for `designation.use.userSelected`.
+- [TERGI-118](https://jira-neu.elga.gv.at/browse/TERGI-118) Fix conversion between different file formats - especially `description`, `date`.
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Fix reading and writing of `contact` information within `.1.propcsv.csv`.
+
 ## [2.2.0+20220929]
 
 ### Added

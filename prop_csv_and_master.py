@@ -1,8 +1,6 @@
 import enum
 from unittest import skip
 
-TERMINOLOGY_METADATA_CSV_COLUMNS = ['name', 'canonical', 'oid', 'version']
-
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
@@ -83,7 +81,7 @@ class PropCsvAndMaster():
                     if 'date' == metaObj: self.date = metaList[1][i]
                     if 'experimental' == metaObj: self.experimental = metaList[1][i]
                     if 'publisher' == metaObj: self.publisher = metaList[1][i]
-                    if 'contact' == metaObj: self.contact.append(metaList[1][i])
+                    if 'contact' == metaObj: self.contact.append(ContactDetail.from_string(metaList[1][i]))
                     if 'useContext' == metaObj: self.usecontext.append(metaList[1][i])
                     if 'jurisdiction' == metaObj: self.jurisdiction.append(metaList[1][i])
                     if 'purpose' == metaObj: self.purpose = metaList[1][i]
@@ -145,6 +143,8 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
+                                if 'parent' == headingList[i]:
+                                    tempConcept.parent = row[i]
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -162,6 +162,28 @@ class PropCsvAndMaster():
                                         tempConcept.exclude = True
 
                     self.concept.append(tempConcept)
+
+                # fill members of parents
+                if self.resource == self.resource.ValueSet:
+                    concept_dict = self.buildConceptDictWithAttr('code')
+
+                    for one_concept in self.concept:
+                        if one_concept.parent:
+                            parent = concept_dict[one_concept.parent]
+                            # setting one_concept as child of the parent
+                            parent.member.append(one_concept)
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level(concept_dict, one_concept)
+                            # setting the parent of one_concept
+                            one_concept.parent = parent
+
+    def retrieve_level(self, concept_dict, concept):
+        if concept.parent:
+            parent_code = concept.parent.code if hasattr(concept.parent,"code") else concept.parent
+            level = self.retrieve_level(concept_dict, concept_dict[parent_code])
+            return level + 1
+        else:
+            return 0
 
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
@@ -311,8 +333,9 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write(','.join(TERMINOLOGY_METADATA_CSV_COLUMNS)+'\n')
+                csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
@@ -345,10 +368,7 @@ class PropCsvAndMaster():
                 self.processedTerminologies = []
                 # displaying the contents of the CSV file
                 for csv_line in csvFile:
-                    line_dict = {}
-                    for column in TERMINOLOGY_METADATA_CSV_COLUMNS:
-                        line_dict[column] = csv_line[column]
-                    self.processedTerminologies.append(line_dict)
+                    self.processedTerminologies.append(csv_line)
 
         # search for the Name in the list and return oid
         for line_dict in self.processedTerminologies:
@@ -424,7 +444,7 @@ class PropCsvAndMaster():
             csv_list.append(("name",self.get_name()))
             csv_list.append(("title",self.get_title()))
             csv_list.append(("status",self.get_status()))
-            csv_list.append(("description",self.get_description()))
+            if tmp := self.get_description(): csv_list.append(("description", tmp))
 
             if self.get_resource() == "CodeSystem": csv_list.append(("content",self.get_content()))
 
@@ -553,6 +573,12 @@ class PropCsvAndMaster():
                                     csv_line.append('')
                                 headerFilterIterator += 1
 
+                            elif csv_header_element == 'parent':
+                                if oneConcept.parent and (tmp := oneConcept.parent.code):
+                                    csv_line.append(tmp)
+                                else:
+                                    csv_line.append('')
+
                             elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                                 csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                             else:
@@ -571,6 +597,12 @@ class PropCsvAndMaster():
                         if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                             csv_header.append('display')
                             csv_line.append(tmp)
+                        if 'parent' not in csv_header and (tmp := oneConcept.parent):
+                            csv_header.append('parent')
+                            if tmp.code:
+                                csv_line.append(tmp.code)
+                            else:
+                                csv_line.append('')
                         while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
                             csv_header.append('designation')
                             csv_line.append(conceptDesig[headerDesignationIterator])
@@ -631,30 +663,73 @@ class PropertyCodeType(enum.Enum):
     decimal = "decimal"
 
 class ContactDetail():
-    def __init__(self):
-        self.name = None
-        self.telecom = []
+    def __init__(self, name=None, telecom=None):
+        self.name = name
+        # see https://stackoverflow.com/questions/73714169/why-are-there-two-elements-in-the-collection
+        #     https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument
+        #     https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
+        #     https://docs.python.org/3/reference/compound_stmts.html#function-definitions
+        if telecom is None:
+            telecom = []
+        self.telecom = telecom
+
+    @classmethod
+    def from_string(cls, str):
+        splitted_contact = str.split('|',2)
+        name = splitted_contact[0]
+
+        splitted_telecom = splitted_contact[1].split('~')
+        telecom_list = []
+        for telecom in splitted_telecom:
+            telecom_list.append(cls.ContactPoint.from_string(telecom))
+
+        return cls(name, telecom_list)
 
     def __str__(self) -> str:
-        tempStr = ""
+        tmp_str = ""
         if temp := self.name:
-            tempStr += temp
-        tempStr += "|"
-        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].system):
-            tempStr += temp
-        tempStr += "|"
-        if (temp := self.telecom) and (temp := self.telecom[0]) and (temp := self.telecom[0].value):
-            tempStr += temp
-        return tempStr
+            tmp_str += temp
+        tmp_str += "|"
+        telecom_list = []
+        for telecom in self.telecom:
+            telecom_list.append(str(telecom))
+        tmp_str += "~".join(telecom_list)
+        return tmp_str
 
     class ContactPoint():
-        def __init__(self):
-            self.system = None # ContactPointSystem
-            self.value = None
-            self.use = None # ContactPointUse
-            self.rank = None
-            self.period_start = None
-            self.period_end = None
+        def __init__(self, system=None, value=None, use=None, rank=None, period_start=None, period_end=None):
+            self.system = system # ContactPointSystem
+            self.value = value
+            self.use = use # ContactPointUse
+            self.rank = rank
+            self.period_start = period_start
+            self.period_end = period_end
+
+        @classmethod
+        def from_string(cls, str):
+            splitted_contact_point = str.split('^',6)
+            return cls(cls.ContactPointSystem(splitted_contact_point[0]) if splitted_contact_point[0] else None, splitted_contact_point[1], cls.ContactPointUse(splitted_contact_point[2]) if splitted_contact_point[2] else None, splitted_contact_point[3], splitted_contact_point[4], splitted_contact_point[5])
+
+        def __str__(self) -> str:
+            tmp_str = ""
+            if tmp := self.system:
+                tmp_str += tmp.value
+            tmp_str += "^"
+            if tmp := self.value:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.use:
+                tmp_str += tmp.value
+            tmp_str += "^"
+            if tmp := self.rank:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.period_start:
+                tmp_str += tmp
+            tmp_str += "^"
+            if tmp := self.period_end:
+                tmp_str += tmp
+            return tmp_str
 
         class ContactPointSystem(enum.Enum):
             phone = "phone"
@@ -731,8 +806,11 @@ class VSConcept():
         self.designation = [] # ConceptDesignation
         self.filter = [] # VSConceptFilter
         self.exclude = False
+        self.parent = None
         self.member = [] # simple hirarchie that stores all children, needs a extension
-        self.level = -1 # additional information in what level the concept can be found, just for easier writing concepts
+        self.level = 0 # Additional information in what level the concept can be found.
+                       # The default value implies that this concept is a top level concept.
+                       # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
 
     # created only for sorting, shouldn't be used for anything else
@@ -790,22 +868,26 @@ class Coding():
             self.version = None
             self.code = None
             self.display = None
+            self.userSelected = None
         else:
-            splittedValue = str.split('#',3)
+            splittedValue = str.split('^',4)
             self.codesystem = splittedValue[0]
             self.version = splittedValue[1]
             self.code = splittedValue[2]
             self.display = splittedValue[3]
+            self.userSelected = splittedValue[4]
 
     def __str__(self) -> str:
         buildStr = ""
         if self.codesystem: buildStr += self.codesystem
-        buildStr += "#"
+        buildStr += "^"
         if self.version: buildStr += self.version
-        buildStr += "#"
+        buildStr += "^"
         if self.code: buildStr += self.code
-        buildStr += "#"
+        buildStr += "^"
         if self.display: buildStr += self.display
+        buildStr += "^"
+        if self.userSelected: buildStr += self.userSelected
         return buildStr
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
