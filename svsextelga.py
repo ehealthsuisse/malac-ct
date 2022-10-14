@@ -116,17 +116,13 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
         # if beschreibung AND description exist AND if they are not empty, they will be concatenated
         if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "" and (tempBesch := self.get_beschreibung()) and not tempBesch == "":
-            if tempDescEn:
-                tempRet += "**Description:** "
-                tempRet += tempDescEn
-                boolAddedSomething = True
+            tempRet += "**Description:** "
+            tempRet += tempDescEn
+            tempRet += "\n\n"
 
-            if tempBesch:
-                if boolAddedSomething:
-                    tempRet += "\n\n"
-                tempRet += "**Beschreibung:** "
-                tempRet += tempBesch
-                boolAddedSomething = True
+            tempRet += "**Beschreibung:** "
+            tempRet += tempDesc
+            boolAddedSomething = True
         elif (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             tempRet += tempBesch
             boolAddedSomething = True

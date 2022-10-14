@@ -171,17 +171,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         # if description AND description_eng exist AND if they are not empty, they will be concatenated
         if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            if tempDescEn:
-                tempRet += "**Description:** "
-                tempRet += tempDescEn
-                boolAddedSomething = True
+            tempRet += "**Description:** "
+            tempRet += tempDescEn
+            tempRet += "\n\n"
 
-            if tempDesc:
-                if boolAddedSomething:
-                    tempRet += "\n\n"
-                tempRet += "**Beschreibung:** "
-                tempRet += tempDesc
-                boolAddedSomething = True
+            tempRet += "**Beschreibung:** "
+            tempRet += tempDesc
+            boolAddedSomething = True
         elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             tempRet += tempDesc
             boolAddedSomething = True
