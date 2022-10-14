@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Fix reading and writing of `contact` information within `.1.propcsv.csv`.
 
+### Fixed
+
+- [TERGI-118](https://jira-neu.elga.gv.at/browse/TERGI-118) Fix conversion between different file formats - especially `description`, `date`.
+
 ## [2.2.0+20220929]
 
 ### Added

@@ -105,7 +105,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
     def get_title(self):
-        return super(SVSextELGA1Sub,self).get_name()
+        return super(SVSextELGA1Sub,self).get_displayName()
 
     def get_status(self):
         return pcam.Status.active.value
@@ -113,16 +113,21 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_description(self):
         tempRet = ""
         boolAddedSomething = False
-        if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
+
+        # if beschreibung AND description exist AND if they are not empty, they will be concatenated
+        if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "" and (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             tempRet += "**Description:** "
             tempRet += tempDescEn
-            boolAddedSomething = True
+            tempRet += "\n\n"
 
-        if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
-            if boolAddedSomething:
-                tempRet += "\n\n"
             tempRet += "**Beschreibung:** "
             tempRet += tempBesch
+            boolAddedSomething = True
+        elif (tempBesch := self.get_beschreibung()) and not tempBesch == "":
+            tempRet += tempBesch
+            boolAddedSomething = True
+        elif (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
+            tempRet += tempDescEn
             boolAddedSomething = True
 
         # TODO check if there is no version description in svs
@@ -437,7 +442,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             if "Description:" in tmp:
                 description = tmp[tmp.index("Description:")+1].strip()
         else:
-            beschreibung = description = self.get_description()
+            beschreibung = self.get_description()
 
         displayName = self.get_title()
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?

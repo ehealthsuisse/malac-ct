@@ -444,7 +444,7 @@ class PropCsvAndMaster():
             csv_list.append(("name",self.get_name()))
             csv_list.append(("title",self.get_title()))
             csv_list.append(("status",self.get_status()))
-            csv_list.append(("description",self.get_description()))
+            if tmp := self.get_description(): csv_list.append(("description", tmp))
 
             if self.get_resource() == "CodeSystem": csv_list.append(("content",self.get_content()))
 
