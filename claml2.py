@@ -109,15 +109,25 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
     # 1: meta.titleLong
-    # 2: title value if title is not the same like description.value (bug in termpub (= old austrian terminology server), that sometimes puts the description into the title value)
+    # 2: title value if title does not start with description.value (bug in termpub (= old austrian terminology server), that sometimes puts the description into the title value)
     # 3: title.name
     def get_title(self):
         if tempTitle := get_Meta_with_name(self,'titleLong'):
             return tempTitle
-        elif (tempTitle := self.get_Title().get_valueOf_()) and (get_Meta_with_name(self,'description') != tempTitle):
-            return tempTitle
         else:
-            return self.get_Title().get_name()
+            title = self.get_Title().get_valueOf_()
+            if title:
+                # the title and the description will be stripped from any special characters in order to make them comparable
+                stripped_title = (re.sub(r'[^A-Za-z0-9\-]+', '', title.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                stripped_description = None
+                if temp_description := get_Meta_with_name(self,'description'):
+                    stripped_description = (re.sub(r'[^A-Za-z0-9\-]+', '', temp_description.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                if not stripped_title.startswith(stripped_description):
+                    return title
+                else:
+                    return self.get_Title().get_name()
+            else:
+                    return self.get_Title().get_name()
 
     def get_status(self):
         if (tempStatus := get_Meta_with_name(self,'status')) in set(item.value for item in pcam.Status):
