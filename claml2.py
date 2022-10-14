@@ -169,6 +169,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         tempRet = ""
         boolAddedSomething = False
 
+        version_description = None
+        if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
+            version_description = "**Versions-Beschreibung:** " + tempVerDesc
+
         # if description AND description_eng exist AND if they are not empty, they will be concatenated
         if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             tempRet += "**Description:** "
@@ -179,17 +183,20 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             tempRet += tempDesc
             boolAddedSomething = True
         elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
+            if version_description:
+                tempRet += "**Beschreibung:** "
             tempRet += tempDesc
             boolAddedSomething = True
         elif (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "":
+            if version_description:
+                tempRet += "**Description:** "
             tempRet += tempDescEn
             boolAddedSomething = True
 
-        if (tempVerDesc := get_Meta_with_name(self,'version_description')) and not tempVerDesc == "":
+        if version_description:
             if boolAddedSomething:
                 tempRet += "\n\n"
-            tempRet += "**Versions-Beschreibung:** "
-            tempRet += tempVerDesc
+            tempRet += version_description
 
         if tempRet == "":
             tempRet = None
