@@ -156,7 +156,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
         return tempConDetS

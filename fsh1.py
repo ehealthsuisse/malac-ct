@@ -348,7 +348,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
-                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system):
+                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system.value):
                     outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
                 if tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
                     outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
@@ -575,6 +575,8 @@ class Fsh1(pcam.PropCsvAndMaster):
 def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
+    if oneConcept.version:
+        outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.version))
     # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
     # That given, a fsh valueset cant be used for input, if having abstract codes
     if oneConcept.abstract:

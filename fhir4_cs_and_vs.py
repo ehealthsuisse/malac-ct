@@ -194,13 +194,13 @@ def get_contact(self):
             the_contact_point = pcam.ContactDetail.ContactPoint()
 
             if tmp := one_contact_point.get_system():
-                the_contact_point.system = tmp.get_value()
+                the_contact_point.system = pcam.ContactDetail.ContactPoint.ContactPointSystem(tmp.get_value())
 
             if tmp := one_contact_point.get_value():
                 the_contact_point.value = tmp.get_value()
 
             if tmp := one_contact_point.get_use():
-                the_contact_point.use = tmp.get_value()
+                the_contact_point.use = pcam.ContactDetail.ContactPoint.ContactPointUse(tmp.get_value())
 
             if tmp := one_contact_point.get_rank():
                 the_contact_point.value = tmp.get_value()
@@ -423,13 +423,13 @@ def exporto(self, globals, fhir_resource):
                     the_contact_point = globals.get('ContactPointSub')()
 
                     if tmp := one_contact_point.system:
-                        the_contact_point.set_system(globals.get('ContactPointSystemSub')(value=tmp))
+                        the_contact_point.set_system(globals.get('ContactPointSystemSub')(value=tmp.value))
 
                     if tmp := one_contact_point.value:
                         the_contact_point.set_value(globals.get('stringSub')(value=tmp))
 
                     if tmp := one_contact_point.use:
-                        the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp))
+                        the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp.value))
 
                     if tmp := one_contact_point.rank:
                         the_contact_point.set_rank(globals.get('positiveIntSub')(value=tmp))
