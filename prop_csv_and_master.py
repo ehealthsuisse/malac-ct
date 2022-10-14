@@ -1,8 +1,6 @@
 import enum
 from unittest import skip
 
-TERMINOLOGY_METADATA_CSV_COLUMNS = ['name', 'canonical', 'oid', 'version']
-
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
@@ -311,8 +309,9 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
-                csvfile.write(','.join(TERMINOLOGY_METADATA_CSV_COLUMNS)+'\n')
+                csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
@@ -345,10 +344,7 @@ class PropCsvAndMaster():
                 self.processedTerminologies = []
                 # displaying the contents of the CSV file
                 for csv_line in csvFile:
-                    line_dict = {}
-                    for column in TERMINOLOGY_METADATA_CSV_COLUMNS:
-                        line_dict[column] = csv_line[column]
-                    self.processedTerminologies.append(line_dict)
+                    self.processedTerminologies.append(csv_line)
 
         # search for the Name in the list and return oid
         for line_dict in self.processedTerminologies:
