@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Allow definition of hierarchies in `.1.propcsv.csv` by using a `parent` column.
-- Add support for pipelines started from a merge request.
 
 ### Fixed
 
