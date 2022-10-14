@@ -121,7 +121,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             tempRet += "\n\n"
 
             tempRet += "**Beschreibung:** "
-            tempRet += tempDesc
+            tempRet += tempBesch
             boolAddedSomething = True
         elif (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             tempRet += tempBesch
