@@ -109,7 +109,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', self.get_Title().get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
     # 1: meta.titleLong
-    # 2: title if title is not the same like description.value
+    # 2: title value if title is not the same like description.value (bug in termpub (= old austrian terminology server), that sometimes puts the description into the title value)
     # 3: title.name
     def get_title(self):
         if tempTitle := get_Meta_with_name(self,'titleLong'):
