@@ -486,7 +486,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_date(): title.date = tmp
         authors = None
         if tmp := self.get_publisher():
-            authors = AuthorsSub([AuthorSub(tmp)])
+            # QuickFix: set valueOf_ of Author to '' explicitly - other wise the Author-tag will be filled with 'None', i.e. <Author name="name_of_author">None</Author>
+            # TODO improve reading of Author - check for 'None'-string
+            authors = AuthorsSub([AuthorSub(tmp, '')])
         if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
