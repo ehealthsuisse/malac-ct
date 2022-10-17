@@ -122,10 +122,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 stripped_description = None
                 if temp_description := get_Meta_with_name(self,'description'):
                     stripped_description = (re.sub(r'[^A-Za-z0-9\-]+', '', temp_description.replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
-                if not stripped_title.startswith(stripped_description):
-                    return title
+                    if not stripped_title.startswith(stripped_description):
+                        return title
+                    else:
+                        return self.get_Title().get_name()
+                # if there is no description available, simply return the title
                 else:
-                    return self.get_Title().get_name()
+                    return title
             else:
                     return self.get_Title().get_name()
 
