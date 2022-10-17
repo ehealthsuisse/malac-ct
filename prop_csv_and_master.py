@@ -675,13 +675,16 @@ class ContactDetail():
 
     @classmethod
     def from_string(cls, str):
-        splitted_contact = str.split('|',2)
-        name = splitted_contact[0]
-
-        splitted_telecom = splitted_contact[1].split('~')
+        name = None
         telecom_list = []
-        for telecom in splitted_telecom:
-            telecom_list.append(cls.ContactPoint.from_string(telecom))
+
+        if str:
+            splitted_contact = str.split('|',2)
+            name = splitted_contact[0]
+
+            splitted_telecom = splitted_contact[1].split('~')
+            for telecom in splitted_telecom:
+                telecom_list.append(cls.ContactPoint.from_string(telecom))
 
         return cls(name, telecom_list)
 
