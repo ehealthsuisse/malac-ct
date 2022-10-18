@@ -81,7 +81,10 @@ class PropCsvAndMaster():
                     if 'date' == metaObj: self.date = metaList[1][i]
                     if 'experimental' == metaObj: self.experimental = metaList[1][i]
                     if 'publisher' == metaObj: self.publisher = metaList[1][i]
-                    if 'contact' == metaObj: self.contact.append(ContactDetail.from_string(metaList[1][i]))
+                    if 'contact' == metaObj:
+                        # append contact if not None
+                        if tmp := ContactDetail.from_string(metaList[1][i]):
+                            self.contact.append(tmp)
                     if 'useContext' == metaObj: self.usecontext.append(metaList[1][i])
                     if 'jurisdiction' == metaObj: self.jurisdiction.append(metaList[1][i])
                     if 'purpose' == metaObj: self.purpose = metaList[1][i]
@@ -675,11 +678,16 @@ class ContactDetail():
 
     @classmethod
     def from_string(cls, str):
+        # str is None or empty return None
+        if not str:
+            return None
+
+        telecom_list = []
+
         splitted_contact = str.split('|',2)
         name = splitted_contact[0]
 
         splitted_telecom = splitted_contact[1].split('~')
-        telecom_list = []
         for telecom in splitted_telecom:
             telecom_list.append(cls.ContactPoint.from_string(telecom))
 
