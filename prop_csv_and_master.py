@@ -682,7 +682,6 @@ class ContactDetail():
         if not str:
             return None
 
-        name = None
         telecom_list = []
 
         splitted_contact = str.split('|',2)
