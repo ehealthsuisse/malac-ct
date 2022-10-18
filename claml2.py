@@ -433,7 +433,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas = []
 
         # required ClaMl3 fields
-        title = TitleSub(self.get_name(),self.get_version())
+        # QuickFix: set valueOf_ of Title to '' explicitly - other wise the Title-tag will be filled with 'None', i.e. <Title>None</Title>
+        # TODO recreate super-class with generateDS
+        title = TitleSub(self.get_name(),self.get_version(), valueOf_='')
         metas.append(MetaSub('titleLong',self.get_title()))
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
