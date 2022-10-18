@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1+20221018]
+
 ### Fixed
 
-- Fix writing of author in `.2.claml.xml`
-- Fix the export of `.2.claml.xml` to comply with the standard
-- Fix handling of empty contact column
+- Fix writing of author in `.2.claml.xml`.
+- Fix the export of `.2.claml.xml` to comply with the standard.
+- Fix handling of empty contact column in `.1.propcsv.csv`.
 
 ## [3.0.0+20221014]
 
