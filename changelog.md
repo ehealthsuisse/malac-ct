@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix writing of author in `.2.claml.xml`
+- Fix the export of `.2.claml.xml` to comply with the standard
 
 ## [3.0.0+20221014]
 
