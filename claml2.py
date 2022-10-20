@@ -133,13 +133,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return tmp
 
     def get_publisher(self):
-        tmpAuthors = ""
+        author_name_list = []
         if authors := self.get_Authors():
             for author in authors.get_Author():
-                if tmpAuthors != "":
-                    tmpAuthors += " & "
-                tmpAuthors += author.get_name()
-        return tmpAuthors or None
+                if tmp_name := author.get_name():
+                    author_name_list.append(tmp_name)
+        return ' & '.join(author_name_list)
 
     def get_contact(self):
         tempConDetS = []
@@ -404,13 +403,27 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
                         elif oneMeta.get_name() == "status":
-                            if not retiredAlreadySet and oneMeta.get_value() == "DEPRECATED":
+                            # always read the information of the status-Meta
+                            read_status_meta = True
+                            # however, if the value of the status-Meta is 'retired' it may happen that
+                            # the status-property has already been created
+                            if oneMeta.get_value() == "retired":
+                                # if the status-property 'retired' has already been created (e.g. CodeSystem-dgc-qr)
+                                # do not read the status-Meta
+                                read_status_meta = not retiredAlreadySet
+                                # in any case set retiredAlreadySet to true
+                                retiredAlreadySet = True
+
+                            # read the status-Meta if allowed to do so
+                            if read_status_meta:
                                 theProp = pcam.CSConcept.ConceptProperty()
                                 theProp.code = "status"
-                                theProp.value = "retired"
+                                theProp.value = oneMeta.get_value()
                                 theProp.type = pcam.PropertyCodeType.code
+                                # TODO instead of using 'retiredAlreadySet' the ConceptProperty should keep track of
+                                #      the properties already set in a dictionary and dismiss duplicated entries.
+                                #      Discuss: what happens if the same property occurs with different values
                                 thePropertys.append(theProp)
-                                retiredAlreadySet = True
                         elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                             theProperty.code = oneMeta.get_name()
                             theProperty.value = oneMeta.get_value()
