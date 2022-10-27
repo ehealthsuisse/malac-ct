@@ -548,7 +548,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 classes.append(theClass)
 
         claml2 = ClaML2Sub('2.0.0',metas,identifiers,title,authors,None,claKinds,None,rubKinds,None,None,classes)
-        claml2.export(outfile, 0)
+        claml2.export(outfile, 0, namespacedef_='')
 
 supermod.ClaML2.subclass = ClaML2Sub
 # end class ClaML2Sub

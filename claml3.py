@@ -339,7 +339,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 classes.append(theClass)
 
         claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,classes))
-        claml3.export(outfile, 0)
+        claml3.export(outfile, 0, namespacedef_='')
 
 supermod.ClaML3.subclass = ClaML3Sub
 # end class ClaML3Sub
