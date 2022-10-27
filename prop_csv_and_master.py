@@ -47,7 +47,7 @@ class PropCsvAndMaster():
             with open(inFile, 'r', encoding="cp1252") as csvfile:
                 import csv
                 # creating dictreader object
-                file = csv.reader(csvfile, quotechar='\"', delimiter=';')
+                file = csv.reader(csvfile, quotechar='"', delimiter=';')
                 # iterating over first two rows and append values to empty list
                 metaList = [file.__next__()]+[file.__next__()]
                 # iterating over a empty row
@@ -495,10 +495,10 @@ class PropCsvAndMaster():
                 newline = True
                 for csvelement in csvline:
                     # write and change all ',' to ';'
-                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
-                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
+                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
+                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
                     newline = False
-                outfile.write(("\n").encode('cp1252',errors='replace'))
+                outfile.write(("\n").encode('cp1252',errors='ignore'))
 
             csv_header = []
 
@@ -626,11 +626,11 @@ class PropCsvAndMaster():
             csv_list.insert(0,csv_header)
 
             for csvline in csv_list:
-                outfile.write(("\n").encode('cp1252',errors='replace'))
+                outfile.write(("\n").encode('cp1252',errors='ignore'))
                 newline = True
                 for csvelement in csvline:
-                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
-                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
+                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
+                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
                     newline = False
 
 class Resource(enum.Enum):
