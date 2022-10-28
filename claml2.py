@@ -526,6 +526,23 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
 
+                # write the system if existent
+                if tmp := oneConcept.system:
+                    theClass.add_Meta(MetaSub('system', tmp))
+
+                # write the system version if existent
+                if tmp := oneConcept.version:
+                    theClass.add_Meta(MetaSub('system-version', tmp))
+                else:
+                    # retrieve version from metadata
+
+                    # theoretically oneConcept.system could be either canonical or OID in
+                    # most cases, however, it would be the canonical
+                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                        theClass.add_Meta(MetaSub('system-version', tmp))
+                    elif tmp := self.gainVersionFromOid(oneConcept.system):
+                        theClass.add_Meta(MetaSub('system-version', tmp))
+
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=language,valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition'):
