@@ -403,6 +403,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
                         elif oneMeta.get_name() == "status":
+                            # separately check if retiredAlreadySet is false, otherwise the
+                            # status-property might be created within the 'else'-branch of the whole
+                            # elif-section
                             if not retiredAlreadySet:
                                 if oneMeta.get_value() == "retired":
                                     retiredAlreadySet = True
