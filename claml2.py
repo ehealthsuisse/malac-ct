@@ -133,13 +133,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return tmp
 
     def get_publisher(self):
-        tmpAuthors = ""
+        author_name_list = []
         if authors := self.get_Authors():
             for author in authors.get_Author():
-                if tmpAuthors != "":
-                    tmpAuthors += " & "
-                tmpAuthors += author.get_name()
-        return tmpAuthors or None
+                if tmp_name := author.get_name():
+                    author_name_list.append(tmp_name)
+        return ' & '.join(author_name_list) or None
 
     def get_contact(self):
         tempConDetS = []
@@ -404,13 +403,20 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
                         elif oneMeta.get_name() == "status":
-                            if not retiredAlreadySet and oneMeta.get_value() == "DEPRECATED":
+                            # separately check if retiredAlreadySet is false, otherwise the
+                            # status-property might be created within the 'else'-branch of the whole
+                            # elif-section
+                            if not retiredAlreadySet:
+                                if oneMeta.get_value() == "retired":
+                                    retiredAlreadySet = True
                                 theProp = pcam.CSConcept.ConceptProperty()
                                 theProp.code = "status"
-                                theProp.value = "retired"
+                                theProp.value = oneMeta.get_value()
                                 theProp.type = pcam.PropertyCodeType.code
+                                # TODO instead of using 'retiredAlreadySet' the ConceptProperty should keep track of
+                                #      the properties already set in a dictionary and dismiss duplicated entries.
+                                #      Discuss: what happens if the same property occurs with different values
                                 thePropertys.append(theProp)
-                                retiredAlreadySet = True
                         elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                             theProperty.code = oneMeta.get_name()
                             theProperty.value = oneMeta.get_value()
