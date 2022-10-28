@@ -402,17 +402,18 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProp.type = pcam.PropertyCodeType.code
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
-                        elif oneMeta.get_name() == "status" and not retiredAlreadySet:
-                            if oneMeta.get_value() == "retired":
-                                retiredAlreadySet = True
-                            theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = "status"
-                            theProp.value = oneMeta.get_value()
-                            theProp.type = pcam.PropertyCodeType.code
-                            # TODO instead of using 'retiredAlreadySet' the ConceptProperty should keep track of
-                            #      the properties already set in a dictionary and dismiss duplicated entries.
-                            #      Discuss: what happens if the same property occurs with different values
-                            thePropertys.append(theProp)
+                        elif oneMeta.get_name() == "status":
+                            if not retiredAlreadySet:
+                                if oneMeta.get_value() == "retired":
+                                    retiredAlreadySet = True
+                                theProp = pcam.CSConcept.ConceptProperty()
+                                theProp.code = "status"
+                                theProp.value = oneMeta.get_value()
+                                theProp.type = pcam.PropertyCodeType.code
+                                # TODO instead of using 'retiredAlreadySet' the ConceptProperty should keep track of
+                                #      the properties already set in a dictionary and dismiss duplicated entries.
+                                #      Discuss: what happens if the same property occurs with different values
+                                thePropertys.append(theProp)
                         elif oneMeta.get_name() == "notSelectable" and oneMeta.get_value() == "true":
                             theProperty.code = oneMeta.get_name()
                             theProperty.value = oneMeta.get_value()
