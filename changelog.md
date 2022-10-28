@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix reading of author in `.2.claml.xml`.
+- Fix writing of concept status in `.2.claml.xml`.
+
 ## [3.0.1+20221018]
 
 ### Fixed
