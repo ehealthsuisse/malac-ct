@@ -633,6 +633,30 @@ class PropCsvAndMaster():
                     outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
                     newline = False
 
+class PropCsvAsXLSX():
+    def parse(inFilename):
+        import pandas as pd
+
+        read_file = pd.read_excel(inFilename)
+        read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
+
+        return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        import pandas as pd
+
+        #with open(args.input.replace(iClass, '.1.propcsv.csv'), 'r', encoding="cp1252") as csvfile:
+        try:
+            read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False)
+        except FileNotFoundError:
+            # if there is no propCSV (like if output is directly given), than create it and keep it as a "collateral"
+            with open(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), 'w', newline='', encoding='utf-8') as outfile4CSV:
+                PropCsvAndMaster.exporto(self, outfile4CSV, outputClass, argsLang, incHierarchyExt4VS)
+                read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False)
+
+        # ".T.reset_index().T." is only used to get rid of extra formatting that to_excel usually does
+        read_file.T.reset_index().T.to_excel(outfile.name, index = None, header = None)#, sheet_name="")
+
 class Resource(enum.Enum):
     ValueSet = 'ValueSet'
     CodeSystem = 'CodeSystem'
