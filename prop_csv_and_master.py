@@ -649,7 +649,7 @@ class PropCsvAsXLSX():
         try:
             # hackish "names=range(###)" is needed because from the first row the exact number ob columns cant be detected, that read_csv needs, see https://stackoverflow.com/questions/18039057/python-pandas-error-tokenizing-data
             # nonetheless, the pandas engine with read_csv is really slow, should be updated in a few months to directly write the in memory data
-            read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False, names=range(300), low_memory=False)
+            read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False, names=range(1700), low_memory=False)
         except FileNotFoundError:
             # if there is no propCSV (like if output is directly given), than create it and keep it as a "collateral"
             with open(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), 'w', newline='', encoding='utf-8') as outfile4CSV:
