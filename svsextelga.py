@@ -322,15 +322,19 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     # read anyAttribute if version 2
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
-                            theDesig = pcam.ConceptDesignation()
+                            # read the codesytem version if existent
+                            if oneAttrKey == 'codeSystemVersion':
+                                theConcept.version = oneCon.get_anyAttributes_()[oneAttrKey]
+                            else:
+                                theDesig = pcam.ConceptDesignation()
 
-                            code = oneAttrKey
-                            for one_xml_escape_special_char in xml_escape_special_char:
-                                code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+                                code = oneAttrKey
+                                for one_xml_escape_special_char in xml_escape_special_char:
+                                    code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
 
-                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
-                            theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
-                            theConcept.designation.append(theDesig)
+                                theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
+                                theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
+                                theConcept.designation.append(theDesig)
 
                     retArr.append(theConcept)
 
