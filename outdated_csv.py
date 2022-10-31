@@ -383,23 +383,9 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
             # write all the other properties/designations, if this is a outdated csv v2
             if versionOfOutdatedCsv == 2:
-                # write the system version if existent
-                if hasattr(oneConcept, 'version') and oneConcept.version:
-                    # look up if there is already one column we could use
-                    if 'codeSystemVersion' not in csv_list[0]:
-                        csv_list[0].append('codeSystemVersion')
-
-                    # add "" for not existing props in this concept to conceptRow
-                    while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
-                        conceptRow.append("")
-
-                    conceptRow[csv_list[0].index('codeSystemVersion')] = oneConcept.version
-                else:
-                    # retrieve version from metadata
-
-                    # theoretically one_concept.system could be either canonical or OID in
-                    # most cases, however, it would be the canonical
-                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                if self.get_resource() == "ValueSet":
+                    # write the system version if existent
+                    if hasattr(oneConcept, 'version') and oneConcept.version:
                         # look up if there is already one column we could use
                         if 'codeSystemVersion' not in csv_list[0]:
                             csv_list[0].append('codeSystemVersion')
@@ -408,17 +394,32 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                         while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
                             conceptRow.append("")
 
-                        conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
-                    elif tmp := self.gainVersionFromOid(oneConcept.system):
-                        # look up if there is already one column we could use
-                        if 'codeSystemVersion' not in csv_list[0]:
-                            csv_list[0].append('codeSystemVersion')
+                        conceptRow[csv_list[0].index('codeSystemVersion')] = oneConcept.version
+                    else:
+                        # retrieve version from metadata
 
-                        # add "" for not existing props in this concept to conceptRow
-                        while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
-                            conceptRow.append("")
+                        # theoretically one_concept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            # look up if there is already one column we could use
+                            if 'codeSystemVersion' not in csv_list[0]:
+                                csv_list[0].append('codeSystemVersion')
 
-                        conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
+                                conceptRow.append("")
+
+                            conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            # look up if there is already one column we could use
+                            if 'codeSystemVersion' not in csv_list[0]:
+                                csv_list[0].append('codeSystemVersion')
+
+                            # add "" for not existing props in this concept to conceptRow
+                            while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
+                                conceptRow.append("")
+
+                            conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
 
                 if hasattr(oneConcept,"property"):
                     #oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code) # TODO discuss if sort should be done for properties

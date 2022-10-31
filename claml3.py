@@ -321,22 +321,23 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
 
-                # write the system if existent
-                if tmp := oneConcept.system:
-                    theClass.add_Meta(MetaSub('codeSystem', tmp))
+                if self.get_resource() == "ValueSet":
+                    # write the system if existent
+                    if tmp := oneConcept.system:
+                        theClass.add_Meta(MetaSub('codeSystem', tmp))
 
-                # write the system version if existent
-                if tmp := oneConcept.version:
-                    theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
-                else:
-                    # retrieve version from metadata
+                    # write the system version if existent
+                    if tmp := oneConcept.version:
+                        theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
+                    else:
+                        # retrieve version from metadata
 
-                    # theoretically oneConcept.system could be either canonical or OID in
-                    # most cases, however, it would be the canonical
-                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                        theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
-                    elif tmp := self.gainVersionFromOid(oneConcept.system):
-                        theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
+                        # theoretically oneConcept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
 
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(id="preferred",Label=[LabelSub(valueOf_=oneConcept.display)]))
