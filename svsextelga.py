@@ -624,6 +624,20 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             # create anyAttribute if version 2
             if versionSVSextELGA == 2:
                 anyAttrDict = {}
+
+                # write the system version if existent
+                if hasattr(oneConcept, 'version') and oneConcept.version:
+                    anyAttrDict.update({'codeSystemVersion': oneConcept.version})
+                else:
+                    # retrieve version from metadata
+
+                    # theoretically one_concept.system could be either canonical or OID in
+                    # most cases, however, it would be the canonical
+                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                        anyAttrDict.update({'codeSystemVersion': tmp})
+                    elif tmp := self.gainVersionFromOid(oneConcept.system):
+                        anyAttrDict.update({'codeSystemVersion': tmp})
+
                 if self.get_resource() == "CodeSystem":
                     for oneProp in oneConcept.property:
                         if (oneProp.code != "status" and oneProp.code != "notSelectable" and oneProp.code != "child"
