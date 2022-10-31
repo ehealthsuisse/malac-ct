@@ -1,5 +1,6 @@
 import csv
 import re
+import os
 import prop_csv_and_master as pcam
 
 class OutdatedCsv1(pcam.PropCsvAndMaster):
@@ -134,6 +135,9 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
+                                # read the codeSystemVersion, if this is a outdated csv v2
+                                elif self.versionOfOutdatedCsv == 2 and 'codeSystemVersion' == headingList[i] and row[i] != "":
+                                    theConcept.version = row[i]
                                 # read all the other properties/designations, if this is a outdated csv v2
                                 elif self.versionOfOutdatedCsv == 2 and headingList[i] != "" and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
