@@ -334,9 +334,9 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     # theoretically oneConcept.system could be either canonical or OID in
                     # most cases, however, it would be the canonical
                     if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                        theClass.add_Meta(MetaSub('system-version', tmp))
+                        theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
                     elif tmp := self.gainVersionFromOid(oneConcept.system):
-                        theClass.add_Meta(MetaSub('system-version', tmp))
+                        theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
 
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(id="preferred",Label=[LabelSub(valueOf_=oneConcept.display)]))
