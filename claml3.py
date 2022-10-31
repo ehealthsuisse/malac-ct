@@ -323,11 +323,11 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
 
                 # write the system if existent
                 if tmp := oneConcept.system:
-                    theClass.add_Meta(MetaSub('system', tmp))
+                    theClass.add_Meta(MetaSub('codeSystem', tmp))
 
                 # write the system version if existent
                 if tmp := oneConcept.version:
-                    theClass.add_Meta(MetaSub('system-version', tmp))
+                    theClass.add_Meta(MetaSub('codeSystemVersion', tmp))
                 else:
                     # retrieve version from metadata
 
