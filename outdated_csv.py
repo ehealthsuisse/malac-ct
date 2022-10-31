@@ -149,7 +149,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 if self.resource == self.resource.ValueSet:
                     # sort after everthing is read, if there is a orderNumber
                     if self.concept[0].get_orderNumber() is not None:
-                        self.concept.sort(key=self.VSConcept.get_orderNumber)
+                        self.concept.sort(key=VSConcept.get_orderNumber)
                     # set members after it is sort and everything is read
                     theMemberParent = [None]*9
                     for oneConcept in self.concept:
@@ -478,4 +478,4 @@ class VSConcept(pcam.VSConcept):
 
     # used only for sorting mechanism
     def get_orderNumber(self):
-        return self.ordernumber
+        return self.orderNumber
