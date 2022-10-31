@@ -144,6 +144,8 @@ def main() -> None:
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
+        # add globalUrl as class variable for outdatedcsv - would not be able to access it otherwise
+        inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
         input.globalUrl = args.fhirIgUrl
