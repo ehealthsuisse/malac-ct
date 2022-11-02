@@ -447,7 +447,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                 csv_list[0].append(oneDesig.use.code)
 
                             # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow)-1 <= csv_list[0].index(oneDesig.use.code):
+                            while len(conceptRow) <= csv_list[0].index(oneDesig.use.code):
                                 conceptRow.append("")
 
                             conceptRow[csv_list[0].index(oneDesig.use.code)] = oneDesig.value
