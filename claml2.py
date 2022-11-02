@@ -149,6 +149,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     oneConDet.name = oneAuthor.get_name()
                     oneConPoi = pcam.ContactDetail.ContactPoint()
                     oneConPoi.value = tempValueOf
+                    oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
                     oneConDet.telecom = [oneConPoi]
                     tempConDetS.append(oneConDet)
         if (website := get_Meta_with_name(self,'website')) and not website == "":
@@ -505,7 +506,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 # TODO not sure if the one line if does make sense, check when doing the big claml refactoring
                 oneAuthor = AuthorSub(oneContact.name or None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
                 authors.add_Author(oneAuthor)
-                # dont add the author information as webside-meta, like it once was in the austrian termpub, cant deliver name and telecom in one meta
+                # dont add the author information as website-meta, like it once was in the austrian termpub, cant deliver name and telecom in one meta
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
@@ -548,6 +549,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=str(oneDesignation))]))
+                        if oneDesignation.use.code == "hints" or oneDesignation.use.code == "hinweise":
+                                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneDesignation.value))
 
                 type = "L"
                 if  hasattr(oneConcept,'property'):
@@ -567,9 +570,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             if oneProperty.code == "hints" or oneProperty.code == "hinweise":
                                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
 
-                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type is "S" else "true"))
+                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type == "S" else "true"))
                 concept_dict = self.buildConceptDictWithAttr('code')
-                theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept) or 0))
+                theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 theClass.add_Meta(MetaSub("Type", type))
 
                 # if there was no kind given, create one with "noKind"
