@@ -435,8 +435,6 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
                             conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
                             #conceptRow.append(oneProp.value)
-
-                            csv_list[0][csv_list[0].index(oneProp.code)]
                 if hasattr(oneConcept,"designation"):
                     for oneDesig in oneConcept.designation:
                         if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
