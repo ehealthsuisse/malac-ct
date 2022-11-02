@@ -386,70 +386,28 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 if self.get_resource() == "ValueSet":
                     # write the system version if existent
                     if hasattr(oneConcept, 'version') and oneConcept.version:
-                        # look up if there is already one column we could use
-                        if 'codeSystemVersion' not in csv_list[0]:
-                            csv_list[0].append('codeSystemVersion')
-
-                        # add "" for not existing props in this concept to conceptRow
-                        while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
-                            conceptRow.append("")
-
-                        conceptRow[csv_list[0].index('codeSystemVersion')] = oneConcept.version
+                        append_additional_value(csv_list, conceptRow, 'codeSystemVersion', oneConcept.version)
                     else:
                         # retrieve version from metadata
 
                         # theoretically one_concept.system could be either canonical or OID in
                         # most cases, however, it would be the canonical
                         if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                            # look up if there is already one column we could use
-                            if 'codeSystemVersion' not in csv_list[0]:
-                                csv_list[0].append('codeSystemVersion')
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
+                            append_additional_value(csv_list, conceptRow, 'codeSystemVersion', tmp)
                         elif tmp := self.gainVersionFromOid(oneConcept.system):
-                            # look up if there is already one column we could use
-                            if 'codeSystemVersion' not in csv_list[0]:
-                                csv_list[0].append('codeSystemVersion')
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow) <= csv_list[0].index('codeSystemVersion'):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index('codeSystemVersion')] = tmp
+                            append_additional_value(csv_list, conceptRow, 'codeSystemVersion', tmp)
 
                 if hasattr(oneConcept,"property"):
                     #oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code) # TODO discuss if sort should be done for properties
                     for oneProp in oneConcept.property:
                         if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
-                            # look up if there is already one column we could use
-                            if oneProp.code not in csv_list[0]:
-                                csv_list[0].append(oneProp.code)
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow) <= csv_list[0].index(oneProp.code):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
-                            #conceptRow.append(oneProp.value)
+                            append_additional_value(csv_list, conceptRow, oneProp.code, oneProp.value)
                 if hasattr(oneConcept,"designation"):
                     for oneDesig in oneConcept.designation:
                         if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
                                 oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
                                 oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
-                            # look up if there is already one column we could use
-                            if oneDesig.use.code not in csv_list[0]:
-                                csv_list[0].append(oneDesig.use.code)
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow) <= csv_list[0].index(oneDesig.use.code):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index(oneDesig.use.code)] = oneDesig.value
-
+                            append_additional_value(csv_list, conceptRow, oneDesig.use.code, oneDesig.value)
 
             # add conceptRow to csv list
             csv_list.append(conceptRow)
@@ -463,6 +421,17 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                     outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'","´").replace(";",",") + "\'")
                 newline = False
             outfile.write("\n")
+
+def append_additional_value(csv_list, concept_row, column_name, value):
+    # look up if there is already one column we could use
+    if column_name not in csv_list[0]:
+        csv_list[0].append(column_name)
+
+    # add "" for not existing props in this concept to conceptRow
+    while len(concept_row) <= csv_list[0].index(column_name):
+        concept_row.append("")
+
+    concept_row[csv_list[0].index(column_name)] = value
 
 class OutdatedCsv2(OutdatedCsv1):
     def __init__(self, inFile=None, versionOfOutdatedCsv=2):
