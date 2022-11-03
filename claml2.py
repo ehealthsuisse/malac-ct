@@ -161,9 +161,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         tempConDetS.append(oneConDet)
         if not website_in_authors and (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
-            oneConDet.name = oneAuthor.get_name() or ""
             oneConPoi = pcam.ContactDetail.ContactPoint()
-            oneConPoi.value = website_in_authors
+            oneConPoi.value = website
             oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
