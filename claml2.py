@@ -142,6 +142,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     def get_contact(self):
         tempConDetS = []
+        website = get_Meta_with_name(self,'website')
         website_in_authors = False
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
@@ -149,7 +150,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
                         for oneConDetTele in oneConDet.telecom:
                             if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
-                                website_in_authors = True
+                                if website and oneConDetTele.value and oneConDetTele.value.strip() == website.strip():
+                                    website_in_authors = True
                         tempConDetS.append(oneConDet)
                     else:
                         oneConDet = pcam.ContactDetail()
@@ -159,7 +161,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
                         oneConDet.telecom = [oneConPoi]
                         tempConDetS.append(oneConDet)
-        if not website_in_authors and (website := get_Meta_with_name(self,'website')) and not website == "":
+        if not website_in_authors:
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
