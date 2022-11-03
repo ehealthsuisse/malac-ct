@@ -142,20 +142,28 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     def get_contact(self):
         tempConDetS = []
+        website_in_authors = False
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
                 if tempValueOf := oneAuthor.get_valueOf_():
-                    oneConDet = pcam.ContactDetail()
-                    oneConDet.name = oneAuthor.get_name()
-                    oneConPoi = pcam.ContactDetail.ContactPoint()
-                    oneConPoi.value = tempValueOf
-                    oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
-                    oneConDet.telecom = [oneConPoi]
-                    tempConDetS.append(oneConDet)
-        if (website := get_Meta_with_name(self,'website')) and not website == "":
+                    if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
+                        for oneConDetTele in oneConDet.telecom:
+                            if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
+                                website_in_authors = True
+                        tempConDetS.append(oneConDet)
+                    else:
+                        oneConDet = pcam.ContactDetail()
+                        oneConDet.name = oneAuthor.get_name() or ""
+                        oneConPoi = pcam.ContactDetail.ContactPoint()
+                        oneConPoi.value = tempValueOf
+                        oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
+                        oneConDet.telecom = [oneConPoi]
+                        tempConDetS.append(oneConDet)
+        if not website_in_authors and (website := get_Meta_with_name(self,'website')) and not website == "":
             oneConDet = pcam.ContactDetail()
+            oneConDet.name = oneAuthor.get_name() or ""
             oneConPoi = pcam.ContactDetail.ContactPoint()
-            oneConPoi.value = website
+            oneConPoi.value = website_in_authors
             oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom = [oneConPoi]
             tempConDetS.append(oneConDet)
@@ -502,10 +510,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
+            website = ""
             for oneContact in tmp:
-                # TODO not sure if the one line if does make sense, check when doing the big claml refactoring
-                oneAuthor = AuthorSub(oneContact.name or None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
+                oneAuthor = AuthorSub(oneContact.name or "", str(oneContact).split('|',2)[1])
                 authors.add_Author(oneAuthor)
+                for oneConTele in oneContact.telecom:
+                    if oneConTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
+                        if website == "":
+                            website = oneConTele.value
+                        else:
+                            website += " & " + oneConTele.value
+                metas.append(MetaSub("website",website))
                 # dont add the author information as website-meta, like it once was in the austrian termpub, cant deliver name and telecom in one meta
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
