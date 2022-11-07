@@ -176,17 +176,26 @@ class PropCsvAndMaster():
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
                             # setting the hierarchy level
-                            one_concept.level = self.retrieve_level(concept_dict, one_concept)
+                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
                             # setting the parent of one_concept
                             one_concept.parent = parent
 
-    def retrieve_level(self, concept_dict, concept):
+    def retrieve_level_of_VS_concept(self, concept_dict, concept):
         if concept.parent:
             parent_code = concept.parent.code if hasattr(concept.parent,"code") else concept.parent
-            level = self.retrieve_level(concept_dict, concept_dict[parent_code])
+            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[parent_code])
             return level + 1
         else:
             return 0
+
+    def retrieve_level_of_CS_concept(self, concept_dict, concept):
+        if hasattr(concept,'property') and concept.property:
+            for oneProperty in concept.property:
+                if oneProperty.code == "parent":
+                    level = self.retrieve_level_of_CS_concept(concept_dict, concept_dict[oneProperty.value])
+                    return level + 1
+        return 0
+
 
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix reading of author in `.2.claml.xml`.
 - Fix writing of concept status in `.2.claml.xml`.
+- Fix using `&#10` instead of `\n` in all XML formats besides `.4.fhir.xml`.
+- Fix handling of Beschreibung, Description and Version-Description in `.*.svsextelga.xml` and `.2.claml.xml`.
+- Fix handling of contact and hints in `.2.claml.xml`.
 
 ## [3.0.1+20221018]
 

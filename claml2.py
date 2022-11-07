@@ -142,16 +142,26 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     def get_contact(self):
         tempConDetS = []
+        website = get_Meta_with_name(self,'website')
+        website_in_authors = False
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
                 if tempValueOf := oneAuthor.get_valueOf_():
-                    oneConDet = pcam.ContactDetail()
-                    oneConDet.name = oneAuthor.get_name()
-                    oneConPoi = pcam.ContactDetail.ContactPoint()
-                    oneConPoi.value = tempValueOf
-                    oneConDet.telecom = [oneConPoi]
-                    tempConDetS.append(oneConDet)
-        if (website := get_Meta_with_name(self,'website')) and not website == "":
+                    if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
+                        for oneConDetTele in oneConDet.telecom:
+                            if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
+                                if website and oneConDetTele.value and oneConDetTele.value.strip() == website.strip():
+                                    website_in_authors = True
+                        tempConDetS.append(oneConDet)
+                    else:
+                        oneConDet = pcam.ContactDetail()
+                        oneConDet.name = oneAuthor.get_name() or ""
+                        oneConPoi = pcam.ContactDetail.ContactPoint()
+                        oneConPoi.value = tempValueOf
+                        oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
+                        oneConDet.telecom = [oneConPoi]
+                        tempConDetS.append(oneConDet)
+        if website and not website_in_authors:
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
@@ -439,14 +449,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas = []
 
         # required ClaMl3 fields
-        # QuickFix: set valueOf_ of Title to '' explicitly - other wise the Title-tag will be filled with 'None', i.e. <Title>None</Title>
         # TODO recreate super-class with generateDS
-        title = TitleSub(self.get_name(),self.get_version(), valueOf_='')
+        title = TitleSub(self.get_name(),self.get_version(), valueOf_=(self.get_title() or ""))
         metas.append(MetaSub('titleLong',self.get_title()))
         claKinds = ClassKindsSub()
         claKinds.add_ClassKind(ClassKindSub("code"))
         rubKinds = RubricKindsSub()
-        # TODO rubricKinds should be added when some are gathered
+        # TODO only rubricKinds, that are beeing used, should be added
         rubKinds.add_RubricKind(RubricKindSub("preferred"))
 
         # optional ClaMl3 fields
@@ -459,7 +468,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         elif self.get_status() == "active":
             metas.append(MetaSub('preliminary', "false"))
         metas.append(MetaSub('status', self.get_status()))
-        metas.append(MetaSub('description',self.get_description()))
+        if (tmp := self.get_description()) and tmp.strip() != "":
+            desc_splitted_by_star_star = tmp.split('**')
+            headers = False
+            if "Description:" in desc_splitted_by_star_star:
+                metas.append(MetaSub('description_eng',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()))
+                headers = True
+            if "Beschreibung:" in desc_splitted_by_star_star:
+                metas.append(MetaSub('description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Beschreibung:")+1].strip()))
+                headers = True
+            if "Versions-Beschreibung:" in desc_splitted_by_star_star:
+                metas.append(MetaSub('version_description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")+1].strip()))
+                headers = True
+            if not headers:
+                metas.append(MetaSub('description',tmp.strip()))
+                metas.append(MetaSub('description_eng',tmp.strip()))
 
         # conditional and mandatory FHIR R4 fields
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
@@ -481,16 +504,24 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
         if tmp := self.get_date(): title.date = tmp
         authors = None
-        if tmp := self.get_publisher():
-            # QuickFix: set valueOf_ of Author to '' explicitly - other wise the Author-tag will be filled with 'None', i.e. <Author name="name_of_author">None</Author>
-            # TODO improve reading of Author - check for 'None'-string
+        if (tmp := self.get_publisher()) and (tmp != "None"):
+            # setting valueOf_ of Author to '' explicitly - other wise the Author-tag will be filled with 'None', i.e. <Author name="name_of_author">None</Author>
             authors = AuthorsSub([AuthorSub(tmp, '')])
         if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
+            website = ""
             for oneContact in tmp:
-                oneAuthor = AuthorSub(oneContact.name or None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
-                authors.get_Author().append(oneAuthor)
+                oneAuthor = AuthorSub(oneContact.name or "", str(oneContact).split('|',2)[1])
+                authors.add_Author(oneAuthor)
+                for oneConTele in oneContact.telecom:
+                    if oneConTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
+                        if website == "":
+                            website = oneConTele.value
+                        else:
+                            website += " & " + oneConTele.value
+                metas.append(MetaSub("website",website))
+                # dont add the author information as website-meta, like it once was in the austrian termpub, cant deliver name and telecom in one meta
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
@@ -546,12 +577,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=language,valueOf_=oneConcept.display)]))
-                if hasattr(oneConcept,'definition'):
-                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=oneConcept.definition)]))
+                if hasattr(oneConcept,'definition') and (tmp := oneConcept.definition):
+                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=tmp)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=str(oneDesignation))]))
+                        if oneDesignation.use.code == "hints" or oneDesignation.use.code == "hinweise":
+                                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneDesignation.value))
 
+                type = "L"
                 if  hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
@@ -560,10 +594,19 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
+                            type = "S"
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
-                            theClass.add_Rubric(RubricSub(kind=oneProperty.code, Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
+                            theClass.add_Rubric(RubricSub(kind=(oneProperty.code if oneProperty.code != "None" else None), Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
+                            # additionally add this to a austrian termpub attribute
+                            if oneProperty.code == "hints" or oneProperty.code == "hinweise":
+                                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
+
+                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type == "S" else "true"))
+                concept_dict = self.buildConceptDictWithAttr('code')
+                theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
+                theClass.add_Meta(MetaSub("Type", type))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
@@ -572,7 +615,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 classes.append(theClass)
 
         claml2 = ClaML2Sub('2.0.0',metas,identifiers,title,authors,None,claKinds,None,rubKinds,None,None,classes)
-        claml2.export(outfile, 0)
+        claml2.export(outfile, 0, namespacedef_="")
 
 supermod.ClaML2.subclass = ClaML2Sub
 # end class ClaML2Sub
