@@ -161,7 +161,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.other
                         oneConDet.telecom = [oneConPoi]
                         tempConDetS.append(oneConDet)
-        if not website_in_authors:
+        if website and not website_in_authors:
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
@@ -449,7 +449,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         metas = []
 
         # required ClaMl3 fields
-        # TODO discuss if in the title valueof there should be the human readable title or the description, like it was on the old austrian termpub
         # TODO recreate super-class with generateDS
         title = TitleSub(self.get_name(),self.get_version(), valueOf_=(self.get_title() or ""))
         metas.append(MetaSub('titleLong',self.get_title()))
