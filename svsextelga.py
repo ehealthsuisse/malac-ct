@@ -436,13 +436,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionSVSextELGA=1):
         beschreibung = description = ""
-        if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
-            if "Beschreibung:" in tmp:
-                beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
-            if "Description:" in tmp:
-                description = tmp[tmp.index("Description:")+1].strip()
-        else:
-            beschreibung = self.get_description()
+        if (tmp := self.get_description()) and tmp.strip() != "":
+            desc_splitted_by_star_star = tmp.split('**')
+            headers = False
+            if "Description:" in desc_splitted_by_star_star:
+                description = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()
+                headers = True
+            if "Beschreibung:" in desc_splitted_by_star_star:
+                beschreibung = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Beschreibung:")+1].strip()
+                headers = True
+            if not headers:
+                beschreibung = tmp.strip()
 
         displayName = self.get_title()
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
