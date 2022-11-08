@@ -464,8 +464,19 @@ class Fsh1(pcam.PropCsvAndMaster):
                         else:
                             incOrExclude = "include"
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
+                        # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
                             outfile.write('* compose.%s[%s].version = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.version))
+                        else:
+                            # retrieve version from metadata
+
+                            # theoretically one_concept.system could be either canonical or OID in
+                            # most cases, however, it would be the canonical
+                            if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                outfile.write('* compose.%s[%s].version = "%s"\n' % (incOrExclude, cntIncAndExclude, tmp))
+                            elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                outfile.write('* compose.%s[%s].version = "%s"\n' % (incOrExclude, cntIncAndExclude, tmp))
+
                     cntVSConcept += 1
 
                     if hasattr(oneConcept, 'code') and oneConcept.code:
@@ -519,7 +530,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 containCnt = [-1]
                 for oneConcept in conceptList:
                     if oneConcept.level == 0:
-                        writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt)
+                        writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt)
 
     def exportoZuppl(self, outfileVS, outfileCSsuppl, outputClass, argsLang=None, incHierarchyExt4VS=False):
         # looking into the concepts, split to every codesystems that is used
@@ -572,11 +583,23 @@ class Fsh1(pcam.PropCsvAndMaster):
         # exporting the changed ValueSet
         outputClass.exporto(self, outfileVS, outputClass, argsLang, incHierarchyExt4VS)
 
-def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
+def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
+
+    # write the system version if existent
     if oneConcept.version:
-        outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.version))
+        outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt), oneConcept.version))
+    else:
+        # retrieve version from metadata
+
+        # theoretically one_concept.system could be either canonical or OID in
+        # most cases, however, it would be the canonical
+        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+            outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt), tmp))
+        elif tmp := self.gainVersionFromOid(oneConcept.system):
+            outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt), tmp))
+
     # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
     # That given, a fsh valueset cant be used for input, if having abstract codes
     if oneConcept.abstract:
@@ -612,7 +635,7 @@ def writeSelfAndRecrCallMembers(oneConcept, outfile, containCnt):
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
         for oneMember in oneConcept.member:
-            writeSelfAndRecrCallMembers(oneMember, outfile, containCnt)
+            writeSelfAndRecrCallMembers(self, oneMember, outfile, containCnt)
         containCnt.pop(oneConcept.level+1)
 
 def strContainsAsLevels (level, containCnt):

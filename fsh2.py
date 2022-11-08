@@ -202,8 +202,18 @@ class Fsh2(Fsh1):
                         k = -1
                         tempConcept = oneConcept
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
+                        # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
                             outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
+                        else:
+                            # retrieve version from metadata
+
+                            # theoretically one_concept.system could be either canonical or OID in
+                            # most cases, however, it would be the canonical
+                            if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                outfile.write('* compose.include[%s].version = "%s"\n' % (j, tmp))
+                            elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                outfile.write('* compose.include[%s].version = "%s"\n' % (j, tmp))
 
                     if hasattr(oneConcept, 'code'):
                         k += 1

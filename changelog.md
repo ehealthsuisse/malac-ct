@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-120](https://jira-neu.elga.gv.at/browse/TERGI-120) Support reading/writing of CodeSystem version in ValueSets.
+
 ### Fixed
 
 - Fix reading of author in `.2.claml.xml`.

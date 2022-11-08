@@ -366,7 +366,7 @@ class PropCsvAndMaster():
             for line in csvlist:
                 outfile.write(line)
 
-    def resolveTerminologyMapping(self, search_column, search_value, target_column):
+    def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given
         if not hasattr(self, "processedTerminologies"):
             import sys
@@ -387,17 +387,27 @@ class PropCsvAndMaster():
             if line_dict[search_column] == search_value:
                 if line_dict[target_column]:
                     return line_dict[target_column]
-        print('Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdated csv, needs a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % search_value)
-        return search_value
+        if error_message:
+            print(error_message)
+        return error_value
 
     def gainOidFromName(self, name):
-        return self.resolveTerminologyMapping('name', name, 'oid')
+        error_message = 'Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdatedCSV, need a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % name
+        return self.resolveTerminologyMapping('name', name, 'oid', error_message, name)
 
     def gainOidFromCanonical(self, canonical):
-        return self.resolveTerminologyMapping('canonical', canonical, 'oid')
+        error_message = 'Error: For "%s" as CodeSystem-Name or as canonical the CodeSystem OID was not found in the appndProcTermTo list. Some formats, like the outdatedCSV, need a appndProcTermTo list for gaining OIDs of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % canonical
+        return self.resolveTerminologyMapping('canonical', canonical, 'oid', error_message, canonical)
 
     def gainCanonicalFromOid(self, oid):
-        return self.resolveTerminologyMapping('oid', oid, 'canonical')
+        error_message = 'Error: For "%s" as OID the canonical of the CodeSystem was not found in the appndProcTermTo list. Some formats, like FHIR or FSH, need a appndProcTermTo list for gaining canonicals of the used CodeSystems, given with "-appndProcTermTo". In this case, the given value will be used instead.\n' % oid
+        return self.resolveTerminologyMapping('oid', oid, 'canonical', error_message, oid)
+
+    def gainVersionFromCanonical(self, canonical):
+        return self.resolveTerminologyMapping('canonical', canonical, 'version')
+
+    def gainVersionFromOid(self, oid):
+        return self.resolveTerminologyMapping('oid', oid, 'version')
 
     def buildConceptDictWithAttr(self, stringAttrAsKey):
         tmpDict = {}
@@ -591,6 +601,20 @@ class PropCsvAndMaster():
                                 else:
                                     csv_line.append('')
 
+                            elif csv_header_element == 'version':
+                                # write the system version if existent
+                                if  tmp := oneConcept.version:
+                                    csv_line.append(tmp)
+                                else:
+                                    # retrieve version from metadata
+
+                                    # theoretically one_concept.system could be either canonical or OID in
+                                    # most cases, however, it would be the canonical
+                                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                        csv_line.append(tmp)
+                                    elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                        csv_line.append(tmp)
+
                             elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                                 csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                             else:
@@ -600,9 +624,22 @@ class PropCsvAndMaster():
                         if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
                             csv_header.append('system')
                             csv_line.append(tmp)
-                        if 'version' not in csv_header and (tmp := oneConcept.version):#hasattr(oneConcept,'version'):
-                            csv_header.append('version')
-                            csv_line.append(tmp)
+                        if 'version' not in csv_header:
+                            # write the system version if existent
+                            if  tmp := oneConcept.version:
+                                csv_header.append('version')
+                                csv_line.append(tmp)
+                            else:
+                                # retrieve version from metadata
+
+                                # theoretically one_concept.system could be either canonical or OID in
+                                # most cases, however, it would be the canonical
+                                if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                    csv_header.append('version')
+                                    csv_line.append(tmp)
+                                elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                    csv_header.append('version')
+                                    csv_line.append(tmp)
                         if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
                             csv_header.append('code')
                             csv_line.append(tmp)
