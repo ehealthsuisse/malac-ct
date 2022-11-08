@@ -418,7 +418,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 if versionOfOutdatedCsv == 2 and csvelement == "":
                     outfile.write((";" if not newline else ""))
                 else:
-                    outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'","´").replace(";",",") + "\'")
+                    outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'", "''").replace(";",",") + "\'")
                 newline = False
             outfile.write("\n")
 

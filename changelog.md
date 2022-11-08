@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [TERGI-118](https://jira-neu.elga.gv.at/browse/TERGI-118) Change quoting within fields within propCSV from `´` to `""` and within outdatedCSV from `´` to `''`.
 - Fix reading of author in `.2.claml.xml`.
 - Fix writing of concept status in `.2.claml.xml`.
 - Fix using `&#10` instead of `\n` in all XML formats besides `.4.fhir.xml`.
