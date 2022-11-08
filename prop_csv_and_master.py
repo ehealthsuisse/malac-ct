@@ -458,66 +458,58 @@ class PropCsvAndMaster():
         # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
         with open(outfile.name, 'wb') as outfile:
 
-            csv_list = []
+            csv_meta = []
             # start list of metaelements
-            csv_list.append(("resource",self.get_resource()))
-            csv_list.append(("url",self.get_url()))
-            csv_list.append(("version",self.get_version()))
-            csv_list.append(("name",self.get_name()))
-            csv_list.append(("title",self.get_title()))
-            csv_list.append(("status",self.get_status()))
-            if tmp := self.get_description(): csv_list.append(("description", tmp))
+            csv_meta.append(("resource",self.get_resource()))
+            csv_meta.append(("url",self.get_url()))
+            csv_meta.append(("version",self.get_version()))
+            csv_meta.append(("name",self.get_name()))
+            csv_meta.append(("title",self.get_title()))
+            csv_meta.append(("status",self.get_status()))
+            if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
-            if self.get_resource() == "CodeSystem": csv_list.append(("content",self.get_content()))
+            if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
 
-            if tmp := self.get_implicitrules(): csv_list.append(("implicitRules",tmp))
-            if tmp := self.get_language(): csv_list.append(("language",tmp))
-            if tmp := self.get_text(): csv_list.append(("text",tmp))
-            if tmp := self.get_contained(): csv_list.append(("contained",tmp))
-            if tmp := self.get_extension(): csv_list.append(("extension",tmp))
-            if tmp := self.get_modifierextension(): csv_list.append(("modifierExtension",tmp))
+            if tmp := self.get_implicitrules(): csv_meta.append(("implicitRules",tmp))
+            if tmp := self.get_language(): csv_meta.append(("language",tmp))
+            if tmp := self.get_text(): csv_meta.append(("text",tmp))
+            if tmp := self.get_contained(): csv_meta.append(("contained",tmp))
+            if tmp := self.get_extension(): csv_meta.append(("extension",tmp))
+            if tmp := self.get_modifierextension(): csv_meta.append(("modifierExtension",tmp))
             if tmp := self.get_identifier():
                 for oneIdentifier in tmp:
-                    csv_list.append(("identifier",oneIdentifier))
-            if tmp := self.get_experimental(): csv_list.append(("experimental",tmp))
-            if tmp := self.get_date(): csv_list.append(("date",tmp))
-            if tmp := self.get_publisher(): csv_list.append(("publisher",tmp))
+                    csv_meta.append(("identifier",oneIdentifier))
+            if tmp := self.get_experimental(): csv_meta.append(("experimental",tmp))
+            if tmp := self.get_date(): csv_meta.append(("date",tmp))
+            if tmp := self.get_publisher(): csv_meta.append(("publisher",tmp))
             if tmp := self.get_contact():
                 for oneContact in tmp:
-                    csv_list.append(("contact", str(oneContact)))
+                    csv_meta.append(("contact", str(oneContact)))
             if tmp := self.get_usecontext():
                 for oneUseContext in tmp:
-                    csv_list.append(("useContext",oneUseContext))
+                    csv_meta.append(("useContext",oneUseContext))
             if tmp := self.get_jurisdiction():
                 for oneJurisdiction in tmp:
-                    csv_list.append(("jurisdiction",oneJurisdiction))
-            if tmp := self.get_purpose(): csv_list.append(("purpose",tmp))
-            if tmp := self.get_copyright(): csv_list.append(("copyright",tmp))
-            if tmp := self.get_immutable(): csv_list.append(("immutable",tmp))
-            if tmp := self.get_lockeddate(): csv_list.append(("lockedDate",tmp))
-            if tmp := self.get_inactive(): csv_list.append(("inactive",tmp))
-            if tmp := self.get_casesensitive(): csv_list.append(("caseSensitive",tmp))
-            if tmp := self.get_valueset(): csv_list.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_list.append(("hierarchyMeaning",tmp))
-            if tmp := self.get_compositional(): csv_list.append(("compositional",tmp))
-            if tmp := self.get_versionneeded(): csv_list.append(("versionNeeded",tmp))
-            if tmp := self.get_supplements(): csv_list.append(("supplements",tmp))
-            if tmp := self.get_count(): csv_list.append(("count",tmp))
+                    csv_meta.append(("jurisdiction",oneJurisdiction))
+            if tmp := self.get_purpose(): csv_meta.append(("purpose",tmp))
+            if tmp := self.get_copyright(): csv_meta.append(("copyright",tmp))
+            if tmp := self.get_immutable(): csv_meta.append(("immutable",tmp))
+            if tmp := self.get_lockeddate(): csv_meta.append(("lockedDate",tmp))
+            if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
+            if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
+            if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
+            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp))
+            if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
+            if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
+            if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
+            if tmp := self.get_count(): csv_meta.append(("count",tmp))
             if tmp := self.get_filter():
                 for oneFilter in tmp:
-                    csv_list.append(("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
+                    csv_meta.append(("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
             if tmp := self.get_property():
                 for oneProperty in tmp:
-                    csv_list.append(("property",str(oneProperty)))
+                    csv_meta.append(("property",str(oneProperty)))
             # end list of metaelements
-            for csvline in zip(*csv_list): #transpose the list
-                newline = True
-                for csvelement in csvline:
-                    # write and change all ',' to ';'
-                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
-                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
-                    newline = False
-                outfile.write(("\n").encode('cp1252',errors='ignore'))
 
             csv_header = []
 
@@ -671,25 +663,16 @@ class PropCsvAndMaster():
 
             csv_list.insert(0,csv_header)
 
-            if outfile.name.endswith('.1.propcsv.xlsx'):
-                import xlsxwriter
-
-                # Create an new Excel file and add a worksheet.
-                workbook = xlsxwriter.Workbook(outfile.name)
-                worksheet = workbook.add_worksheet()
-
-                # Write some numbers, with row/column notation.
-                x = 0
-                for csvline in csv_list:
-                    x += 1
-                    y = 0
+            if outfile.name.endswith('.1.propcsv.csv'):
+                for csvline in zip(*csv_meta): #transpose the list
+                    newline = True
                     for csvelement in csvline:
-                        y += 1
-                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+                        # write and change all ',' to ';'
+                        #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
+                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
+                        newline = False
+                    outfile.write(("\n").encode('cp1252',errors='ignore'))
 
-                workbook.close()
-
-            elif outfile.name.endswith('.1.propcsv.csv'):
                 for csvline in csv_list:
                     outfile.write(("\n").encode('cp1252',errors='ignore'))
                     newline = True
@@ -697,6 +680,35 @@ class PropCsvAndMaster():
                         outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
                         newline = False
 
+            elif outfile.name.endswith('.1.propcsv.xlsx'):
+                import xlsxwriter
+                # close the in malac generally opend file, xlsxwriter would create a unreadable xlsx
+                outfile.close()
+                # Create an new Excel file and add a worksheet.
+                workbook = xlsxwriter.Workbook(outfile.name)
+                worksheet = workbook.add_worksheet()
+
+                # fill with meta
+                x = -1
+                for csvline in zip(*csv_meta): #transpose the list
+                    x += 1
+                    y = -1
+                    for csvelement in csvline:
+                        y += 1
+                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+
+                # for the empty row between meta and data
+                x += 1
+
+                # fill with data
+                for csvline in csv_list:
+                    x += 1
+                    y = -1
+                    for csvelement in csvline:
+                        y += 1
+                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+
+                workbook.close()
 class PropCsvAsXLSX():
     def parse(inFilename):
         import pandas as pd
