@@ -625,13 +625,32 @@ class PropCsvAndMaster():
 
             csv_list.insert(0,csv_header)
 
-            for csvline in csv_list:
-                outfile.write(("\n").encode('cp1252',errors='replace'))
-                newline = True
-                for csvelement in csvline:
-                    #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
-                    outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
-                    newline = False
+            if outfile.name.endswith('.1.propcsv.xlsx'):
+                import xlsxwriter
+
+                # Create an new Excel file and add a worksheet.
+                workbook = xlsxwriter.Workbook(outfile.name)
+                worksheet = workbook.add_worksheet()
+
+                # Write some numbers, with row/column notation.
+                x = 0
+                for csvline in csv_list:
+                    x += 1
+                    y = 0
+                    for csvelement in csvline:
+                        y += 1
+                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+
+                workbook.close()
+
+            elif outfile.name.endswith('.1.propcsv.csv'):
+                for csvline in csv_list:
+                    outfile.write(("\n").encode('cp1252',errors='replace'))
+                    newline = True
+                    for csvelement in csvline:
+                        #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'","´") + "\'")
+                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"","´") + "\"").encode('cp1252',errors='replace'))
+                        newline = False
 
 class PropCsvAsXLSX():
     def parse(inFilename):
@@ -643,21 +662,7 @@ class PropCsvAsXLSX():
         return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        import pandas as pd
-
-        #with open(args.input.replace(iClass, '.1.propcsv.csv'), 'r', encoding="cp1252") as csvfile:
-        try:
-            # hackish "names=range(###)" is needed because from the first row the exact number ob columns cant be detected, that read_csv needs, see https://stackoverflow.com/questions/18039057/python-pandas-error-tokenizing-data
-            # nonetheless, the pandas engine with read_csv is really slow, should be updated in a few months to directly write the in memory data
-            read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False, names=range(1700), low_memory=False)
-        except FileNotFoundError:
-            # if there is no propCSV (like if output is directly given), than create it and keep it as a "collateral"
-            with open(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), 'w', newline='', encoding='utf-8') as outfile4CSV:
-                PropCsvAndMaster.exporto(self, outfile4CSV, outputClass, argsLang, incHierarchyExt4VS)
-                read_file = pd.read_csv(outfile.name.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), sep=';', quotechar='"', encoding='cp1252', skip_blank_lines=False)
-
-        # ".T.reset_index().T." is only used to get rid of extra formatting that to_excel usually does
-        read_file.T.reset_index().T.to_excel(outfile.name, index = None, header = None)#, sheet_name="")
+        PropCsvAndMaster.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
 
 class Resource(enum.Enum):
     ValueSet = 'ValueSet'
