@@ -606,6 +606,8 @@ class PropCsvAndMaster():
                                         csv_line.append(tmp)
                                     elif tmp := self.gainVersionFromOid(oneConcept.system):
                                         csv_line.append(tmp)
+                                    else: # in case no version for the codesystem is available
+                                        csv_line.append('')
 
                             elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                                 csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
@@ -617,9 +619,10 @@ class PropCsvAndMaster():
                             csv_header.append('system')
                             csv_line.append(tmp)
                         if 'version' not in csv_header:
+                            # create 'version' header in any case
+                            csv_header.append('version')
                             # write the system version if existent
                             if  tmp := oneConcept.version:
-                                csv_header.append('version')
                                 csv_line.append(tmp)
                             else:
                                 # retrieve version from metadata
@@ -627,11 +630,11 @@ class PropCsvAndMaster():
                                 # theoretically one_concept.system could be either canonical or OID in
                                 # most cases, however, it would be the canonical
                                 if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                                    csv_header.append('version')
                                     csv_line.append(tmp)
                                 elif tmp := self.gainVersionFromOid(oneConcept.system):
-                                    csv_header.append('version')
                                     csv_line.append(tmp)
+                                else: # in case no version for the codesystem is available
+                                    csv_line.append('')
                         if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
                             csv_header.append('code')
                             csv_line.append(tmp)
