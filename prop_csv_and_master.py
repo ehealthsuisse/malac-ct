@@ -695,7 +695,7 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -706,7 +706,7 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).replace("\"",'""'))
+                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
 
                 workbook.close()
 class PropCsvAsXLSX():

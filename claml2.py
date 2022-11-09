@@ -552,6 +552,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         classes = []
         if tmp := self.get_concept():
+            concept_dict = self.buildConceptDictWithAttr('code')
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
@@ -604,7 +605,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
 
                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type == "S" else "true"))
-                concept_dict = self.buildConceptDictWithAttr('code')
                 theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 theClass.add_Meta(MetaSub("Type", type))
 
