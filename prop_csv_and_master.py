@@ -716,7 +716,7 @@ class PropCsvAsXLSX():
     def parse(inFilename):
         import pandas as pd
 
-        read_file = pd.read_excel(inFilename)
+        read_file = pd.read_excel(inFilename, keep_default_na=False)
         read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
 
         return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
