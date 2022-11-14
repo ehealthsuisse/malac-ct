@@ -361,7 +361,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         if theConcept.display != tmp:
                             theConcept.definition = tmp
                     elif oneRubric.get_kind() == "designation":
-                        if theConcept.display != tmp:
+                        if theConcept.display != tmp and theConcept.display != tmp.split("|")[-1]:
                             theConcept.designation.append(pcam.ConceptDesignation(tmp))
                     else:
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
