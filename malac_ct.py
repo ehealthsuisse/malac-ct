@@ -3,8 +3,8 @@ import sys
 import time
 
 # malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
-# TODO check if fhir.json and fhir.xml has to be in listClasses for input check
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
+    ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
@@ -13,7 +13,8 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".2.fsh":["fsh2", "Fsh2"],
     ".1.svsextelga.xml":["svsextelga", "SVSextELGA1Sub"],
     ".2.svsextelga.xml":["svsextelga", "SVSextELGA2Sub"],
-    ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
+    ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"],
+    #".4.fhir.json":["fhir4_cs_and_vs", "FHIR4xml69json"] # create FHIR4xml69json inside of fhir4_cs_and_vs.py for json to xml and xml to json
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
 versionNumber = "3.0.1+20221018"
@@ -140,7 +141,6 @@ def main() -> None:
     # if it is a fhir input and the output is also fhir, skip the real malac-ct converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
-
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
@@ -160,30 +160,24 @@ def main() -> None:
             for csv2AppendTo in args.appendProcessedTerminologyTo:
                 input.appendMetaDataTo(csv2AppendTo)
 
-        # look at the name of the output file and load the classification,
-        # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
-        if args.output != None:
-            oClassValue,oClass = detectClassByEnding(args.output)
-            oModule = __import__(oClassValue[0])
-            outputClass = getattr(oModule, oClassValue[1])
+        # do the converting for every class known, or if fixed in output, once and break out the loop
+        for oClass in listClasses:
+            if not args.input.endswith(oClass):
+                oClassValue = listClasses[oClass]
+                if args.output != None: # overwrite output variables if there is an fixed output
+                    oClassValue,oClass = detectClassByEnding(args.output)
+                # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
+                oModule = __import__(oClassValue[0])
+                outputClass = getattr(oModule, oClassValue[1])
 
-            # open a new file and export to output file
-            with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
-                startFormat = time.time()
-                outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
-        # if no output class is given, than convert to all known formats
-        else:
-            for oClass in listClasses:
-                if not args.input.endswith(oClass) or oClass == "svsextelga1": #for the beta there is this exception that svs is no indirect export format!
-                    oModule = __import__(listClasses[oClass][0])
-                    outputClass = getattr(oModule, listClasses[oClass][1])
+                # open a new file and export to output file
+                with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                    startFormat = time.time()
+                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
+                    print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
 
-                    # open a new file and export to output file
-                    with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
-                        startFormat = time.time()
-                        outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                        print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
+                if args.output != None: # if there is an fixed output, do the loop just once
+                    break
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer):

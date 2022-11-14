@@ -326,6 +326,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     thePropertys.append(theProperty)
 
                 usedPreferredLong = False
+                usedDefinition = False
                 for oneRubric in oneClass.get_Rubric():
                     tmp = ""
                     if (tmp := oneRubric.get_Label()[0].get_valueOf_().strip()) == "":
@@ -353,11 +354,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     elif not usedPreferredLong and oneRubric.get_kind() == "preferred":
                         theConcept.display = tmp
                     elif oneRubric.get_kind() == "definition":
-                        theConcept.definition = tmp
-                    elif oneRubric.get_kind() == "note":
-                        theConcept.definition = tmp
+                        if theConcept.display != tmp:
+                            theConcept.definition = tmp
+                            usedDefinition = True
+                    elif not usedDefinition and oneRubric.get_kind() == "note":
+                        if theConcept.display != tmp:
+                            theConcept.definition = tmp
                     elif oneRubric.get_kind() == "designation":
-                        theConcept.designation.append(pcam.ConceptDesignation(tmp))
+                        if theConcept.display != tmp and theConcept.display != tmp.split("|")[-1]:
+                            theConcept.designation.append(pcam.ConceptDesignation(tmp))
                     else:
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                         """TODO Rubrics exist that do not have @kind. As a quick fix "None" will be assumed as code
@@ -400,10 +405,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProperty.type = pcam.PropertyCodeType.string
                                 thePropertys.append(theProperty)
                         elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
-                            theDesignation = pcam.ConceptDesignation()
-                            theDesignation.language = "de-AT"
-                            theDesignation.value = oneMeta.get_value()
-                            theConcept.designation.append(theDesignation)
+                            if theConcept.display != oneMeta.get_value():
+                                theDesignation = pcam.ConceptDesignation()
+                                theDesignation.language = "de-AT"
+                                theDesignation.value = oneMeta.get_value()
+                                theConcept.designation.append(theDesignation)
                         elif oneMeta.get_name() == "Type":
                             if not retiredAlreadySet and oneMeta.get_value() == "D":
                                 theProp = pcam.CSConcept.ConceptProperty()
@@ -552,6 +558,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         classes = []
         if tmp := self.get_concept():
+            concept_dict = self.buildConceptDictWithAttr('code')
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
@@ -595,7 +602,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
                             type = "S"
-                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean:
+                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         else:
                             theClass.add_Rubric(RubricSub(kind=(oneProperty.code if oneProperty.code != "None" else None), Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
@@ -604,7 +611,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
 
                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type == "S" else "true"))
-                concept_dict = self.buildConceptDictWithAttr('code')
                 theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 theClass.add_Meta(MetaSub("Type", type))
 
