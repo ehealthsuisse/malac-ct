@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [TERGI-120](https://jira-neu.elga.gv.at/browse/TERGI-120) Support reading/writing of CodeSystem version in ValueSets.
+- [TERGI-119](https://jira-neu.elga.gv.at/browse/TERGI-119) Add `.1.propcsv.xlsx` with same content as `.1.propcsv.csv` into an Excel. This format is specifically for authoring and has no focus on machine readability.
 
 ### Fixed
 
