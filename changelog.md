@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0+20221115]
+
 ### Added
 
 - [TERGI-120](https://jira-neu.elga.gv.at/browse/TERGI-120) Support reading/writing of CodeSystem version in ValueSets.
