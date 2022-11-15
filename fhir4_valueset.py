@@ -433,7 +433,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
 
             # create ValueSet.compose.include and/or ValueSet.compose.exclude
-            do_expansion = ValueSetSub.exporto_include_exclude(the_compose, tmp)
+            do_expansion = ValueSetSub.exporto_include_exclude(self, the_compose, tmp)
 
             # if an expansion shall be appended to the ValueSet definition
             if do_expansion:
@@ -451,7 +451,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # NOT SUPPORTED ValueSet_Expansion.parameter
 
                 # the expansion will be created starting with those concepts which are at level=0 of a possible hierarchy
-                the_expansion.set_contains(ValueSetSub.exporto_expansion(list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
+                the_expansion.set_contains(ValueSetSub.exporto_expansion(self, list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
 
                 valueset.set_expansion(the_expansion)
 
@@ -471,7 +471,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         return compose
 
-    def exporto_include_exclude(the_compose, concept_list):
+    def exporto_include_exclude(self, the_compose, concept_list):
         """Export information from the given concept_list to the_compose and create
         ValueSet.compose.include and/or ValueSet.compose.exclude if necessary.
 
@@ -503,7 +503,20 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
             # retrieve system + version from one_concept
             the_system = one_concept.system
-            the_version = one_concept.version
+            # explicitly set the_version to None - otherwise it might occur that it has the value of a preceding loop-run
+            the_version = None
+            # write the system version if existent
+            if tmp := one_concept.version:
+                the_version = one_concept.version
+            else:
+                # retrieve version from metadata
+
+                # theoretically one_concept.system could be either canonical or OID in
+                # most cases, however, it would be the canonical
+                if tmp := self.gainVersionFromCanonical(the_system):
+                    the_version = tmp
+                elif tmp := self.gainVersionFromOid(the_system):
+                    the_version = tmp
             # create key for the dictionary entry
             system_key = None
             if the_system or the_version:
@@ -570,7 +583,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         return do_expansion
 
-    def exporto_expansion(concept_list):
+    def exporto_expansion(self, concept_list):
         """Export information from the given concept_list to ValueSet.expansion.
 
         concept_list -- List of pcam.VSConcepts which will be processed.
@@ -582,16 +595,27 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             if not one_concept.exclude:
                 the_concept = ValueSet_ContainsSub()
 
-                if tmp := one_concept.system:
-                    the_concept.set_system(uriSub(value=tmp))
+                one_system = one_concept.system
+                if one_system:
+                    the_concept.set_system(uriSub(value=one_system))
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
 
                 # NOT SUPPORTED ValueSet.expansion.contains.inactive
 
+                # write the system version if existent
                 if tmp := one_concept.version:
                     the_concept.set_version(stringSub(value=tmp))
+                else:
+                    # retrieve version from metadata
+
+                    # theoretically one_concept.system could be either canonical or OID in
+                    # most cases, however, it would be the canonical
+                    if tmp := self.gainVersionFromCanonical(one_system):
+                        the_concept.set_version(stringSub(value=tmp))
+                    elif tmp := self.gainVersionFromOid(one_system):
+                        the_concept.set_version(stringSub(value=tmp))
 
                 if tmp := one_concept.code:
                     the_concept.set_code(codeSub(value=tmp))
@@ -604,7 +628,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 # if one_concept contains any members a recursion will be started
                 if tmp := one_concept.member:
-                    the_concept.set_contains(ValueSetSub.exporto_expansion(tmp))
+                    the_concept.set_contains(ValueSetSub.exporto_expansion(self, tmp))
 
                 the_concept_list.append(the_concept)
 

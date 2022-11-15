@@ -322,15 +322,19 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     # read anyAttribute if version 2
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
-                            theDesig = pcam.ConceptDesignation()
+                            # read the codesytem version if existent
+                            if oneAttrKey == 'codeSystemVersion':
+                                theConcept.version = oneCon.get_anyAttributes_()[oneAttrKey]
+                            else:
+                                theDesig = pcam.ConceptDesignation()
 
-                            code = oneAttrKey
-                            for one_xml_escape_special_char in xml_escape_special_char:
-                                code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+                                code = oneAttrKey
+                                for one_xml_escape_special_char in xml_escape_special_char:
+                                    code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
 
-                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
-                            theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
-                            theConcept.designation.append(theDesig)
+                                theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
+                                theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
+                                theConcept.designation.append(theDesig)
 
                     retArr.append(theConcept)
 
@@ -436,13 +440,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionSVSextELGA=1):
         beschreibung = description = ""
-        if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
-            if "Beschreibung:" in tmp:
-                beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
-            if "Description:" in tmp:
-                description = tmp[tmp.index("Description:")+1].strip()
-        else:
-            beschreibung = self.get_description()
+        if (tmp := self.get_description()) and tmp.strip() != "":
+            desc_splitted_by_star_star = tmp.split('**')
+            headers = False
+            if "Description:" in desc_splitted_by_star_star:
+                description = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()
+                headers = True
+            if "Beschreibung:" in desc_splitted_by_star_star:
+                beschreibung = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Beschreibung:")+1].strip()
+                headers = True
+            if not headers:
+                beschreibung = tmp.strip()
 
         displayName = self.get_title()
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
@@ -624,6 +632,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             # create anyAttribute if version 2
             if versionSVSextELGA == 2:
                 anyAttrDict = {}
+
                 if self.get_resource() == "CodeSystem":
                     for oneProp in oneConcept.property:
                         if (oneProp.code != "status" and oneProp.code != "notSelectable" and oneProp.code != "child"
@@ -635,6 +644,19 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                                 code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
                             anyAttrDict.update({code: oneProp.value})
                 elif self.get_resource() == "ValueSet":
+                    # write the system version if existent
+                    if hasattr(oneConcept, 'version') and oneConcept.version:
+                        anyAttrDict.update({'codeSystemVersion': oneConcept.version})
+                    else:
+                        # retrieve version from metadata
+
+                        # theoretically one_concept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            anyAttrDict.update({'codeSystemVersion': tmp})
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            anyAttrDict.update({'codeSystemVersion': tmp})
+
                     for oneDesig in oneConcept.designation:
                         if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"

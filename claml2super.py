@@ -178,7 +178,7 @@ except ModulenotfoundExp_ as exp:
     except ModulenotfoundExp_ as exp:
         class GeneratedsSuperSuper(object):
             pass
-    
+
     class GeneratedsSuper(GeneratedsSuperSuper):
         __hash__ = object.__hash__
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -662,8 +662,8 @@ except ModulenotfoundExp_ as exp:
                     self.gds_elementtree_node_.sourceline)
             else:
                 return ""
-    
-    
+
+
     def getSubclassFromModule_(module, class_):
         '''Get the subclass of a class from a specific module.'''
         name = class_.__name__ + 'Sub'
@@ -745,6 +745,14 @@ def quote_xml_aux(inStr):
 def quote_attrib(inStr):
     s1 = (isinstance(inStr, BaseStrType_) and inStr or '%s' % inStr)
     s1 = s1.replace('&', '&amp;')
+    """For correct conversion from FHIR XML to JSON it is necessary to
+    convert all \n to &#10; With that the line feeds will be detected correctly.
+
+    Related issues:
+    - https://github.com/IBM/FHIR/issues/3577
+    - https://sourceforge.net/p/generateds/tickets/29/
+    """
+    s1 = s1.replace('\n', '&#10;')
     s1 = s1.replace('<', '&lt;')
     s1 = s1.replace('>', '&gt;')
     if '"' in s1:

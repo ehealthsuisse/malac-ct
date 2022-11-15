@@ -1,5 +1,6 @@
 import csv
 import re
+import os
 import prop_csv_and_master as pcam
 
 class OutdatedCsv1(pcam.PropCsvAndMaster):
@@ -21,7 +22,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 else:
                     self.resource = pcam.Resource["CodeSystem"]
                 self.version = "unknown due to outdated csv"
-                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', os.path.basename(csvfile.name).replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                 self.title = csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0]
                 self.status = pcam.Status['active']
                 self.description = "unknown due to outdated csv"
@@ -101,7 +102,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                 elif 'displayName' == headingList[i] and row[i] != "": theConcept.display = row[i]
                                 elif 'concept_Beschreibung' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'meaning' == headingList[i] and row[i] != "":
@@ -111,7 +112,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 elif 'hints' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
@@ -120,24 +121,27 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theConcept.abstract = True
                                 elif 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'einheit codiert' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_codiert^einheit_codiert^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_codiert^einheit_codiert^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
                                 elif 'einheit print' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_print^einheit_print^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_print^einheit_print^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
+                                # read the codeSystemVersion, if this is a outdated csv v2
+                                elif self.versionOfOutdatedCsv == 2 and 'codeSystemVersion' == headingList[i] and row[i] != "":
+                                    theConcept.version = row[i]
                                 # read all the other properties/designations, if this is a outdated csv v2
                                 elif self.versionOfOutdatedCsv == 2 and headingList[i] != "" and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
-                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^",self.globalUrl)
+                                    theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^")
                                     theDesig.value = row[i]
                                     theConcept.designation.append(theDesig)
 
@@ -149,7 +153,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 if self.resource == self.resource.ValueSet:
                     # sort after everthing is read, if there is a orderNumber
                     if self.concept[0].get_orderNumber() is not None:
-                        self.concept.sort(key=self.VSConcept.get_orderNumber)
+                        self.concept.sort(key=VSConcept.get_orderNumber)
                     # set members after it is sort and everything is read
                     theMemberParent = [None]*9
                     for oneConcept in self.concept:
@@ -379,37 +383,31 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
             # write all the other properties/designations, if this is a outdated csv v2
             if versionOfOutdatedCsv == 2:
+                if self.get_resource() == "ValueSet":
+                    # write the system version if existent
+                    if hasattr(oneConcept, 'version') and oneConcept.version:
+                        append_additional_value(csv_list, conceptRow, 'codeSystemVersion', oneConcept.version)
+                    else:
+                        # retrieve version from metadata
+
+                        # theoretically one_concept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            append_additional_value(csv_list, conceptRow, 'codeSystemVersion', tmp)
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            append_additional_value(csv_list, conceptRow, 'codeSystemVersion', tmp)
+
                 if hasattr(oneConcept,"property"):
                     #oneConcept.property.sort(key=pcam.CSConcept.ConceptProperty.get_code) # TODO discuss if sort should be done for properties
                     for oneProp in oneConcept.property:
                         if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
-                            # look up if there is already one column we could use
-                            if oneProp.code not in csv_list[0]:
-                                csv_list[0].append(oneProp.code)
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow) <= csv_list[0].index(oneProp.code):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index(oneProp.code)] = oneProp.value
-                            #conceptRow.append(oneProp.value)
-
-                            csv_list[0][csv_list[0].index(oneProp.code)]
+                            append_additional_value(csv_list, conceptRow, oneProp.code, oneProp.value)
                 if hasattr(oneConcept,"designation"):
                     for oneDesig in oneConcept.designation:
                         if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
                                 oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
                                 oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
-                            # look up if there is already one column we could use
-                            if oneDesig.use.code not in csv_list[0]:
-                                csv_list[0].append(oneDesig.use.code)
-
-                            # add "" for not existing props in this concept to conceptRow
-                            while len(conceptRow)-1 <= csv_list[0].index(oneDesig.use.code):
-                                conceptRow.append("")
-
-                            conceptRow[csv_list[0].index(oneDesig.use.code)] = oneDesig.value
-
+                            append_additional_value(csv_list, conceptRow, oneDesig.use.code, oneDesig.value)
 
             # add conceptRow to csv list
             csv_list.append(conceptRow)
@@ -420,9 +418,20 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 if versionOfOutdatedCsv == 2 and csvelement == "":
                     outfile.write((";" if not newline else ""))
                 else:
-                    outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'","´").replace(";",",") + "\'")
+                    outfile.write((";" if not newline else "") + "\'" + str(csvelement).replace("'", "''").replace(";",",") + "\'")
                 newline = False
             outfile.write("\n")
+
+def append_additional_value(csv_list, concept_row, column_name, value):
+    # look up if there is already one column we could use
+    if column_name not in csv_list[0]:
+        csv_list[0].append(column_name)
+
+    # add "" for not existing props in this concept to conceptRow
+    while len(concept_row) <= csv_list[0].index(column_name):
+        concept_row.append("")
+
+    concept_row[csv_list[0].index(column_name)] = value
 
 class OutdatedCsv2(OutdatedCsv1):
     def __init__(self, inFile=None, versionOfOutdatedCsv=2):
@@ -441,4 +450,4 @@ class VSConcept(pcam.VSConcept):
 
     # used only for sorting mechanism
     def get_orderNumber(self):
-        return self.ordernumber
+        return self.orderNumber
