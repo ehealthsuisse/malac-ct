@@ -585,7 +585,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if hasattr(oneConcept,'display'):
                     theClass.add_Rubric(RubricSub(kind="preferred",Label=[LabelSub(lang=language,valueOf_=oneConcept.display)]))
                 if hasattr(oneConcept,'definition') and (tmp := oneConcept.definition):
-                    theClass.add_Rubric(RubricSub(kind="definition",Label=[LabelSub(lang=language,valueOf_=tmp)]))
+                    theClass.add_Rubric(RubricSub(kind="note",Label=[LabelSub(lang=language,valueOf_=tmp)]))
                 if  hasattr(oneConcept,'designation'):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=str(oneDesignation))]))
