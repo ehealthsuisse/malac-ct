@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1+20221116]
+
+### Fixed
+
+- [TERGI-129](https://jira-neu.elga.gv.at/browse/TERGI-129) Converting from claml rubric `note` to fhir is going into the fhir element `definition`, so the other way around is now implemented
+
 ## [3.1.0+20221115]
 
 ### Added
