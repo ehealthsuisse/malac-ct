@@ -17,6 +17,8 @@ integration_test_branch:
     - if: $CI_COMMIT_BRANCH
   variables:
     MALAC_CT_BRANCH: $CI_COMMIT_BRANCH
+    CS_INPUT_FORMAT: $CS_INPUT_FORMAT
+    VS_INPUT_FORMAT: $VS_INPUT_FORMAT
   trigger:
     project: elga-gmbh/termgit-dev
     branch: $TERMGIT_TRIGGER_BRANCH
@@ -28,6 +30,8 @@ integration_test_merge_request:
     - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
   variables:
     MALAC_CT_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    CS_INPUT_FORMAT: $CS_INPUT_FORMAT
+    VS_INPUT_FORMAT: $VS_INPUT_FORMAT
   trigger:
     project: elga-gmbh/termgit-dev
     branch: $TERMGIT_TRIGGER_BRANCH
