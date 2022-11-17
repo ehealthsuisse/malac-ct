@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.2+20221117]
+
+### Fixed
+
+- Fix handling of hints/hinweise and meaning/de-at
+
 ## [3.1.1+20221116]
 
 ### Fixed
