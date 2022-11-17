@@ -617,6 +617,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             type = "S"
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                        elif oneProperty.code == "None":
+                            the_desig = pcam.ConceptDesignation()
+                            the_desig.value = oneProperty.value
+                            theClass.add_Rubric(RubricSub(kind="designation", Label=[LabelSub(valueOf_=the_desig)]))
                         else:
                             # normally, a string property should be a rubric, because it is not specificly defined or structured, for legacy purposes it will be set as meta
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
