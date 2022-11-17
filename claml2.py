@@ -180,12 +180,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         # if description AND description_eng exist AND if they are not empty, they will be concatenated
         if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            tempRet += "**Description:** "
-            tempRet += tempDescEn
-            tempRet += "\n\n"
+            if tempDescEn.strip() == tempDesc.strip():
+                tempRet += tempDesc
+            else:
+                tempRet += "**Description:** "
+                tempRet += tempDescEn
+                tempRet += "\n\n"
 
-            tempRet += "**Beschreibung:** "
-            tempRet += tempDesc
+                tempRet += "**Beschreibung:** "
+                tempRet += tempDesc
             boolAddedSomething = True
         elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             if version_description:
@@ -488,6 +491,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if (tmp := self.get_description()) and tmp.strip() != "":
             desc_splitted_by_star_star = tmp.split('**')
             headers = False
+            versionheader = False
             if "Description:" in desc_splitted_by_star_star:
                 metas.append(MetaSub('description_eng',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()))
                 headers = True
@@ -496,10 +500,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 headers = True
             if "Versions-Beschreibung:" in desc_splitted_by_star_star:
                 metas.append(MetaSub('version_description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")+1].strip()))
-                headers = True
+                versionheader = True
             if not headers:
-                metas.append(MetaSub('description',tmp.strip()))
-                metas.append(MetaSub('description_eng',tmp.strip()))
+                if not versionheader:
+                    metas.append(MetaSub('description',tmp.strip()))
+                    metas.append(MetaSub('description_eng',tmp.strip()))
+                else:
+                    metas.append(MetaSub('description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")-1].strip()))
+                    metas.append(MetaSub('description_eng',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")-1].strip()))
 
         # conditional and mandatory FHIR R4 fields
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
