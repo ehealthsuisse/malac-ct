@@ -10,6 +10,8 @@ display_variables:
     - echo "TERMGIT_TRIGGER_BRANCH=$TERMGIT_TRIGGER_BRANCH"
     - echo "CI_COMMIT_BRANCH=$CI_COMMIT_BRANCH"
     - echo "CI_MERGE_REQUEST_SOURCE_BRANCH_NAME=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+    - echo "CS_INPUT_FORMAT=$CS_INPUT_FORMAT"
+    - echo "VS_INPUT_FORMAT=$VS_INPUT_FORMAT"
 
 integration_test_branch:
   stage: integration_test
