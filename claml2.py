@@ -414,8 +414,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProperty.type = pcam.PropertyCodeType.string
                                 thePropertys.append(theProperty)
                                 thereIsAlreadyOneHints = True
-                        elif not thereIsAlreadyOneMeaning and oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
-                            if theConcept.display != oneMeta.get_value():
+                        elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
+                            if not thereIsAlreadyOneMeaning and theConcept.display != oneMeta.get_value():
                                 theDesignation = pcam.ConceptDesignation()
                                 theDesignation.language = "de-AT"
                                 theDesignation.value = oneMeta.get_value()
