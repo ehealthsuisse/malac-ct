@@ -12,6 +12,7 @@ display_variables:
     - echo "CI_MERGE_REQUEST_SOURCE_BRANCH_NAME=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
     - echo "CS_INPUT_FORMAT=$CS_INPUT_FORMAT"
     - echo "VS_INPUT_FORMAT=$VS_INPUT_FORMAT"
+    - echo "TERMGIT_BRANCH=$TERMGIT_BRANCH"
 
 integration_test_branch:
   stage: integration_test
@@ -21,6 +22,7 @@ integration_test_branch:
     MALAC_CT_BRANCH: $CI_COMMIT_BRANCH
     CS_INPUT_FORMAT: $CS_INPUT_FORMAT
     VS_INPUT_FORMAT: $VS_INPUT_FORMAT
+    TERMGIT_BRANCH: $TERMGIT_BRANCH
   trigger:
     project: elga-gmbh/termgit-dev
     branch: $TERMGIT_TRIGGER_BRANCH
@@ -34,6 +36,7 @@ integration_test_merge_request:
     MALAC_CT_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
     CS_INPUT_FORMAT: $CS_INPUT_FORMAT
     VS_INPUT_FORMAT: $VS_INPUT_FORMAT
+    TERMGIT_BRANCH: $TERMGIT_BRANCH
   trigger:
     project: elga-gmbh/termgit-dev
     branch: $TERMGIT_TRIGGER_BRANCH
