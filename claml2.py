@@ -369,12 +369,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             thereIsAlreadyOneMeaning = True
                         if not thereIsAlreadyOneHints and tmp.split("|")[1].startswith("hints"):
                             thereIsAlreadyOneHints = True
+                    elif oneRubric.get_kind() == "None":
+                        theDesignation = pcam.ConceptDesignation()
+                        theDesignation.value = tmp
+                        theConcept.designation.append(theDesignation)
                     elif not oneRubric.get_kind() == "hints" or (oneRubric.get_kind() == "hints" and not thereIsAlreadyOneHints):
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                        """TODO Rubrics exist that do not have @kind. As a quick fix "None" will be assumed as code
-                                for these properties.
-                        """
-                        theProperty.code = oneRubric.get_kind() or "None"
+                        theProperty.code = oneRubric.get_kind()
                         theProperty.value = tmp
                         theProperty.type = pcam.PropertyCodeType.string
                         thePropertys.append(theProperty)
