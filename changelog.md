@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.3+20221118]
+
+### Fixed
+
+- [TERGI-124](https://jira-neu.elga.gv.at/browse/TERGI-124) Fix handling of empty claml2 metas
+
 ## [3.1.2+20221117]
 
 ### Fixed
