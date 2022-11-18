@@ -77,16 +77,16 @@ class PropCsvAndMaster():
                     if 'contained' == metaObj: self.contained = metaList[1][i]
                     if 'extension' == metaObj: self.extension = metaList[1][i]
                     if 'modifierExtension' == metaObj: self.modifierextension = metaList[1][i]
-                    if 'identifier' == metaObj: self.identifier.append(metaList[1][i])
+                    if metaObj.startswith('identifier'): self.identifier.append(metaList[1][i])
                     if 'date' == metaObj: self.date = metaList[1][i]
                     if 'experimental' == metaObj: self.experimental = metaList[1][i]
                     if 'publisher' == metaObj: self.publisher = metaList[1][i]
-                    if 'contact' == metaObj:
+                    if metaObj.startswith('contact'):
                         # append contact if not None
                         if tmp := ContactDetail.from_string(metaList[1][i]):
                             self.contact.append(tmp)
-                    if 'useContext' == metaObj: self.usecontext.append(metaList[1][i])
-                    if 'jurisdiction' == metaObj: self.jurisdiction.append(metaList[1][i])
+                    if metaObj.startswith('useContext'): self.usecontext.append(metaList[1][i])
+                    if metaObj.startswith('jurisdiction'): self.jurisdiction.append(metaList[1][i])
                     if 'purpose' == metaObj: self.purpose = metaList[1][i]
                     if 'copyright' == metaObj: self.copyright = metaList[1][i]
                     if 'immutable' == metaObj: self.immutable = metaList[1][i]
@@ -98,7 +98,7 @@ class PropCsvAndMaster():
                     if 'versionNeeded' == metaObj: self.versionneeded = metaList[1][i]
                     if 'supplements' == metaObj: self.supplements = metaList[1][i]
                     if 'count' == metaObj: self.count = metaList[1][i]
-                    if 'filter' == metaObj:
+                    if metaObj.startswith('filter'):
                         filterElements = metaList[1][i].split('|')
                         tempFilter = Filter()
                         tempFilter.code = filterElements[0]
@@ -106,7 +106,7 @@ class PropCsvAndMaster():
                         tempFilter.operator = filterElements[2]
                         tempFilter.value = filterElements[3]
                         self.filter.append(tempFilter)
-                    if 'property' == metaObj:
+                    if metaObj.startswith('property'):
                         propElements = metaList[1][i].split('|')
                         tempProperty = Property()
                         tempProperty.code = propElements[0]
