@@ -401,7 +401,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
                 for oneMeta in oneClass.get_Meta():
                     # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
-                    if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and not oneMeta.get_name() == "Level":
+                    if ((not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and
+                            not oneMeta.get_name() == "Level" and oneMeta.get_value().strip() != ""):
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
                         if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS") or oneMeta.get_name().startswith("hints"):
                             if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
