@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [TERGI-124](https://jira-neu.elga.gv.at/browse/TERGI-124) Fix handling of empty ClaML2 metas.
 - Support reading repeating meta information (e.g. `identifier`, `contact`, etc.) in `.1.propcsv.xlsx`.
 
 ## [3.1.2+20221117]
