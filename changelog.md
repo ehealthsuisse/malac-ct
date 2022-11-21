@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [CSD-2448](https://jira-neu.elga.gv.at/browse/CSD-2448) Fix superfluous line break in `Label` tags of `.2.claml.xml`.
 - [TERGI-124](https://jira-neu.elga.gv.at/browse/TERGI-124) Fix handling of empty ClaML2 metas.
 - Support reading repeating meta information (e.g. `identifier`, `contact`, etc.) in `.1.propcsv.xlsx`.
 
