@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [CSD-2448](https://jira-neu.elga.gv.at/browse/CSD-2448) Fix superfluous line break in `Label` tags of `.2.claml.xml`.
+
 ## [3.1.3+20221121]
 
 ### Fixed
