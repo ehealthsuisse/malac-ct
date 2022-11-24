@@ -188,9 +188,9 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
     def get_url(self):
         if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"-"+self.get_name()
+            return tempUrl+self.get_resource()+"/"+self.get_name()
         else:
-            return self.get_resource()+"-"+self.get_name()
+            return self.get_resource()+"/"+self.get_name()
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionOfOutdatedCsv=1):
         # to stay fully backwards compatible, don't do an other coding of file
