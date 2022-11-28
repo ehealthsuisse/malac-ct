@@ -1,35 +1,15 @@
 stages:
-  - determine_branch
   - display_variables
   - integration_test
-
-determine_branch:
-  stage: determine_branch
-  rules:
-    - if: $CI_COMMIT_BRANCH
-  script:
-    - echo "MALAC_CT_PROJECT_BRANCH=$CI_COMMIT_BRANCH" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
-
-determine_branch:
-  stage: determine_branch
-  rules:
-    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-  script:
-    - echo "MALAC_CT_PROJECT_BRANCH=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
 
 display_variables:
   stage: display_variables
   rules:
-    - when: manual
+    - if: $CI_COMMIT_BRANCH
+      when: manual
   script:
     - echo "MALAC_CT_PROJECT=$CI_PROJECT_PATH_SLUG"
-    - echo "MALAC_CT_PROJECT_BRANCH=$MALAC_CT_PROJECT_BRANCH"
+    - echo "MALAC_CT_PROJECT_BRANCH=$CI_COMMIT_BRANCH"
 
     # TERMGIT_PIPELINE_PROJECT specifies the GitLab.com project where the CI/CD pipeline
     #                          for the integration test will be triggered
@@ -54,6 +34,8 @@ display_variables:
 
 integration_test:
   stage: integration_test
+  rules:
+    - if: $CI_COMMIT_BRANCH
   variables:
     MALAC_CT_PROJECT: $CI_PROJECT_PATH_SLUG
     MALAC_CT_PROJECT_BRANCH: $MALAC_CT_PROJECT_BRANCH
