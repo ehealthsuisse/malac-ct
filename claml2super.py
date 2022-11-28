@@ -4305,9 +4305,10 @@ class Label(GeneratedsSuper):
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Label')
         if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
+            # outfile.write('>%s' % (eol_, ))
+            outfile.write('>')
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Label', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
+            # showIndent(outfile, level, pretty_print)
             outfile.write(self.convert_unicode(self.valueOf_))
             outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
         else:

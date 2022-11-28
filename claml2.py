@@ -180,12 +180,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         # if description AND description_eng exist AND if they are not empty, they will be concatenated
         if (tempDescEn := get_Meta_with_name(self,'description_eng')) and not tempDescEn == "" and (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
-            tempRet += "**Description:** "
-            tempRet += tempDescEn
-            tempRet += "\n\n"
+            if tempDescEn.strip() == tempDesc.strip():
+                tempRet += tempDesc
+            else:
+                tempRet += "**Description:** "
+                tempRet += tempDescEn
+                tempRet += "\n\n"
 
-            tempRet += "**Beschreibung:** "
-            tempRet += tempDesc
+                tempRet += "**Beschreibung:** "
+                tempRet += tempDesc
             boolAddedSomething = True
         elif (tempDesc := get_Meta_with_name(self,'description')) and not tempDesc == "":
             if version_description:
@@ -317,6 +320,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
                 thePropertys = []
                 retiredAlreadySet = False
+                thereIsAlreadyOneHints = False
+                thereIsAlreadyOneMeaning = False
 
                 if tempKind := oneClass.get_kind():
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
@@ -363,15 +368,22 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     elif oneRubric.get_kind() == "designation":
                         if theConcept.display != tmp and theConcept.display != tmp.split("|")[-1]:
                             theConcept.designation.append(pcam.ConceptDesignation(tmp))
-                    else:
+                        if tmp.startswith("de-AT"):
+                            thereIsAlreadyOneMeaning = True
+                        if not thereIsAlreadyOneHints and tmp.split("|")[1].startswith("hints"):
+                            thereIsAlreadyOneHints = True
+                    elif oneRubric.get_kind() == "None":
+                        theDesignation = pcam.ConceptDesignation()
+                        theDesignation.value = tmp
+                        theConcept.designation.append(theDesignation)
+                    elif not oneRubric.get_kind() == "hints" or (oneRubric.get_kind() == "hints" and not thereIsAlreadyOneHints):
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                        """TODO Rubrics exist that do not have @kind. As a quick fix "None" will be assumed as code
-                                for these properties.
-                        """
-                        theProperty.code = oneRubric.get_kind() or "None"
+                        theProperty.code = oneRubric.get_kind()
                         theProperty.value = tmp
                         theProperty.type = pcam.PropertyCodeType.string
                         thePropertys.append(theProperty)
+                        if oneRubric.get_kind() == "hints":
+                            thereIsAlreadyOneHints = True
 
                 for oneSuperClass in oneClass.get_SuperClass():
                     theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
@@ -389,9 +401,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
                 for oneMeta in oneClass.get_Meta():
                     # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
-                    if (not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and not oneMeta.get_name() == "Level":
+                    if ((not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and
+                            not oneMeta.get_name() == "Level" and oneMeta.get_value().strip() != ""):
                         theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
-                        if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS"):
+                        if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS") or oneMeta.get_name().startswith("hints"):
                             if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
                                 theProp = pcam.CSConcept.ConceptProperty()
                                 theProp.code = "status"
@@ -399,17 +412,19 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theProp.type = pcam.PropertyCodeType.code
                                 thePropertys.append(theProp)
                                 retiredAlreadySet = True
-                            if oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv":
+                            if not thereIsAlreadyOneHints and (oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv"):
                                 theProperty.code = "hints"
                                 theProperty.value = oneMeta.get_value()
                                 theProperty.type = pcam.PropertyCodeType.string
                                 thePropertys.append(theProperty)
+                                thereIsAlreadyOneHints = True
                         elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
-                            if theConcept.display != oneMeta.get_value():
+                            if not thereIsAlreadyOneMeaning and theConcept.display != oneMeta.get_value():
                                 theDesignation = pcam.ConceptDesignation()
                                 theDesignation.language = "de-AT"
                                 theDesignation.value = oneMeta.get_value()
                                 theConcept.designation.append(theDesignation)
+                                thereIsAlreadyOneMeaning = True
                         elif oneMeta.get_name() == "Type":
                             if not retiredAlreadySet and oneMeta.get_value() == "D":
                                 theProp = pcam.CSConcept.ConceptProperty()
@@ -477,6 +492,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if (tmp := self.get_description()) and tmp.strip() != "":
             desc_splitted_by_star_star = tmp.split('**')
             headers = False
+            versionheader = False
             if "Description:" in desc_splitted_by_star_star:
                 metas.append(MetaSub('description_eng',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()))
                 headers = True
@@ -485,10 +501,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 headers = True
             if "Versions-Beschreibung:" in desc_splitted_by_star_star:
                 metas.append(MetaSub('version_description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")+1].strip()))
-                headers = True
+                versionheader = True
             if not headers:
-                metas.append(MetaSub('description',tmp.strip()))
-                metas.append(MetaSub('description_eng',tmp.strip()))
+                if not versionheader:
+                    metas.append(MetaSub('description',tmp.strip()))
+                    metas.append(MetaSub('description_eng',tmp.strip()))
+                else:
+                    metas.append(MetaSub('description',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")-1].strip()))
+                    metas.append(MetaSub('description_eng',desc_splitted_by_star_star[desc_splitted_by_star_star.index("Versions-Beschreibung:")-1].strip()))
 
         # conditional and mandatory FHIR R4 fields
         if self.get_resource() == 'CodeSystem': metas.append(MetaSub('content',self.get_content()))
@@ -590,7 +610,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(kind="designation",Label=[LabelSub(lang=language,valueOf_=str(oneDesignation))]))
                         if oneDesignation.use.code == "hints" or oneDesignation.use.code == "hinweise":
-                                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneDesignation.value))
+                            theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneDesignation.value))
+                        if oneDesignation.language == "de-AT":
+                            theClass.add_Meta(MetaSub("TS_ATTRIBUTE_MEANING", oneDesignation.value))
 
                 type = "L"
                 if  hasattr(oneConcept,'property'):
@@ -604,8 +626,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             type = "S"
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                        elif oneProperty.code == "None":
+                            the_desig = pcam.ConceptDesignation()
+                            the_desig.value = oneProperty.value
+                            theClass.add_Rubric(RubricSub(kind="designation", Label=[LabelSub(valueOf_=the_desig)]))
                         else:
-                            theClass.add_Rubric(RubricSub(kind=(oneProperty.code if oneProperty.code != "None" else None), Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
+                            # normally, a string property should be a rubric, because it is not specificly defined or structured, for legacy purposes it will be set as meta
+                            theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                            #theClass.add_Rubric(RubricSub(kind=(oneProperty.code if oneProperty.code != "None" else None), Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
                             # additionally add this to a austrian termpub attribute
                             if oneProperty.code == "hints" or oneProperty.code == "hinweise":
                                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
