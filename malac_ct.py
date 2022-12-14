@@ -206,21 +206,22 @@ def main() -> None:
                     break
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
-    if (args.convertFHIRServer):
+    if args.convertFHIRServer:
         if do_fhir_server_conversion:
             convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
-        if (args.uploadToConvertFHIRServer):
+        if args.uploadToConvertFHIRServer:
             startUpload = time.time()
             upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, failIfUploadGoesWrong=True)
             print("uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
-    for addlServer in args.uploadToAdditionalFHIRServer:
-        startUpload = time.time()
-        import json
-        addlServerDict = json.loads(addlServer)
-        upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"])
-        print("uploaded to additional FHIR server named "+ addlServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
+    if args.uploadToAdditionalFHIRServer:
+        for addlServer in args.uploadToAdditionalFHIRServer:
+            startUpload = time.time()
+            import json
+            addlServerDict = json.loads(addlServer)
+            upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"])
+            print("uploaded to additional FHIR server named "+ addlServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     print("altogether in "+str(round(time.time()-start,2))+" seconds.")
     print("-------------------- MaLaC-CT ended --------------------")
