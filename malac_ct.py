@@ -20,10 +20,7 @@ descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminolog
 versionNumber = "3.1.3+20221121"
 
 def init_argparse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        usage="%(prog)s -i INPUT-FILE-PATH [-o OUTPUT-FILE-PATH] [-argsLang OUTPUT-LANGUAGE] [-s]",
-        description=descriptionText
-    )
+    parser = argparse.ArgumentParser(description=descriptionText)
     parser.add_argument(
         "-i", "--input", help='the input file, classification is detected automaticly', required=True
     )
@@ -34,27 +31,24 @@ def init_argparse() -> argparse.ArgumentParser:
         "-langArg", "--argumentLanguage", help='a fixed language for the output classification ClaML v3, use offical language codes only, see http://www.ietf.org/rfc/rfc3066.txt.', required=False
     )
     parser.add_argument(
-        "-j2xServer", "--json2xmlFHIRServer", help="Directly run a json2xml convert on a given FHIR server after sushi. "+
-        "the FHIR Server adress including the base path wraped into quotation marks. e.g.:"+
-        '--user fhiruser:fhiruserpassword "http://ibmfhir.quantumeconomy.org/fhir-server/api/v4/"'+
-        "Warning: a fhir json has to exists, that is usually generated via sushi!", required=False
+        "-convSrv", "--convertFHIRServer", help='The FHIR server address including the base path (e.g. "http://tergi.yourdomain.here/fhir-server/api/v4/"). ' +
+        'This server is primarily used to convert from FHIR XML to FHIR JSON and vice versa. ' +
+        'You can also upload the FHIR JSON of a terminology to this server by using --up2convSrv/--uploadToConvertFHIRServer. ', required=False
     )
     parser.add_argument(
-        "-j2xUser", "--json2xmlFHIRServerUser", help="the FHIR server user password if needed"+
-        '"FHIRServerUser" "FHIRServerPassword""', required=False
+        "-convSrvUser", "--convertFHIRServerUser", help="The FHIR server user, if needed.", required=False
     )
     parser.add_argument(
-        "-j2xPw", "--json2xmlFHIRServerUserPassword", help="the FHIR server user password if needed"+
-        '"FHIRServerUser" "FHIRServerPassword""', required=False
+        "-convSrvPw", "--convertFHIRServerUserPassword", help="The FHIR server password, if needed.", required=False
     )
     parser.add_argument(
-        "-j2xttt", "--tergiTunnelToken", help='A HTTP header token that may be required in order to access the FHIR server', required=False
+        "-convSrvTTT", "--convertFHIRServerTergiTunnelToken", help="A HTTP header token that is required in order to access the FHIR server if you're using a tergi.", required=False
     )
     parser.add_argument(
-        "-upAlso2j2xServer", "--uploadAlso2json2xmlFhirServer", action="store_true", help='Directly upload the converted FHIR json to the given FHIR Server in the j2xServer/json2xmlFHIRServer Variable.', required=False
+        "-up2convSrv", "--uploadToConvertFHIRServer", action="store_true", help='Directly upload the converted FHIR JSON of a terminology to the converting FHIR Server (see --convSrv/--convertFHIRServer).', required=False
     )
     parser.add_argument(
-        "-up2addServer", "--upload2additionalFHIRServer", action='append', help="Upload the FHIR json to an additional FHIR Server", required=False
+        "-up2addlServer", "--uploadToAdditionalFHIRServer", action='append', help="Upload the FHIR JSON to an additional FHIR Server", required=False
     )
     parser.add_argument(
         "-url", "--fhirIgUrl", help="the home adress of the FHIR IG Publisher URL, to fill a predefined url in the resource", required=False
@@ -120,7 +114,7 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
         else:
             sys.exit('Target format ' + target_format + ' not supported. Either xml or json.')
 
-def upload_2_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerUserPassword, FHIRServerTergiTunnelToken, failIfUploadGoesWrong=False):
+def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerUserPassword, FHIRServerTergiTunnelToken, failIfUploadGoesWrong=False):
     import requests
     import os
 
@@ -158,13 +152,13 @@ def main() -> None:
     print("converted "+args.input+" to")
 
     # if input is a FHIR JSON file a FHIR server has to be specified in all cases
-    if '.4.fhir.json' in args.input and not args.json2xmlFHIRServer:
+    if '.4.fhir.json' in args.input and not args.convertFHIRServer:
         sys.exit("A FHIR JSON file as input requires a FHIR server with $convert capabilities. \n %s" % descriptionText)
 
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -212,21 +206,21 @@ def main() -> None:
                     break
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
-    if (args.json2xmlFHIRServer):
+    if (args.convertFHIRServer):
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
-        if (args.uploadAlso2json2xmlFhirServer):
+        if (args.uploadToConvertFHIRServer):
             startUpload = time.time()
-            upload_2_fhir_server(args.input, iClass, args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken, failIfUploadGoesWrong=True)
-            print("also uploaded to given j2x fhir server named "+ args.json2xmlFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
+            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, failIfUploadGoesWrong=True)
+            print("Uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
-        for addServer in args.upload2additionalFHIRServer:
-            startUpload = time.time()
-            import json
-            addServerDict = json.loads(addServer)
-            upload_2_fhir_server(args.input, iClass, addServerDict["FHIRServer"], addServerDict["FHIRServerUser"], addServerDict["FHIRServerUserPassword"], addServerDict["FHIRServerTergiTunnelToken"])
-            print("and uploaded to additional fhir server named "+ addServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
+    for addlServer in args.uploadToAdditionalFHIRServer:
+        startUpload = time.time()
+        import json
+        addlServerDict = json.loads(addlServer)
+        upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"])
+        print("Uploaded to additional FHIR server named "+ addlServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     print("altogether in "+str(round(time.time()-start,2))+" seconds.")
     print("-------------------- MaLaC-CT ended --------------------")
