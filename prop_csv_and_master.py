@@ -780,7 +780,8 @@ class ContactDetail():
 
         splitted_telecom = splitted_contact[1].split('~')
         for telecom in splitted_telecom:
-            telecom_list.append(cls.ContactPoint.from_string(telecom))
+            if telecom:
+                telecom_list.append(cls.ContactPoint.from_string(telecom))
 
         return cls(name, telecom_list)
 
