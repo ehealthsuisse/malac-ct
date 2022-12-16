@@ -366,7 +366,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
             codesystem.set_valueSet(canonicalSub(value=tmp))
 
         if tmp := self.get_hierarchymeaning():
-            codesystem.set_hierarchyMeaning(CodeSystemHierarchyMeaningSub(value=tmp))
+            codesystem.set_hierarchyMeaning(CodeSystemHierarchyMeaningSub(value=tmp.value))
 
         if tmp := self.get_compositional():
             codesystem.set_compositional(booleanSub(value=tmp))
