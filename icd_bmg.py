@@ -75,7 +75,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
         #
         # if lstProperty != []:
         #     self.property = lstProperty
-        print("finish")
+        # print("finish")
 
     def parseConcepts(self, cursor):
         row = cursor.fetchone()
@@ -199,6 +199,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
             self.concept.append(theConcept)
             row = cursor.fetchone()
 
+        self.sortConceptsExpandStyle()
 
     # just for calling the outer method
     def parse(inFilename):
