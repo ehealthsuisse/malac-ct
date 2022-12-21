@@ -1,11 +1,10 @@
 import argparse
-import subprocess
 import sys
 import time
 
 # malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
-# TODO check if fhir.json and fhir.xml has to be in listClasses for input check
 listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
+    ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
@@ -15,10 +14,11 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.svsextelga.xml":["svsextelga", "SVSextELGA1Sub"],
     ".2.svsextelga.xml":["svsextelga", "SVSextELGA2Sub"],
     ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"],
+    #".4.fhir.json":["fhir4_cs_and_vs", "FHIR4xml69json"] # create FHIR4xml69json inside of fhir4_cs_and_vs.py for json to xml and xml to json
     ".mdb":["icd_bmg", "ICDBMG"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
-versionNumber = "2.1.0+20220602"
+versionNumber = "3.1.3+20221121"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -49,6 +49,9 @@ def init_argparse() -> argparse.ArgumentParser:
         '"FHIRServerUser" "FHIRServerPassword""', required=False
     )
     parser.add_argument(
+        "-ttt", "--tergiTunnelToken", help='A HTTP header token that may be required in order to access the FHIR server', required=False
+    )
+    parser.add_argument(
         "-up", "--upload2FhirServer", action="store_true", help='Directly upload the converted FHIR json to the given FHIR Server. Can only be run if all the j2x argument(s) are given.', required=False
     )
     parser.add_argument(
@@ -68,7 +71,7 @@ def detectClassByEnding(filename):
             return listClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
-def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None):
+def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
     import os
     import requests
     import json
@@ -76,6 +79,8 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
 
     headers={'Content-Type':'application/fhir+' + source_format + '; charset=utf-8',
              'Accept':'application/fhir+' + target_format + '; charset=utf-8'}
+    if (tergi_tunnel_token):
+        headers['tergi-tunnel-token'] = tergi_tunnel_token
 
     auth = None
     if (fhir_server_user and fhir_server_password):
@@ -128,7 +133,7 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -137,10 +142,11 @@ def main() -> None:
     # if it is a fhir input and the output is also fhir, skip the real malac-ct converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
-
         iModule = __import__(iClassValue[0])
         inputClass = getattr(iModule, iClassValue[1])
 
+        # add globalUrl as class variable for outdatedcsv - would not be able to access it otherwise
+        inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
         input.globalUrl = args.fhirIgUrl
@@ -155,41 +161,37 @@ def main() -> None:
             for csv2AppendTo in args.appendProcessedTerminologyTo:
                 input.appendMetaDataTo(csv2AppendTo)
 
-        # look at the name of the output file and load the classification,
-        # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
-        if args.output != None:
-            oClassValue,oClass = detectClassByEnding(args.output)
-            oModule = __import__(oClassValue[0])
-            outputClass = getattr(oModule, oClassValue[1])
+        # do the converting for every class known, or if fixed in output, once and break out the loop
+        for oClass in listClasses:
+            if not args.input.endswith(oClass):
+                oClassValue = listClasses[oClass]
+                if args.output != None: # overwrite output variables if there is an fixed output
+                    oClassValue,oClass = detectClassByEnding(args.output)
+                # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
+                oModule = __import__(oClassValue[0])
+                outputClass = getattr(oModule, oClassValue[1])
 
-            # open a new file and export to output file
-            with open(args.output, 'w', newline='', encoding='utf-8') as outfile:
-                startFormat = time.time()
-                outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
-        # if no output class is given, than convert to all known formats
-        else:
-            for oClass in listClasses:
-                if not args.input.endswith(oClass) or oClass == "svsextelga1": #for the beta there is this exception that svs is no indirect export format!
-                    oModule = __import__(listClasses[oClass][0])
-                    outputClass = getattr(oModule, listClasses[oClass][1])
+                # open a new file and export to output file
+                with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                    startFormat = time.time()
+                    outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
+                    print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
 
-                    # open a new file and export to output file
-                    with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
-                        startFormat = time.time()
-                        outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
-                        print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
+                if args.output != None: # if there is an fixed output, do the loop just once
+                    break
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if (url := args.json2xmlFHIRServer):
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.json2xmlFHIRServer, args.json2xmlFHIRServerUser, args.json2xmlFHIRServerUserPassword, args.tergiTunnelToken)
 
         if (args.upload2FhirServer):
             import requests
             import os
 
             headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
+            if (args.tergiTunnelToken):
+                headers['tergi-tunnel-token'] = args.tergiTunnelToken
 
             auth = None
             if (args.json2xmlFHIRServerUser and args.json2xmlFHIRServerUserPassword):

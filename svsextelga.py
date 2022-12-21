@@ -28,6 +28,15 @@ from lxml import etree as etree_
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
 
+class XMLEscapeSpecialChar:
+
+    def __init__(self, xml, escape):
+        self.xml = xml
+        self.escape = escape
+
+xml_escape_special_char = [XMLEscapeSpecialChar('>', 'groesser'),
+                           XMLEscapeSpecialChar('<', 'kleiner')]
+
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
         # Use the lxml ElementTree compatible parser so that, e.g.,
@@ -96,7 +105,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
     def get_title(self):
-        return super(SVSextELGA1Sub,self).get_name()
+        return super(SVSextELGA1Sub,self).get_displayName()
 
     def get_status(self):
         return pcam.Status.active.value
@@ -104,16 +113,21 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_description(self):
         tempRet = ""
         boolAddedSomething = False
-        if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
+
+        # if beschreibung AND description exist AND if they are not empty, they will be concatenated
+        if (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "" and (tempBesch := self.get_beschreibung()) and not tempBesch == "":
             tempRet += "**Description:** "
             tempRet += tempDescEn
-            boolAddedSomething = True
+            tempRet += "\n\n"
 
-        if (tempBesch := self.get_beschreibung()) and not tempBesch == "":
-            if boolAddedSomething:
-                tempRet += "\n\n"
             tempRet += "**Beschreibung:** "
             tempRet += tempBesch
+            boolAddedSomething = True
+        elif (tempBesch := self.get_beschreibung()) and not tempBesch == "":
+            tempRet += tempBesch
+            boolAddedSomething = True
+        elif (tempDescEn := super(SVSextELGA1Sub,self).get_description()) and not tempDescEn == "":
+            tempRet += tempDescEn
             boolAddedSomething = True
 
         # TODO check if there is no version description in svs
@@ -171,7 +185,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             oneConDet = pcam.ContactDetail()
             oneConPoi = pcam.ContactDetail.ContactPoint()
             oneConPoi.value = website
-            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value
+            oneConPoi.system = pcam.ContactDetail.ContactPoint.ContactPointSystem.url
             oneConDet.telecom.append(oneConPoi)
             tempConDetS.append(oneConDet)
         return tempConDetS
@@ -243,10 +257,15 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 for oneCon in sortedConceptList:
                     theConcept = pcam.VSConcept()
 
-                    if (tmp := oneCon.get_parentCodeSystemName()) and (tmp.startswith('http://') or tmp.startswith('https://')):
-                        theConcept.system = tmp
+                    if tmp := oneCon.get_parentCodeSystemName():
+                        if tmp.startswith('http://') or tmp.startswith('https://'):
+                            theConcept.system = tmp
+                        else:
+                            theConcept.system = self.globalUrl+"CodeSystem-"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                    elif tmp:= oneCon.get_codeSystem():
+                        theConcept.system = self.gainCanonicalFromOid(tmp)
                     else:
-                        theConcept.system = self.globalUrl+"CodeSystem-"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                        sys.exit('Neither OID nor name of the parent CodeSytem is present. Cannot process ValueSet.')
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
@@ -260,32 +279,32 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.designation.append(theDesig)
                     if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##alt#alt")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^alt^alt^")
                         theDesig.value = tmpDisAlt
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##concept_beschreibung#concept_beschreibung")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_codiert#einheit_codiert")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_codiert^einheit_codiert^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##einheit_print#einheit_print")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_print^einheit_print^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##hinweise#hinweise")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##relationships#relationships")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
 
@@ -293,15 +312,29 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.level = tmpLevel
                         theMemberParent[tmpLevel] = theConcept
                         if tmpLevel > 0:
-                            theMemberParent[tmpLevel-1].member.append(theConcept)
+                            parent = theMemberParent[tmpLevel-1]
+                            # setting theConcept as child of the parent
+                            parent.member.append(theConcept)
+                            # setting the parent of theConcept
+                            theConcept.parent = parent
+
 
                     # read anyAttribute if version 2
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
-                            theDesig = pcam.ConceptDesignation()
-                            theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use##"+oneAttrKey+"#"+oneAttrKey)
-                            theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
-                            theConcept.designation.append(theDesig)
+                            # read the codesytem version if existent
+                            if oneAttrKey == 'codeSystemVersion':
+                                theConcept.version = oneCon.get_anyAttributes_()[oneAttrKey]
+                            else:
+                                theDesig = pcam.ConceptDesignation()
+
+                                code = oneAttrKey
+                                for one_xml_escape_special_char in xml_escape_special_char:
+                                    code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+
+                                theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
+                                theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
+                                theConcept.designation.append(theDesig)
 
                     retArr.append(theConcept)
 
@@ -391,7 +424,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if self.versionSVSextELGA == 2:
                         for oneAttrKey in oneCon.get_anyAttributes_():
                             theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = oneAttrKey
+
+                            code = oneAttrKey
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
+                            theProp.code = code
+
                             theProp.value = oneCon.get_anyAttributes_()[oneAttrKey]
                             theProp.type = pcam.PropertyCodeType.string
                             theConcept.property.append(theProp)
@@ -402,13 +440,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionSVSextELGA=1):
         beschreibung = description = ""
-        if (tmp := self.get_description()) and len(tmp := self.get_description().split("**")) >= 5:
-            if "Beschreibung:" in tmp:
-                beschreibung = tmp[tmp.index("Beschreibung:")+1].strip()
-            if "Description:" in tmp:
-                description = tmp[tmp.index("Description:")+1].strip()
-        else:
-            beschreibung = description = self.get_description()
+        if (tmp := self.get_description()) and tmp.strip() != "":
+            desc_splitted_by_star_star = tmp.split('**')
+            headers = False
+            if "Description:" in desc_splitted_by_star_star:
+                description = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Description:")+1].strip()
+                headers = True
+            if "Beschreibung:" in desc_splitted_by_star_star:
+                beschreibung = desc_splitted_by_star_star[desc_splitted_by_star_star.index("Beschreibung:")+1].strip()
+                headers = True
+            if not headers:
+                beschreibung = tmp.strip()
 
         displayName = self.get_title()
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
@@ -426,7 +468,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
         foundIt = False
         for oneConcept in self.get_contact():
-            if oneConcept.telecom[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url.value:
+            if (tmp := oneConcept.telecom) and tmp[0].system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
                 website = oneConcept.telecom[0].value
                 foundIt = True
         if not foundIt:
@@ -590,20 +632,40 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             # create anyAttribute if version 2
             if versionSVSextELGA == 2:
                 anyAttrDict = {}
+
                 if self.get_resource() == "CodeSystem":
                     for oneProp in oneConcept.property:
                         if (oneProp.code != "status" and oneProp.code != "notSelectable" and oneProp.code != "child"
                         and oneProp.code != "relationships" and oneProp.code != "parent" and oneProp.code != "hinweise"
                         and oneProp.code != "einheit_print" and oneProp.code != "einheit_codiert"
                         and oneProp.code != "displayNameAlt" and oneProp.code != "concept_beschreibung"):
-                            anyAttrDict.update({oneProp.code: oneProp.value})
+                            code = oneProp.code
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
+                            anyAttrDict.update({code: oneProp.value})
                 elif self.get_resource() == "ValueSet":
+                    # write the system version if existent
+                    if hasattr(oneConcept, 'version') and oneConcept.version:
+                        anyAttrDict.update({'codeSystemVersion': oneConcept.version})
+                    else:
+                        # retrieve version from metadata
+
+                        # theoretically one_concept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            anyAttrDict.update({'codeSystemVersion': tmp})
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            anyAttrDict.update({'codeSystemVersion': tmp})
+
                     for oneDesig in oneConcept.designation:
                         if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
                         and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
                         and oneDesig.use.code != "concept_beschreibung"):
-                            anyAttrDict.update({oneDesig.use.code: oneDesig.value})
+                            code = oneDesig.use.code
+                            for one_xml_escape_special_char in xml_escape_special_char:
+                                code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
+                            anyAttrDict.update({code: oneDesig.value})
                 concepts[-1].set_anyAttributes_(anyAttrDict)
 
         conceptList = conceptListSub(concepts)

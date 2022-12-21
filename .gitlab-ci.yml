@@ -1,9 +1,49 @@
-integration_test:
+stages:
+  - display_variables
+  - integration_test
+
+display_variables:
+  stage: display_variables
   rules:
-    - when: manual
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+  script:
+    - echo "MALAC_CT_PROJECT=$CI_PROJECT_PATH"
+    - echo "MALAC_CT_PROJECT_BRANCH=$CI_COMMIT_BRANCH"
+
+    # TERMGIT_PIPELINE_PROJECT specifies the GitLab.com project where the CI/CD pipeline
+    #                          for the integration test will be triggered
+    - echo "TERMGIT_PIPELINE_PROJECT=$TERMGIT_PIPELINE_PROJECT"
+    # TERMGIT_PIPELINE_PROJECT_BRANCH specifies the branch of the corresponding project to
+    #                                 be used for the integration test
+    - echo "TERMGIT_PIPELINE_PROJECT_BRANCH=$TERMGIT_PIPELINE_PROJECT_BRANCH"
+
+    # CS_INPUT_FORMAT specifies the file format for CodeSystems that will be used as
+    #                 input format for MaLaC-CT
+    - echo "CS_INPUT_FORMAT=$CS_INPUT_FORMAT"
+    # VS_INPUT_FORMAT specifies the file format for ValueSets that will be used as
+    #                 input format for MaLaC-CT
+    - echo "VS_INPUT_FORMAT=$VS_INPUT_FORMAT"
+
+    # TERMGIT_TERMINOLOGIES_PROJECT specifies the GitLab.com project which provides the
+    #                               terminologies for the integration test
+    - echo "TERMGIT_TERMINOLOGIES_PROJECT=$TERMGIT_TERMINOLOGIES_PROJECT"
+    # TERMGIT_TERMINOLOGIES_PROJECT_BRANCH specifies the branch of the corresponding project to
+    #                                      retrieve the terminologies
+    - echo "TERMGIT_TERMINOLOGIES_PROJECT_BRANCH=$TERMGIT_TERMINOLOGIES_PROJECT_BRANCH"
+
+integration_test:
+  stage: integration_test
+  rules:
+    - if: $CI_COMMIT_BRANCH
   variables:
-    MALAC_CT_BRANCH: $CI_COMMIT_BRANCH
+    MALAC_CT_PROJECT: $CI_PROJECT_PATH
+    MALAC_CT_PROJECT_BRANCH: $CI_COMMIT_BRANCH
+    CS_INPUT_FORMAT: $CS_INPUT_FORMAT
+    VS_INPUT_FORMAT: $VS_INPUT_FORMAT
+    TERMGIT_TERMINOLOGIES_PROJECT: $TERMGIT_TERMINOLOGIES_PROJECT
+    TERMGIT_TERMINOLOGIES_PROJECT_BRANCH: $TERMGIT_TERMINOLOGIES_PROJECT_BRANCH
   trigger:
-    project: elga-gmbh/termgit-dev
-    branch: $TERMGIT_TRIGGER_BRANCH
+    project: $TERMGIT_PIPELINE_PROJECT
+    branch: $TERMGIT_PIPELINE_PROJECT_BRANCH
     strategy: depend

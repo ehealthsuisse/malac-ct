@@ -6,6 +6,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.3+20221121]
+
+### Fixed
+
+- [CSD-2448](https://jira-neu.elga.gv.at/browse/CSD-2448) Fix superfluous line break in `Label` tags of `.2.claml.xml`.
+- [TERGI-124](https://jira-neu.elga.gv.at/browse/TERGI-124) Fix handling of empty ClaML2 metas.
+- Support reading repeating meta information (e.g. `identifier`, `contact`, etc.) in `.1.propcsv.xlsx`.
+
+## [3.1.2+20221117]
+
+### Fixed
+
+- Fix handling of hints/hinweise and meaning/de-at
+
+## [3.1.1+20221116]
+
+### Fixed
+
+- [TERGI-129](https://jira-neu.elga.gv.at/browse/TERGI-129) Converting from claml rubric `note` to fhir is going into the fhir element `definition`, so the other way around is now implemented
+
+## [3.1.0+20221115]
+
+### Added
+
+- [TERGI-120](https://jira-neu.elga.gv.at/browse/TERGI-120) Support reading/writing of CodeSystem version in ValueSets.
+- [TERGI-119](https://jira-neu.elga.gv.at/browse/TERGI-119) Add `.1.propcsv.xlsx` with same content as `.1.propcsv.csv` into an Excel. This format is specifically for authoring and has no focus on machine readability.
+
+### Fixed
+
+- [TERGI-118](https://jira-neu.elga.gv.at/browse/TERGI-118) Change quoting within fields within propCSV from `´` to `""` and within outdatedCSV from `´` to `''`.
+- Fix reading of author in `.2.claml.xml`.
+- Fix writing of concept status in `.2.claml.xml`.
+- Fix using `&#10` instead of `\n` in all XML formats besides `.4.fhir.xml`.
+- Fix handling of Beschreibung, Description and Version-Description in `.*.svsextelga.xml` and `.2.claml.xml`.
+- Fix handling of contact and hints in `.2.claml.xml`.
+- Fix handling of same content in prefereedLong, preferred, designation and note
+
+## [3.0.1+20221018]
+
+### Fixed
+
+- Fix writing of author in `.2.claml.xml`.
+- Fix the export of `.2.claml.xml` to comply with the standard.
+- Fix handling of empty contact column in `.1.propcsv.csv`.
+
+## [3.0.0+20221014]
+
+### Added
+
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Allow definition of hierarchies in `.1.propcsv.csv` by using a `parent` column.
+
+### Fixed
+
+- [TERGI-60](https://jira-neu.elga.gv.at/browse/TERGI-60) Update split char from `#` to `^` for designations, also add support for `designation.use.userSelected`.
+- [TERGI-118](https://jira-neu.elga.gv.at/browse/TERGI-118) Fix conversion between different file formats - especially `description`, `date`.
+- [TERGI-102](https://jira-neu.elga.gv.at/browse/TERGI-102) Fix reading and writing of `contact` information within `.1.propcsv.csv`.
+
+## [2.2.0+20220929]
+
+### Added
+
+- [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Add parameter `tergiTunnelToken` which allows access to all API endpoints of a tergi.
+
+### Fixed
+
+- [TERGI-111](https://jira-neu.elga.gv.at/browse/TERGI-111) Support `.1.svsextelga.xml` and `.2.svsextelga.xml` if concepts do not have `parentCodeSytemName` property.
+
+## [2.1.2+20220913]
+
+### Fixed
+- [TERGI-98](https://jira-neu.elga.gv.at/browse/TERGI-98) Fix errors that came up reading HL7 International CodeSystems per *.4.fhir.xml
+- [CSD-2288](https://jira-neu.elga.gv.at/browse/CSD-2288) Escape special XML characters for ClaML v2, ClaML v3, and for SVSextELGA v2 files.
+
+## [2.1.1+20220726]
+
+### Fixed
+- [TERGI-99](https://jira-neu.elga.gv.at/browse/TERGI-99) Fix sort 4 concepts with multiple parents, like there is in ucum
+
 ## [2.1.0+20220602]
 
 ### Added

@@ -36,16 +36,21 @@ class Fsh2(Fsh1):
                             if 'language' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.language = value
                             elif 'use' in splittedLine[0].split('.')[1].strip():
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                if 'userSelected' in splittedLine[0].split('.')[1].strip():
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif 'value' in splittedLine[0].split('.')[1].strip():
                                 theDesignation.value = value
                         elif 'property' in line:
@@ -119,16 +124,21 @@ class Fsh2(Fsh1):
                             if '.language' in line:
                                 theDesignation.language = value
                             elif '.use' in line:
-                                str4Coding = value
-                                if "|" in value:
-                                    str4Coding = str4Coding.replace("|","#")
+                                if 'userSelected' in line:
+                                    theDesignation.use.userSelected = value
                                 else:
-                                    str4Coding = str4Coding.replace("#","##")
-                                if " \"" in value:
-                                    str4Coding = str4Coding.replace(" \"","#",1).replace("\"","")
-                                else:
-                                    str4Coding += "#"
-                                theDesignation.use = pcam.Coding(str4Coding)
+                                    str4Coding = value
+                                    if "|" in value:
+                                        str4Coding = str4Coding.replace("|","^",1)
+                                        str4Coding = str4Coding.replace("#","^",1)
+                                    else:
+                                        str4Coding = str4Coding.replace("#","^^",1)
+                                    if " \"" in value:
+                                        str4Coding = str4Coding.replace(" \"","^",1).replace("\"","")
+                                    else:
+                                        str4Coding += "^"
+                                    str4Coding += "^"
+                                    theDesignation.use = pcam.Coding(str4Coding)
                             elif '.value' in line:
                                 theDesignation.value = value
                 if '.filter' in line:
@@ -158,11 +168,11 @@ class Fsh2(Fsh1):
             for oneConcept in conceptList:
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
-                    if hasattr(oneConcept, 'display'):
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* #%s "%s"\n' % (oneConcept.code, oneConcept.display.replace('"','\\"')))
                     else:
                         outfile.write('* #%s\n' % (oneConcept.code))
-                    if hasattr(oneConcept, 'definition'):
+                    if hasattr(oneConcept, 'definition') and oneConcept.definition:
                         outfile.write('* #%s ^definition = %s\n' % (oneConcept.code, oneConcept.definition))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = 0
@@ -174,9 +184,11 @@ class Fsh2(Fsh1):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* #%s ^designation[%s].use = %s \n' % (oneConcept.code, i, tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* #%s ^designation[%s].use.userSelected = %s \n' % (oneConcept.code, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* #%s ^designation[%s].value = "%s" \n' % (oneConcept.code, i, oneDesignation.value))
                             i += 1
-                    if hasattr(oneConcept, 'property'):
+                    if hasattr(oneConcept, 'property') and oneConcept.property:
                         i = 0
                         for oneProperty in oneConcept.property:
                             if hasattr(oneProperty, 'code'): outfile.write('* #%s ^property[%s].code = #%s \n' % (oneConcept.code, i, oneProperty.code))
@@ -190,13 +202,23 @@ class Fsh2(Fsh1):
                         k = -1
                         tempConcept = oneConcept
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
-                        if hasattr(oneConcept, 'version'):
+                        # write the system version if existent
+                        if hasattr(oneConcept, 'version') and oneConcept.version:
                             outfile.write('* compose.include[%s].version = "%s"\n' % (j, oneConcept.version))
+                        else:
+                            # retrieve version from metadata
+
+                            # theoretically one_concept.system could be either canonical or OID in
+                            # most cases, however, it would be the canonical
+                            if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                outfile.write('* compose.include[%s].version = "%s"\n' % (j, tmp))
+                            elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                outfile.write('* compose.include[%s].version = "%s"\n' % (j, tmp))
 
                     if hasattr(oneConcept, 'code'):
                         k += 1
                         outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
-                    if hasattr(oneConcept, 'display'):
+                    if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation:
                         i = -1
@@ -209,13 +231,15 @@ class Fsh2(Fsh1):
                                 tmpCoding += "#"+oneDesignation.use.code
                                 if tmp := oneDesignation.use.display: tmpCoding += " \""+tmp+"\""
                                 outfile.write('* compose.include[%s].concept[%s].designation[%s].use = %s \n' % (j, k, i, tmpCoding))
+                                if tmp := oneDesignation.use.userSelected:
+                                    outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
-                    if hasattr(oneConcept, 'filter'):
+                    if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
                         for oneFilter in oneConcept.filter:
-                            if hasattr(oneFilter, 'property'): outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
-                            if hasattr(oneFilter, 'op'): outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
-                            if hasattr(oneFilter, 'value'): outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
+                            if hasattr(oneFilter, 'property') and oneFilter.property: outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
+                            if hasattr(oneFilter, 'op') and oneFilter.op: outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
+                            if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
 
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension
