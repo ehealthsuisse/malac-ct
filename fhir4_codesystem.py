@@ -159,7 +159,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """Return CodeSystem.hierarchyMeaning.
         """
         if tmp := super().get_hierarchyMeaning():
-            return tmp.get_value()
+            return pcam.HierarchyMeaning(tmp.get_value())
         return None
 
     def get_compositional(self):

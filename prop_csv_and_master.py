@@ -498,7 +498,7 @@ class PropCsvAndMaster():
             if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
             if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
             if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp))
+            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
             if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
             if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
             if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
