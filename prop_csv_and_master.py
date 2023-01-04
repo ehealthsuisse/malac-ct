@@ -698,7 +698,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -709,7 +714,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 workbook.close()
 class PropCsvAsXLSX():
