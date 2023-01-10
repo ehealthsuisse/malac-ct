@@ -93,6 +93,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    def get_id(self):
+        return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+
     def get_url(self):
         if tempUrl := self.globalUrl:
             return tempUrl+self.get_resource()+"/"+self.get_name()

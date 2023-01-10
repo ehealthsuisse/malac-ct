@@ -22,7 +22,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 else:
                     self.resource = pcam.Resource["CodeSystem"]
                 self.version = "unknown due to outdated csv"
-                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', os.path.basename(csvfile.name).replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                self.id = self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', os.path.basename(csvfile.name).replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                 self.title = csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0]
                 self.status = pcam.Status['active']
                 self.description = "unknown due to outdated csv"

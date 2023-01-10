@@ -4,6 +4,7 @@ from unittest import skip
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
+        self.id = None
         self.url = None
         self.version = None
         self.name = None
@@ -64,6 +65,7 @@ class PropCsvAndMaster():
                     metaList[1][i].strip("\"")
 
                     if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
+                    if 'id' == metaObj: self.id = metaList[1][i]
                     if 'url' == metaObj: self.url = metaList[1][i]
                     if 'version' == metaObj: self.version = metaList[1][i]
                     if 'name' == metaObj: self.name = metaList[1][i]
@@ -202,6 +204,9 @@ class PropCsvAndMaster():
 
     def get_resource(self):
         return self.resource.value
+
+    def get_id(self):
+        return self.id
 
     def get_url(self):
         return self.url
@@ -461,6 +466,7 @@ class PropCsvAndMaster():
             csv_meta = []
             # start list of metaelements
             csv_meta.append(("resource",self.get_resource()))
+            csv_meta.append(("id",self.get_id()))
             csv_meta.append(("url",self.get_url()))
             csv_meta.append(("version",self.get_version()))
             csv_meta.append(("name",self.get_name()))

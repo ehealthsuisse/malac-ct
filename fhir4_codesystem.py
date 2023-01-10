@@ -71,6 +71,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """
         return pcam.Resource.CodeSystem.value
 
+    def get_id(self):
+        return f4csvs.get_id(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
