@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Support `CodeSystem.id` and `ValueSet.id`.
+
+### Changed
+
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Change canonical URLs from the scheme `BASE/RESOURCETYPE-ID` to `BASE/RESOURCETYPE/ID`.
+
 ## [3.1.3+20221121]
 
 ### Fixed
