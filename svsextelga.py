@@ -98,7 +98,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
     def get_url(self):
         if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"/"+self.get_name()
+            return tempUrl+self.get_resource()+"/"+self.get_id()
         return None
 
     #def get_version(self):

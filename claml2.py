@@ -95,10 +95,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
     # todo create get url for other classifications
     def get_url(self):
-        if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"/"+self.get_name()
-        elif tempUrl := get_Meta_with_name(self,'url'):
+        if tempUrl := get_Meta_with_name(self,'url'):
             return tempUrl
+        elif tempUrl := self.globalUrl:
+            return tempUrl+self.get_resource() + "/" + self.get_id()
 
     def get_identifier(self):
         identifiers = []
