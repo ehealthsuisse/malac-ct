@@ -350,13 +350,13 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
-            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
                 csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource()+"-"+self.get_name()+","+self.globalUrl + self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
+            csvfile.write(self.get_resource() + "-" + self.get_id() + "," + self.get_url() + "," + (tmp[0] if (tmp := self.get_identifier()) else "") + "," + self.get_version() + "," + self.get_id() + "," + self.get_resource() + "\n")
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
