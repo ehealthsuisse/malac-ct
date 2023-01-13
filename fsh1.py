@@ -48,7 +48,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     self.content = pcam.Content[value]
 
                 # optional fields
-                elif splittedLine[0] == '* id' : self.id = value
+                elif splittedLine[0] == '* id ' : self.id = value
                 elif splittedLine[0] == '* url ': self.url = value
                 elif splittedLine[0] == '* version ':self.version = value
                 elif splittedLine[0] == '* title ':self.title = value
