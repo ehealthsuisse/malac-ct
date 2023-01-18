@@ -112,7 +112,7 @@ class PropCsvAndMaster():
                         tempProperty.code = propElements[0]
                         tempProperty.uri = propElements[1]
                         tempProperty.description = propElements[2]
-                        tempProperty.type = PropertyCodeType(propElements[3].lower())
+                        tempProperty.type = PropertyCodeType[propElements[3].lower()]
                         self.property.append(tempProperty)
 
                 #initializing the body/content
@@ -138,7 +138,7 @@ class PropCsvAndMaster():
                                     tempProperty = CSConcept.ConceptProperty()
                                     tempProperty.code = propertyElements[0]
                                     tempProperty.value = propertyElements[1]
-                                    tempProperty.type = PropertyCodeType(propertyElements[2].lower())
+                                    tempProperty.type = PropertyCodeType[propertyElements[2].lower()]
                                     tempConcept.property.append(tempProperty)
 
                             elif self.resource == self.resource.ValueSet:
@@ -418,11 +418,12 @@ class PropCsvAndMaster():
             tmpDict[tmpPointer] = oneCon
         return tmpDict
 
-    def sortConceptsExpandStyle(self):
+    def sortConceptsExpandStyle(self, conDict=None):
         sortedConcepts = []
 
         # build up a dict with code as key
-        conDict = self.buildConceptDictWithAttr("code")
+        if not conDict:
+            conDict = self.buildConceptDictWithAttr("code")
 
         # sort all the child properties inside the concepts
         for key in conDict:

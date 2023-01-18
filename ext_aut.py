@@ -18,7 +18,7 @@ import argparse
 # If above does not help, here are other usefull links for adjusting your Microsoft Access Driver:
 # How to connect to Microsoft Access with ODBC from Windows 10 https://help.interfaceware.com/v6/connect-to-microsoft-access-odbc
 
-class ICDBMG(pcam.PropCsvAndMaster):
+class BMGICD(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
         # if you have an ODBC Driver Manager Error here, look into the comments above
@@ -34,7 +34,7 @@ class ICDBMG(pcam.PropCsvAndMaster):
             "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
 
         #metadata
-        self.url = "https://termgit.elga.gv.at/CodeSystem-icd-10-bmg-2022"
+        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023"
         self.name = "icd-10-bmg-2022"
         self.title = "ICD-10 BMG 2022"
         self.status = pcam.Status.draft
@@ -199,19 +199,201 @@ class ICDBMG(pcam.PropCsvAndMaster):
             self.concept.append(theConcept)
             row = cursor.fetchone()
 
+        cursor.execute("SELECT * FROM DIAGMEL")
+        row = cursor.fetchone()
+        conDict = self.buildConceptDictWithAttr("code")
+        while row:
+            parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
+                "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023")
+            row = cursor.fetchone()
+
+        self.sortConceptsExpandStyle(conDict)
+
+    # just for calling the outer method
+    def parse(inFilename):
+        return BMGICD(inFilename)
+
+class BMGLKF(pcam.PropCsvAndMaster):
+    def __init__(self, inFile):
+        super().__init__()
+        # if you have an ODBC Driver Manager Error here, look into the comments above
+        conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
+        # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
+        cursor = conn.cursor()
+        # jointable between "DIAGLIST", "DIAGLIST- 3 STELLER", "DIAGLIST - UNTERKAPITEL", "DIAGLIST-KAPITEL"
+        cursor.execute(
+            "SELECT [M].Leistung, [MAG].Anatomie_Text AS [AnatomieGrob], [MAF].AnatomieFein_Text AS [AnatomieFein], [MLA].Leistungsart_Text AS [Leistungsart], [MZ].Zugang_Text AS [Zugang], [MLE].Leistungseinheit_Text AS [Leistungseinheit], "
+            "[M].Gruppe, [M].LGR, [M].Geschlecht, [M].Mindestalter, [M].Höchstalter, [M].WarninganzahlAufenthalt, [M].ErroranzahlAufenthalt, [M].WarninganzahlTag, [M].ErroranzahlTag, [M].MEL_ambulant, [M].[MEL>0_Tage] AS [MEL0_Tage], [M].MEL_TKL, [M].MEL_OP, [M].Kurztext, "
+            "[M].Langtext, [M].Beschreibung, [M].Codierhinweis, [M].Nichtinhalt, [M].Quelle, [M].ErfassungStationär, [M].GruppeAmbulant, [M].LGRAmbulant, [M].WarninganzahlAmbulant, [M].ErroranzahlAmbulant, [M].DiagnoseAmbulant, [M].ErfassungAmbulant, [M].BettenführenderFuco, [M].PhysischeAnwesenheit, "
+            "[MUK].Unterkapitel AS [MUKUnterkapitel], [MUK].Beschreibung AS [MUKBeschreibung], [MK].Beschreibung AS [MKBeschreibung], [MK].Kapitel AS [MKKapitel], [MD].DiagnoseVon AS [MDDiagnoseVon], [MD].DiagnoseBis AS [MDDiagnoseBis] "
+            "FROM ((((((( [MELLIST] AS [M] LEFT JOIN [MELLIST - UNTERKAPITEL] AS [MUK] ON [M].Unterkapitel = [MUK].Unterkapitel)"
+            "LEFT JOIN [MELLIST - KAPITEL] AS [MK] ON [M].Kapitel = [MK].Kapitel )"
+            "LEFT JOIN [MELLIST - ANATOMIE GROB] AS [MAG] ON [M].AnatomieGrob = [MAG].Anatomie_Grob )"
+            "LEFT JOIN [MELLIST - ANATOMIE FEIN] AS [MAF] ON [M].AnatomieFein = [MAF].AnatomieFein_Code )"
+            "LEFT JOIN [MELLIST - LEISTUNGSART] AS [MLA] ON [M].Leistungsart = [MLA].Leistungsart_Code )"
+            "LEFT JOIN [MELLIST - ZUGANG] AS [MZ] ON [M].Zugang = [MZ].Zugang_Code )"
+            "LEFT JOIN [MELLIST - LEISTUNGSEINHEIT] AS [MLE] ON [M].Zugang = [MLE].Leistungseinheit_Code )"
+            "LEFT JOIN [MELDIAG] AS [MD] ON [M].Leistung = [MD].LeistungVon ")
+
+
+        #metadata
+        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023"
+        self.name = "bmg-icd-10-2023"
+        self.title = "BMG ICD-10 2023"
+        self.status = pcam.Status.active
+        self.content = pcam.Content.complete
+        self.version = "Version 2023"
+        #self.count = "13166"
+        self.resource = pcam.Resource.CodeSystem
+        #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
+
+        # generating a list full of properties
+        # lstProperty = []
+        #
+        # theProperty = pcam.Property()
+        # theProperty.code = "child"
+        # theProperty.type = pcam.PropertyCodeType.code
+        # lstProperty.append(theProperty)
+        #
+        # theProperty = pcam.Property()
+        # theProperty.code = "parent"
+        # theProperty.type = pcam.PropertyCodeType.code
+        # lstProperty.append(theProperty)
+        # # https://stackoverflow.com/questions/12704305/return-column-names-from-pyodbc-execute-statement
+        # columns = [column[0] for column in cursor.description]
+        #
+        # # looks for properties and adds them to the list
+        # for column in columns:
+        #     if column == 'DDiagnose' or column == 'DBezeichnung' or column == 'DKapitel' or column == 'DUnterkapitel' or column == 'DKurzbezeichnung' or column == 'D3SDiagnose' or column == 'D3SBezeichnung' or column == "DUKUnterkapitel" or column == "DUKBeschreibung" or column == "DKBeschreibung" or column == "DKKapitel":
+        #         continue
+        #     else:
+        #         theProperty = pcam.Property()
+        #         theProperty.code = column
+        #         theProperty.type = pcam.PropertyCodeType.string
+        #         lstProperty.append(theProperty)
+        #         print(column)
+        #dictParents = {}
+        # processing the concepts
+        self.parseConcepts(cursor)
+        #
+        # if lstProperty != []:
+        #     self.property = lstProperty
+        # print("finish")
+
+    def parseConcepts(self, cursor):
+        row = cursor.fetchone()
+        dictParents = {}
+
+        while row:
+            ### we are working on the lvl 1 parent (unterkapitel) ###
+
+            new_mukunterkapitel = False
+            if row.MUKUnterkapitel not in dictParents:
+                new_mukunterkapitel = True
+
+                theParentConcept = pcam.CSConcept()
+                theParentConcept.code = row.MUKUnterkapitel
+                theParentConcept.display = row.MUKUnterkapitel
+                dictParents[row.MUKUnterkapitel] = theParentConcept
+                self.concept.append(theParentConcept)
+                # setting the parent upon creation of the concept
+                parseParent(dictParents,row.MUKUnterkapitel,row.MKKapitel)
+
+            parseChild(dictParents,row.MUKUnterkapitel,row.Leistung)
+
+            # dictParents[row.DUKUnterkapitel].property.append(thePropertyofParent)
+
+            ### we are working on the lvl 2 parent (kapitel) ###
+
+            if row.MKKapitel not in dictParents:
+                theParentConcept = pcam.CSConcept()
+                theParentConcept.code = row.MKKapitel
+                theParentConcept.display = row.MKBeschreibung
+                dictParents[row.MKKapitel] = theParentConcept
+                self.concept.append(theParentConcept)
+
+            # adding child only if it is a new child
+            if new_mukunterkapitel:
+                parseChild(dictParents,row.MKKapitel,row.MUKUnterkapitel)
+                conceptparent = row.MUKUnterkapitel
+            # # create new child link to Parent
+            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
+            # thePropertyofParent.code = "child"
+            # thePropertyofParent.value = row.DUKUnterkapitel
+            # thePropertyofParent.type = pcam.PropertyCodeType.code
+            # dictParents[row.DKKapitel].property.append(thePropertyofParent)
+
+            theConcept = pcam.CSConcept()
+            theConcept.code = row.Leistung
+            theConcept.display = row.Kurztext
+            theConcept.definition = row.Beschreibung
+
+            # adding parent-property to the concept
+            theProperty = pcam.CSConcept.ConceptProperty()
+            theProperty.code = "parent"
+            theProperty.value = conceptparent
+            theProperty.type = pcam.PropertyCodeType.code
+            theConcept.property.append(theProperty)
+            # parsing respective properties to one concept
+            parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
+            parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
+            parseProp(theConcept.property, row.Leistungsart, "Leistungsart")
+            parseProp(theConcept.property, row.Zugang, "Zugang")
+            parseProp(theConcept.property, row.Leistungseinheit, "Leistungseinheit")
+            parseProp(theConcept.property, row.Gruppe, "Gruppe")
+            parseProp(theConcept.property, row.LGR, "LGR")
+            parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
+            parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
+            parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
+            parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
+            parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
+            parseProp(theConcept.property, row.ErroranzahlTag, "ErroranzahlTag")
+            parseProp(theConcept.property, row.MEL_ambulant, "MEL_ambulant")
+            parseProp(theConcept.property, row.MEL0_Tage, "MEL>0_Tage")
+            parseProp(theConcept.property, row.MEL_TKL, "MEL_TKL")
+            parseProp(theConcept.property, row.MEL_OP, "MEL_OP")
+            parseProp(theConcept.property, row.Langtext, "Langtext")
+            parseProp(theConcept.property, row.Codierhinweis, "Codierhinweis")
+            parseProp(theConcept.property, row.Nichtinhalt, "Nichtinhalt")
+            parseProp(theConcept.property, row.Quelle, "Quelle")
+            parseProp(theConcept.property, row.ErfassungStationär, "ErfassungStationär")
+            parseProp(theConcept.property, row.GruppeAmbulant, "GruppeAmbulant")
+            parseProp(theConcept.property, row.LGRAmbulant, "LGRAmbulant")
+            parseProp(theConcept.property, row.WarninganzahlAmbulant, "WarninganzahlAmbulant")
+            parseProp(theConcept.property, row.ErroranzahlAmbulant, "ErroranzahlAmbulant")
+            parseProp(theConcept.property, row.DiagnoseAmbulant, "DiagnoseAmbulant")
+            parseProp(theConcept.property, row.ErfassungAmbulant, "ErfassungAmbulant")
+            parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
+            parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
+
+            parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
+                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+            parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
+                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+
+            self.concept.append(theConcept)
+            row = cursor.fetchone()
+
         self.sortConceptsExpandStyle()
 
     # just for calling the outer method
     def parse(inFilename):
-        return ICDBMG(inFilename)
+        return BMGLKF(inFilename)
 
 # checks if a certain property is filled and adds to the propertylist accordingly
-def parseProp(conceptPropList, propertyInRow, nameOfProperty):
+def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pcam.PropertyCodeType.string, codeSystemOfProp=None):
     if propertyInRow != " ":
         theProperty = pcam.CSConcept.ConceptProperty()
         theProperty.code = nameOfProperty
-        theProperty.value = propertyInRow
-        theProperty.type = pcam.PropertyCodeType.string
+        if typeOfProperty is pcam.PropertyCodeType.coding:
+            theCoding = pcam.Coding()
+            theCoding.code = propertyInRow
+            theCoding.codesystem = codeSystemOfProp
+            theProperty.value = theCoding
+        else:
+            theProperty.value = propertyInRow
+        theProperty.type = typeOfProperty
         conceptPropList.append(theProperty)
 
 def parseChild(dictConceptParents,propertyOfConcept,nameOfChildProperty):
