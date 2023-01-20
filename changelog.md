@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix reading of contact without telecom fails when reading `.1.propcsv.xlsx`.
-- Fix reading of concept properties fails in case of `Coding` when reading `.1.propcsv.xlsx`.
 - Fix use of `hierarchyMeaning`.
 - Fix reading of `description` results if it contains `&#xD;&#xA;` when reading `.4.fhir.xml`.
 
