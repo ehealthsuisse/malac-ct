@@ -8,7 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Support `CodeSystem.id` and `ValueSet.id`.
+
+### Changed
+
 - [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Upload possibility per args to multiple FHIR server
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Change canonical URLs from the scheme `BASE/RESOURCETYPE-ID` to `BASE/RESOURCETYPE/ID`.
 
 ## [3.1.4+20230118]
 

@@ -22,7 +22,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                 else:
                     self.resource = pcam.Resource["CodeSystem"]
                 self.version = "unknown due to outdated csv"
-                self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', os.path.basename(csvfile.name).replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                self.id = self.name = (re.sub(r'[^A-Za-z0-9\-]+', '', os.path.basename(csvfile.name).replace("CodeSystem-","").replace("ValueSet-","").split('.')[0].replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                 self.title = csvfile.name.split('\\')[-1].replace("CodeSystem-","").replace("ValueSet-","").split('.')[0]
                 self.status = pcam.Status['active']
                 self.description = "unknown due to outdated csv"
@@ -188,9 +188,9 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
 
     def get_url(self):
         if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"-"+self.get_name()
+            return tempUrl+self.get_resource()+"/"+self.get_id()
         else:
-            return self.get_resource()+"-"+self.get_name()
+            return self.get_resource()+"/"+self.get_id()
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, versionOfOutdatedCsv=1):
         # to stay fully backwards compatible, don't do an other coding of file

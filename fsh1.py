@@ -48,6 +48,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     self.content = pcam.Content[value]
 
                 # optional fields
+                elif splittedLine[0] == '* id ' : self.id = value
                 elif splittedLine[0] == '* url ': self.url = value
                 elif splittedLine[0] == '* version ':self.version = value
                 elif splittedLine[0] == '* title ':self.title = value
@@ -315,6 +316,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('Instance: %s \n' % self.get_name())
         outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
+        outfile.write('* id = "%s" \n' % self.get_id())
         outfile.write('* url = "%s" \n' % self.get_url())
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
