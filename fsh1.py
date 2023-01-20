@@ -18,7 +18,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             file.readline()
 
             # preparing lists and some variables
-            lstFilter =  []
+            lstFilter = []
             lstProperty = []
             dictConcept = {}
 

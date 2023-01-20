@@ -112,7 +112,7 @@ class PropCsvAndMaster():
                         tempProperty.code = propElements[0]
                         tempProperty.uri = propElements[1]
                         tempProperty.description = propElements[2]
-                        tempProperty.type = PropertyCodeType(propElements[3])
+                        tempProperty.type = PropertyCodeType[propElements[3].lower()]
                         self.property.append(tempProperty)
 
                 #initializing the body/content
@@ -138,7 +138,7 @@ class PropCsvAndMaster():
                                     tempProperty = CSConcept.ConceptProperty()
                                     tempProperty.code = propertyElements[0]
                                     tempProperty.value = propertyElements[1]
-                                    tempProperty.type = PropertyCodeType(propertyElements[2])
+                                    tempProperty.type = PropertyCodeType[propertyElements[2].lower()]
                                     tempConcept.property.append(tempProperty)
 
                             elif self.resource == self.resource.ValueSet:
