@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Upload possibility per args to multiple FHIR server
 
+## [3.1.4+20230118]
+
+### Fixed
+
+- Fix using name in enum of propcsv, not value
+
 ## [3.1.3+20221121]
 
 ### Fixed
