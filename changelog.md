@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Change canonical URLs from the scheme `BASE/RESOURCETYPE-ID` to `BASE/RESOURCETYPE/ID`.
 
+## [3.1.4+20230118]
+
+### Fixed
+
+- Fix using name in enum of propcsv, not value
+
 ## [3.1.3+20221121]
 
 ### Fixed
