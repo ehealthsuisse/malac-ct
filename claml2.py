@@ -235,7 +235,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'valueset')
 
     def get_hierarchymeaning(self):
-        return get_Meta_with_name(self,'hierarchyMeaning')
+        return pcam.HierarchyMeaning(get_Meta_with_name(self,'hierarchyMeaning'))
 
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')
@@ -569,7 +569,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
         # TODO valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
-        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
+        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp.value))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
         # TODO supplements

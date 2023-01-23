@@ -504,7 +504,7 @@ class PropCsvAndMaster():
             if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
             if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
             if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp))
+            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
             if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
             if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
             if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
@@ -704,7 +704,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -715,7 +720,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 workbook.close()
 class PropCsvAsXLSX():
@@ -786,7 +796,8 @@ class ContactDetail():
 
         splitted_telecom = splitted_contact[1].split('~')
         for telecom in splitted_telecom:
-            telecom_list.append(cls.ContactPoint.from_string(telecom))
+            if telecom:
+                telecom_list.append(cls.ContactPoint.from_string(telecom))
 
         return cls(name, telecom_list)
 
