@@ -79,6 +79,12 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def get_resource(self):
         return get_Meta_with_name(self,'resource')
 
+    def get_id(self):
+        if tmp_id := get_Meta_with_name(self, 'id'):
+            return tmp_id
+        else:
+            return self.get_name()
+
     def get_url(self):
         return get_Meta_with_name(self,'url')
 
@@ -256,6 +262,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         #madatory FHIR fields
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
+        metas.append(MetaSub('id', self.get_id()))
         metas.append(MetaSub('url',self.get_url()))
         identifiers = []
         mainIdent = IdentifierSub(status=self.get_status())

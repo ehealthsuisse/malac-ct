@@ -79,6 +79,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    def get_id(self):
+        return f4csvs.get_id(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 

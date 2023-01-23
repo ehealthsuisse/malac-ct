@@ -13,9 +13,12 @@ import fhir4_valueset as f4vs
 #
 ####################################################################################
 
-# NOT SUPPORTED:
-#   CodeSystem.id or ValueSet.id
-# def get_id(resource):
+def get_id(self):
+    """Return CodeSystem.id or ValueSet.id
+    """
+    if tmp := self.get_id():
+        return tmp.get_value()
+    return None
 
 # NOT SUPPORTED:
 #   CodeSystem.meta or ValueSet.meta
@@ -343,9 +346,7 @@ def exporto(self, globals, fhir_resource):
     fhir_resource -- The FHIR resource the information will be written to.
     """
 
-    # IG publisher fails if no id is present in FHIR resource.
-    # As fallback the name of the resource is being used.
-    if tmp := self.get_name():
+    if tmp := self.get_id():
         fhir_resource.set_id(globals.get('idSub')(value=tmp))
 
     # NOT SUPPORTED CodeSystem.meta or ValueSet.meta
