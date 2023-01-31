@@ -394,6 +394,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     # set the concept's level
                     the_concept.level = level
 
+                    # parse ValueSet.expansion.contains.abstract
+                    if tmp := one_contains.get_abstract():
+                        the_concept.abstract = tmp.get_value()
+
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
                         # setting theConcept as child of the parent
