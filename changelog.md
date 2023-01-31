@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- #5 Read `ValueSet.expansion.contains.abstract` properly if `.4.fhir.xml` or `.4.fhir.json` is the input format.
 - Fix reading of contact without telecom fails when reading `.1.propcsv.xlsx`.
 - Fix use of `hierarchyMeaning`.
 - Fix reading of `description` results if it contains `&#xD;&#xA;` when reading `.4.fhir.xml`.
