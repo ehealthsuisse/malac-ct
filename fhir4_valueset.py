@@ -79,6 +79,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    def get_id(self):
+        return f4csvs.get_id(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
@@ -390,6 +393,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if code in concept_code_dict.keys() and (the_concept := concept_code_dict[code]):
                     # set the concept's level
                     the_concept.level = level
+
+                    # parse ValueSet.expansion.contains.abstract
+                    if tmp := one_contains.get_abstract():
+                        the_concept.abstract = tmp.get_value()
 
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:

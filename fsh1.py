@@ -18,7 +18,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             file.readline()
 
             # preparing lists and some variables
-            lstFilter =  []
+            lstFilter = []
             lstProperty = []
             dictConcept = {}
 
@@ -48,6 +48,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     self.content = pcam.Content[value]
 
                 # optional fields
+                elif splittedLine[0] == '* id ' : self.id = value
                 elif splittedLine[0] == '* url ': self.url = value
                 elif splittedLine[0] == '* version ':self.version = value
                 elif splittedLine[0] == '* title ':self.title = value
@@ -87,7 +88,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* inactive ': self.inactive = value
                 elif splittedLine[0] == '* caseSensitive ': self.casesensitive = value
                 elif splittedLine[0] == '* valueSet ': self.valueset = value
-                elif splittedLine[0] == '* hierarchyMeaning ': self.hierarchymeaning = value
+                elif splittedLine[0] == '* hierarchyMeaning ': self.hierarchymeaning = pcam.HierarchyMeaning(value)
                 elif splittedLine[0] == '* compositional ': self.compositional = value
                 elif splittedLine[0] == '* versionNeeded ': self.versionneeded = value
                 elif splittedLine[0] == '* supplements ': self.supplements = value
@@ -315,6 +316,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('Instance: %s \n' % self.get_name())
         outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
+        outfile.write('* id = "%s" \n' % self.get_id())
         outfile.write('* url = "%s" \n' % self.get_url())
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
@@ -373,7 +375,7 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_casesensitive(): outfile.write('* caseSensitive = "%s" \n' % tmp)
         # TODO how should we work with references like valueset
         #if tmp := self.get_valueset(): outfile.write('* valueSet = "%s" \n' % tmp)
-        if tmp := self.get_hierarchymeaning(): outfile.write('* hierarchyMeaning = "%s" \n' % tmp)
+        if tmp := self.get_hierarchymeaning(): outfile.write('* hierarchyMeaning = "%s" \n' % tmp.value)
         if tmp := self.get_compositional(): outfile.write('* compositional = "%s" \n' % tmp)
         if tmp := self.get_versionneeded(): outfile.write('* versionNeeded = "%s" \n' % tmp)
         if tmp := self.get_supplements(): outfile.write('* supplements = "%s" \n' % (tmp))

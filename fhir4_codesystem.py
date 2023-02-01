@@ -71,6 +71,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """
         return pcam.Resource.CodeSystem.value
 
+    def get_id(self):
+        return f4csvs.get_id(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
@@ -159,7 +162,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """Return CodeSystem.hierarchyMeaning.
         """
         if tmp := super().get_hierarchyMeaning():
-            return tmp.get_value()
+            return pcam.HierarchyMeaning(tmp.get_value())
         return None
 
     def get_compositional(self):
@@ -366,7 +369,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
             codesystem.set_valueSet(canonicalSub(value=tmp))
 
         if tmp := self.get_hierarchymeaning():
-            codesystem.set_hierarchyMeaning(CodeSystemHierarchyMeaningSub(value=tmp))
+            codesystem.set_hierarchyMeaning(CodeSystemHierarchyMeaningSub(value=tmp.value))
 
         if tmp := self.get_compositional():
             codesystem.set_compositional(booleanSub(value=tmp))

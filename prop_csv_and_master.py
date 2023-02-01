@@ -4,6 +4,7 @@ from unittest import skip
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
+        self.id = None
         self.url = None
         self.version = None
         self.name = None
@@ -64,6 +65,7 @@ class PropCsvAndMaster():
                     metaList[1][i].strip("\"")
 
                     if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
+                    if 'id' == metaObj: self.id = metaList[1][i]
                     if 'url' == metaObj: self.url = metaList[1][i]
                     if 'version' == metaObj: self.version = metaList[1][i]
                     if 'name' == metaObj: self.name = metaList[1][i]
@@ -202,6 +204,9 @@ class PropCsvAndMaster():
 
     def get_resource(self):
         return self.resource.value
+
+    def get_id(self):
+        return self.id
 
     def get_url(self):
         return self.url
@@ -345,13 +350,13 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
-            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
                 csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource()+"-"+self.get_name()+","+self.globalUrl + self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
+            csvfile.write(self.get_resource() + "-" + self.get_id() + "," + self.get_url() + "," + (tmp[0] if (tmp := self.get_identifier()) else "") + "," + self.get_version() + "," + self.get_id() + "," + self.get_resource() + "\n")
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
@@ -461,6 +466,7 @@ class PropCsvAndMaster():
             csv_meta = []
             # start list of metaelements
             csv_meta.append(("resource",self.get_resource()))
+            csv_meta.append(("id",self.get_id()))
             csv_meta.append(("url",self.get_url()))
             csv_meta.append(("version",self.get_version()))
             csv_meta.append(("name",self.get_name()))
@@ -498,7 +504,7 @@ class PropCsvAndMaster():
             if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
             if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
             if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp))
+            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
             if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
             if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
             if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
@@ -698,7 +704,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -709,7 +720,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 workbook.close()
 class PropCsvAsXLSX():
@@ -780,7 +796,8 @@ class ContactDetail():
 
         splitted_telecom = splitted_contact[1].split('~')
         for telecom in splitted_telecom:
-            telecom_list.append(cls.ContactPoint.from_string(telecom))
+            if telecom:
+                telecom_list.append(cls.ContactPoint.from_string(telecom))
 
         return cls(name, telecom_list)
 

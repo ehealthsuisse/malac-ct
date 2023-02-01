@@ -87,12 +87,18 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.CodeSystem.value
 
+    def get_id(self):
+        if tmp_id := get_Meta_with_name(self, 'id'):
+            return tmp_id
+        else:
+            return self.get_name()
+
     # todo create get url for other classifications
     def get_url(self):
-        if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"-"+self.get_name()
-        elif tempUrl := get_Meta_with_name(self,'url'):
+        if tempUrl := get_Meta_with_name(self,'url'):
             return tempUrl
+        elif tempUrl := self.globalUrl:
+            return tempUrl+self.get_resource() + "/" + self.get_id()
 
     def get_identifier(self):
         identifiers = []
@@ -229,7 +235,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'valueset')
 
     def get_hierarchymeaning(self):
-        return get_Meta_with_name(self,'hierarchyMeaning')
+        return pcam.HierarchyMeaning(get_Meta_with_name(self,'hierarchyMeaning'))
 
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')
@@ -482,6 +488,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # optional ClaMl3 fields
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
+        metas.append(MetaSub('id', self.get_id()))
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":
@@ -562,7 +569,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
         # TODO valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
-        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
+        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp.value))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
         # TODO supplements
