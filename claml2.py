@@ -235,7 +235,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'valueset')
 
     def get_hierarchymeaning(self):
-        return pcam.HierarchyMeaning(get_Meta_with_name(self,'hierarchyMeaning'))
+        if tmp := get_Meta_with_name(self,'hierarchyMeaning'):
+            return pcam.HierarchyMeaning(tmp)
+        return None
 
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')

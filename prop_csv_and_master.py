@@ -95,7 +95,7 @@ class PropCsvAndMaster():
                     if 'lockedDate' == metaObj: self.lockeddate = metaList[1][i]
                     if 'caseSensitive' == metaObj: self.casesensitive = metaList[1][i]
                     if 'valueSet' == metaObj: self.valueset = metaList[1][i]
-                    if 'hierarchyMeaning' == metaObj: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
+                    if 'hierarchyMeaning' == metaObj and metaList[1][i]: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
                     if 'compositional' == metaObj: self.compositional = metaList[1][i]
                     if 'versionNeeded' == metaObj: self.versionneeded = metaList[1][i]
                     if 'supplements' == metaObj: self.supplements = metaList[1][i]
