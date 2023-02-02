@@ -88,7 +88,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* inactive ': self.inactive = value
                 elif splittedLine[0] == '* caseSensitive ': self.casesensitive = value
                 elif splittedLine[0] == '* valueSet ': self.valueset = value
-                elif splittedLine[0] == '* hierarchyMeaning ': self.hierarchymeaning = pcam.HierarchyMeaning(value)
+                elif splittedLine[0] == '* hierarchyMeaning ' and value: self.hierarchymeaning = pcam.HierarchyMeaning(value)
                 elif splittedLine[0] == '* compositional ': self.compositional = value
                 elif splittedLine[0] == '* versionNeeded ': self.versionneeded = value
                 elif splittedLine[0] == '* supplements ': self.supplements = value

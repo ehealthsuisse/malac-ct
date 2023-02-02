@@ -161,7 +161,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_hierarchymeaning(self):
         """Return CodeSystem.hierarchyMeaning.
         """
-        if tmp := super().get_hierarchyMeaning():
+        if tmp := super().get_hierarchyMeaning() and tmp.get_value():
             return pcam.HierarchyMeaning(tmp.get_value())
         return None
 

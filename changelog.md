@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.1+20230202]
+
+### Fixed
+
+- Fix use of `hierarchyMeaning`.
+
 ## [4.0.0+20230201]
 
 ### Added
