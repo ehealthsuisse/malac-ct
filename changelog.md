@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3+20230207]
+
+### Fixed
+
+- When reading concepts from ValueSet same concepts codes will be distinguished by their corresponding URL in order to correctly determine hierarchies.
+
 ## [4.0.2+20230207]
 
 ### Fixed
