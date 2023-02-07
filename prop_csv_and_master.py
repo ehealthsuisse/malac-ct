@@ -125,6 +125,7 @@ class PropCsvAndMaster():
                     elif self.resource == self.resource.ValueSet:
                         tempConcept = VSConcept()
 
+                    parent_retrieved = False
                     for i in range(0, len(row)):
                         if row[i].strip() != "":
                             row[i].strip("\"").strip("\'")
@@ -148,8 +149,34 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if 'parent' == headingList[i]:
-                                    tempConcept.parent = row[i]
+                                if not parent_retrieved and 'parent' == headingList[i]:
+                                    parent_system_index = headingList.index('parentSystem') if 'parentSystem' in headingList else None
+
+                                    the_parent = VSConcept()
+                                    the_parent.code = row[i]
+                                    if parent_system_index:
+                                        the_parent.system = row[parent_system_index]
+                                    else:
+                                        # should not happen
+                                        import sys
+                                        sys.exit('Parent should be provided with a system: ' + row[i])
+
+                                    tempConcept.parent = the_parent
+                                    parent_retrieved = True
+                                if not parent_retrieved and 'parentSystem' == headingList[i]:
+                                    parent_code_index = headingList.index('parent') if 'parent' in headingList else None
+
+                                    the_parent = VSConcept()
+                                    the_parent.system = row[i]
+                                    if parent_code_index:
+                                        the_parent.code = row[parent_code_index]
+                                    else:
+                                        # should not happen
+                                        import sys
+                                        sys.exit('Parent should be provided with a code: ' + row[i])
+
+                                    tempConcept.parent = the_parent
+                                    parent_retrieved = True
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -173,8 +200,8 @@ class PropCsvAndMaster():
                     concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                     for one_concept in self.concept:
-                        if one_concept.parent:
-                            parent = concept_dict[one_concept.parent + one_concept.system]
+                        if tmp_parent := one_concept.parent:
+                            parent = concept_dict[tmp_parent.code + tmp_parent.system]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
                             # setting the hierarchy level
@@ -183,9 +210,8 @@ class PropCsvAndMaster():
                             one_concept.parent = parent
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
-        if concept.parent:
-            parent_code = concept.parent.code if hasattr(concept.parent,"code") else concept.parent
-            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[parent_code])
+        if tmp_parent := concept.parent:
+            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
             return level + 1
         else:
             return 0
@@ -602,6 +628,12 @@ class PropCsvAndMaster():
                                 else:
                                     csv_line.append('')
 
+                            elif csv_header_element == 'parentSystem':
+                                if oneConcept.parent and (tmp := oneConcept.parent.system):
+                                    csv_line.append(tmp)
+                                else:
+                                    csv_line.append('')
+
                             elif csv_header_element == 'version':
                                 # write the system version if existent
                                 if  tmp := oneConcept.version:
@@ -654,6 +686,12 @@ class PropCsvAndMaster():
                             csv_header.append('parent')
                             if tmp.code:
                                 csv_line.append(tmp.code)
+                            else:
+                                csv_line.append('')
+                        if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                            csv_header.append('parentSystem')
+                            if tmp.system:
+                                csv_line.append(tmp.system)
                             else:
                                 csv_line.append('')
                         while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
