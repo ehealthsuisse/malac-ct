@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.2+20230207]
+
+### Fixed
+
+- elga-gmbh/malac-ct#7 Fix sort order of concepts when reading `.4.fhir.xml` or `.4.fhir.json`.
+
 ## [4.0.1+20230202]
 
 ### Fixed
