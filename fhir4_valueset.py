@@ -269,7 +269,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # based on the concepts processed so far, a dictionary with the
             # concept's code as key will be created in order to add information
             # which will be retrieved from ValueSet.expansion.contains
-            concept_code_dict = self.buildConceptDictWithAttr('code')
+            concept_code_dict = self.buildConceptDictWithAttr('code', 'system')
 
             # parse ValueSet.expansion.contains for retrieving information about
             # possible hierarchies
@@ -395,10 +395,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         retrieved from the expansion. No other information - if available - will be processed.
         """
         for one_contains in contains_list:
-            if tmp := one_contains.get_code():
-                code = tmp.get_value()
+            if (tmp_code := one_contains.get_code()) and (tmp_system := one_contains.get_system()):
+                key = tmp_code.get_value() + tmp_system.get_value()
                 # retrieve the concept from the dictionary
-                if code in concept_code_dict.keys() and (the_concept := concept_code_dict[code]):
+                if key in concept_code_dict.keys() and (the_concept := concept_code_dict[key]):
                     # set the concept's level
                     the_concept.level = level
 

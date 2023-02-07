@@ -170,11 +170,11 @@ class PropCsvAndMaster():
 
                 # fill members of parents
                 if self.resource == self.resource.ValueSet:
-                    concept_dict = self.buildConceptDictWithAttr('code')
+                    concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                     for one_concept in self.concept:
                         if one_concept.parent:
-                            parent = concept_dict[one_concept.parent]
+                            parent = concept_dict[one_concept.parent + one_concept.system]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
                             # setting the hierarchy level
@@ -414,13 +414,16 @@ class PropCsvAndMaster():
     def gainVersionFromOid(self, oid):
         return self.resolveTerminologyMapping('oid', oid, 'version')
 
-    def buildConceptDictWithAttr(self, stringAttrAsKey):
+    def buildConceptDictWithAttr(self, *stringAttrAsKeys):
         tmpDict = {}
         for oneCon in self.get_concept():
-            tmpPointer = oneCon
-            for part in stringAttrAsKey.split("."):
-                tmpPointer = getattr(tmpPointer,part)
-            tmpDict[tmpPointer] = oneCon
+            key = ''
+            for stringAttrAsKey in stringAttrAsKeys:
+                tmp_pointer = oneCon
+                for part in stringAttrAsKey.split("."):
+                    tmpPointer = getattr(tmp_pointer,part)
+                key += tmpPointer
+            tmpDict[key] = oneCon
         return tmpDict
 
     def sortConceptsExpandStyle(self):
