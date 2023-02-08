@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3+20230207]
+
+### Fixed
+
+- When reading concepts from ValueSet same concepts codes will be distinguished by their corresponding URL in order to correctly determine hierarchies.
+- Add column `parentSystem` to `.1.propcsv.csv` and `.1.propcsv.xlsx` in order to have a clear correlation between parent code and its corresponding system.
+
 ## [4.0.2+20230207]
 
 ### Fixed

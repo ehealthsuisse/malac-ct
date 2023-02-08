@@ -125,6 +125,7 @@ class PropCsvAndMaster():
                     elif self.resource == self.resource.ValueSet:
                         tempConcept = VSConcept()
 
+                    # reading the content of the row
                     for i in range(0, len(row)):
                         if row[i].strip() != "":
                             row[i].strip("\"").strip("\'")
@@ -148,8 +149,8 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if 'parent' == headingList[i]:
-                                    tempConcept.parent = row[i]
+                                if 'parent' == headingList[i]: tempConcept.parent = row[i]
+                                if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -166,26 +167,31 @@ class PropCsvAndMaster():
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
 
+                    # check for some invalid combinations
+                    if self.resource == self.resource.ValueSet:
+                        # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
+                        if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
+                            import sys
+                            sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
                     self.concept.append(tempConcept)
 
                 # fill members of parents
                 if self.resource == self.resource.ValueSet:
-                    concept_dict = self.buildConceptDictWithAttr('code')
+                    concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                     for one_concept in self.concept:
-                        if one_concept.parent:
-                            parent = concept_dict[one_concept.parent]
+                        if one_concept.parent and one_concept.parentSystem:
+                            parent = concept_dict[one_concept.parent+one_concept.parentSystem]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
-                            # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
                             # setting the parent of one_concept
                             one_concept.parent = parent
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
-        if concept.parent:
-            parent_code = concept.parent.code if hasattr(concept.parent,"code") else concept.parent
-            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[parent_code])
+        if tmp_parent := concept.parent:
+            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
             return level + 1
         else:
             return 0
@@ -414,13 +420,16 @@ class PropCsvAndMaster():
     def gainVersionFromOid(self, oid):
         return self.resolveTerminologyMapping('oid', oid, 'version')
 
-    def buildConceptDictWithAttr(self, stringAttrAsKey):
+    def buildConceptDictWithAttr(self, *stringAttrAsKeys):
         tmpDict = {}
         for oneCon in self.get_concept():
-            tmpPointer = oneCon
-            for part in stringAttrAsKey.split("."):
-                tmpPointer = getattr(tmpPointer,part)
-            tmpDict[tmpPointer] = oneCon
+            key = ''
+            for stringAttrAsKey in stringAttrAsKeys:
+                tmp_pointer = oneCon
+                for part in stringAttrAsKey.split("."):
+                    tmpPointer = getattr(tmp_pointer,part)
+                key += tmpPointer
+            tmpDict[key] = oneCon
         return tmpDict
 
     def sortConceptsExpandStyle(self):
@@ -599,6 +608,12 @@ class PropCsvAndMaster():
                                 else:
                                     csv_line.append('')
 
+                            elif csv_header_element == 'parentSystem':
+                                if oneConcept.parent and (tmp := oneConcept.parent.system):
+                                    csv_line.append(tmp)
+                                else:
+                                    csv_line.append('')
+
                             elif csv_header_element == 'version':
                                 # write the system version if existent
                                 if  tmp := oneConcept.version:
@@ -651,6 +666,12 @@ class PropCsvAndMaster():
                             csv_header.append('parent')
                             if tmp.code:
                                 csv_line.append(tmp.code)
+                            else:
+                                csv_line.append('')
+                        if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                            csv_header.append('parentSystem')
+                            if tmp.system:
+                                csv_line.append(tmp.system)
                             else:
                                 csv_line.append('')
                         while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
