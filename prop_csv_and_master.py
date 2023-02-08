@@ -125,7 +125,7 @@ class PropCsvAndMaster():
                     elif self.resource == self.resource.ValueSet:
                         tempConcept = VSConcept()
 
-                    parent_retrieved = False
+                    # reading the content of the row
                     for i in range(0, len(row)):
                         if row[i].strip() != "":
                             row[i].strip("\"").strip("\'")
@@ -149,34 +149,8 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if not parent_retrieved and 'parent' == headingList[i]:
-                                    parent_system_index = headingList.index('parentSystem') if 'parentSystem' in headingList else None
-
-                                    the_parent = VSConcept()
-                                    the_parent.code = row[i]
-                                    if parent_system_index:
-                                        the_parent.system = row[parent_system_index]
-                                    else:
-                                        # should not happen
-                                        import sys
-                                        sys.exit('Parent should be provided with a system: ' + row[i])
-
-                                    tempConcept.parent = the_parent
-                                    parent_retrieved = True
-                                if not parent_retrieved and 'parentSystem' == headingList[i]:
-                                    parent_code_index = headingList.index('parent') if 'parent' in headingList else None
-
-                                    the_parent = VSConcept()
-                                    the_parent.system = row[i]
-                                    if parent_code_index:
-                                        the_parent.code = row[parent_code_index]
-                                    else:
-                                        # should not happen
-                                        import sys
-                                        sys.exit('Parent should be provided with a code: ' + row[i])
-
-                                    tempConcept.parent = the_parent
-                                    parent_retrieved = True
+                                if 'parent' == headingList[i]: tempConcept.parent = row[i]
+                                if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -193,6 +167,12 @@ class PropCsvAndMaster():
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
 
+                    # check for some invalid combinations
+                    if self.resource == self.resource.ValueSet:
+                        # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
+                        if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
+                            import sys
+                            sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
                     self.concept.append(tempConcept)
 
                 # fill members of parents
@@ -200,14 +180,14 @@ class PropCsvAndMaster():
                     concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                     for one_concept in self.concept:
-                        if tmp_parent := one_concept.parent:
-                            parent = concept_dict[tmp_parent.code + tmp_parent.system]
+                        if one_concept.parent and one_concept.parentSystem:
+                            parent = concept_dict[one_concept.parent+one_concept.parentSystem]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
-                            # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
                             # setting the parent of one_concept
                             one_concept.parent = parent
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
         if tmp_parent := concept.parent:
