@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.4+20230210]
+
+### Fixed
+
+- elga-gmbh/malac-ct#8 Fix type in VS with svsextelga1&2 & claml2&3
+
 ## [4.0.3+20230207]
 
 ### Fixed
@@ -38,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- #5 Read `ValueSet.expansion.contains.abstract` properly if `.4.fhir.xml` or `.4.fhir.json` is the input format.
+- elga-gmbh/malac-ct#5 Read `ValueSet.expansion.contains.abstract` properly if `.4.fhir.xml` or `.4.fhir.json` is the input format.
 - Fix reading of contact without telecom fails when reading `.1.propcsv.xlsx`.
 - Fix use of `hierarchyMeaning`.
 - Fix reading of `description` results if it contains `&#xD;&#xA;` when reading `.4.fhir.xml`.

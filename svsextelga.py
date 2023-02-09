@@ -620,10 +620,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 if foundIt == False:
                     type_ = "L"
             elif self.get_resource() == "ValueSet":
-                if oneConcept.member != []:
-                    type_ = "S"
-                elif oneConcept.abstract:
+                if oneConcept.abstract:
                     type_ = "A"
+                elif oneConcept.member != []:
+                    type_ = "S"
                 else:
                     type_ = "L"
 
