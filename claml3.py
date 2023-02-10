@@ -325,10 +325,6 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
 
         classes = []
         if tmp := self.get_concept():
-            if self.get_resource() == "CodeSystem":
-                concept_dict = self.buildConceptDictWithAttr('code')
-            elif self.get_resource() == "ValueSet":
-                concept_dict = self.buildConceptDictWithAttr('code', 'system')
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()

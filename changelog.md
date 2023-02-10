@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- elga-gmbh/malac-ct#8 Fix type in VS with svsextelga1&2 & claml2&3
+- elga-gmbh/malac-ct#8 Fix type in VS within `.1.svsextelga.xml`, `.2.svsextelga.xml`, `.2.claml.xml`, and `.3.claml.xml`.
 
 ## [4.0.3+20230207]
 

@@ -656,7 +656,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     elif oneConcept.member != []:
                         type_ = "S"
 
-                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type_ == "S" else "true"))
+                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "true" if type_ == "L" else "false"))
                 if self.get_resource() == "CodeSystem":
                     theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 if self.get_resource() == "ValueSet":
