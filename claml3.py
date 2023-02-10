@@ -356,14 +356,28 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=str(oneDesignation))]))
 
-                if hasattr(oneConcept,'property'):
+                if self.get_resource() == "CodeSystem" and hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
-                        if oneProperty.code == "parent":
+                        if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
+                            theClass.set_kind(oneProperty.value)
+                        elif oneProperty.code == "parent":
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                        else:
+                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                        elif oneProperty.code == "None":
+                            the_desig = pcam.ConceptDesignation()
+                            the_desig.value = oneProperty.value
+                            theClass.add_Rubric(RubricSub(kind="designation", Label=[LabelSub(valueOf_=the_desig)]))
+                        else:
+                            # normally, a string property should be a rubric, because it is not specificly defined or structured, for legacy purposes it will be set as meta
+                            theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+
+                # if there was no kind given, create one with "noKind"
+                if temp := theClass.get_kind():
+                    theClass.set_kind("noKind")
+
                 classes.append(theClass)
 
         claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,classes))
