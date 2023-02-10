@@ -360,8 +360,6 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=str(oneDesignation))]))
 
-
-                type_ = "L"
                 if self.get_resource() == "CodeSystem" and hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
@@ -370,7 +368,6 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                            type_ = "S"
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         elif oneProperty.code == "None":
@@ -380,23 +377,6 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                         else:
                             # normally, a string property should be a rubric, because it is not specificly defined or structured, for legacy purposes it will be set as meta
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
-                            #theClass.add_Rubric(RubricSub(kind=(oneProperty.code if oneProperty.code != "None" else None), Label=[LabelSub(lang=language, valueOf_=oneProperty.value)]))
-                            # additionally add this to a austrian termpub attribute
-                            if oneProperty.code == "hints" or oneProperty.code == "hinweise":
-                                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
-
-                if self.get_resource() == "ValueSet":
-                    if oneConcept.abstract:
-                        type_ = "A"
-                    elif oneConcept.member != []:
-                        type_ = "S"
-
-                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type_ == "S" else "true"))
-                if self.get_resource() == "CodeSystem":
-                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
-                if self.get_resource() == "ValueSet":
-                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(concept_dict,oneConcept)))
-                theClass.add_Meta(MetaSub("Type", type_))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
