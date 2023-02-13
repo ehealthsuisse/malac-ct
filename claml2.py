@@ -87,12 +87,18 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.CodeSystem.value
 
+    def get_id(self):
+        if tmp_id := get_Meta_with_name(self, 'id'):
+            return tmp_id
+        else:
+            return self.get_name()
+
     # todo create get url for other classifications
     def get_url(self):
-        if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"-"+self.get_name()
-        elif tempUrl := get_Meta_with_name(self,'url'):
+        if tempUrl := get_Meta_with_name(self,'url'):
             return tempUrl
+        elif tempUrl := self.globalUrl:
+            return tempUrl+self.get_resource() + "/" + self.get_id()
 
     def get_identifier(self):
         identifiers = []
@@ -229,7 +235,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'valueset')
 
     def get_hierarchymeaning(self):
-        return get_Meta_with_name(self,'hierarchyMeaning')
+        if tmp := get_Meta_with_name(self,'hierarchyMeaning'):
+            return pcam.HierarchyMeaning(tmp)
+        return None
 
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')
@@ -482,6 +490,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # optional ClaMl3 fields
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
+        metas.append(MetaSub('id', self.get_id()))
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":
@@ -562,7 +571,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
         # TODO valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
-        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
+        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp.value))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
         # TODO supplements
@@ -578,7 +587,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
 
         classes = []
         if tmp := self.get_concept():
-            concept_dict = self.buildConceptDictWithAttr('code')
+            if self.get_resource() == "CodeSystem":
+                concept_dict = self.buildConceptDictWithAttr('code')
+            elif self.get_resource() == "ValueSet":
+                concept_dict = self.buildConceptDictWithAttr('code', 'system')
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
@@ -614,8 +626,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         if oneDesignation.language == "de-AT":
                             theClass.add_Meta(MetaSub("TS_ATTRIBUTE_MEANING", oneDesignation.value))
 
-                type = "L"
-                if  hasattr(oneConcept,'property'):
+                type_ = "L"
+                if self.get_resource() == "CodeSystem" and hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
                         if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
                             theClass.set_kind(oneProperty.value)
@@ -623,7 +635,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                            type = "S"
+                            type_ = "S"
                         elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
                         elif oneProperty.code == "None":
@@ -638,9 +650,18 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             if oneProperty.code == "hints" or oneProperty.code == "hinweise":
                                 theClass.add_Meta(MetaSub("TS_ATTRIBUTE_HINTS", oneProperty.value))
 
-                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "false" if type == "S" else "true"))
-                theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
-                theClass.add_Meta(MetaSub("Type", type))
+                if self.get_resource() == "ValueSet":
+                    if oneConcept.abstract:
+                        type_ = "A"
+                    elif oneConcept.member != []:
+                        type_ = "S"
+
+                theClass.add_Meta(MetaSub("TS_ATTRIBUTE_ISLEAF", "true" if type_ == "L" else "false"))
+                if self.get_resource() == "CodeSystem":
+                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
+                if self.get_resource() == "ValueSet":
+                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(concept_dict,oneConcept)))
+                theClass.add_Meta(MetaSub("Type", type_))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():

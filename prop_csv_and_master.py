@@ -4,6 +4,7 @@ from unittest import skip
 class PropCsvAndMaster():
     def __init__(self, inFile = None):
         self.resource = Resource
+        self.id = None
         self.url = None
         self.version = None
         self.name = None
@@ -64,6 +65,7 @@ class PropCsvAndMaster():
                     metaList[1][i].strip("\"")
 
                     if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
+                    if 'id' == metaObj: self.id = metaList[1][i]
                     if 'url' == metaObj: self.url = metaList[1][i]
                     if 'version' == metaObj: self.version = metaList[1][i]
                     if 'name' == metaObj: self.name = metaList[1][i]
@@ -93,7 +95,7 @@ class PropCsvAndMaster():
                     if 'lockedDate' == metaObj: self.lockeddate = metaList[1][i]
                     if 'caseSensitive' == metaObj: self.casesensitive = metaList[1][i]
                     if 'valueSet' == metaObj: self.valueset = metaList[1][i]
-                    if 'hierarchyMeaning' == metaObj: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
+                    if 'hierarchyMeaning' == metaObj and metaList[1][i]: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
                     if 'compositional' == metaObj: self.compositional = metaList[1][i]
                     if 'versionNeeded' == metaObj: self.versionneeded = metaList[1][i]
                     if 'supplements' == metaObj: self.supplements = metaList[1][i]
@@ -123,6 +125,7 @@ class PropCsvAndMaster():
                     elif self.resource == self.resource.ValueSet:
                         tempConcept = VSConcept()
 
+                    # reading the content of the row
                     for i in range(0, len(row)):
                         if row[i].strip() != "":
                             row[i].strip("\"").strip("\'")
@@ -146,8 +149,8 @@ class PropCsvAndMaster():
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
                                 if 'code' == headingList[i]: tempConcept.code = row[i]
                                 if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if 'parent' == headingList[i]:
-                                    tempConcept.parent = row[i]
+                                if 'parent' == headingList[i]: tempConcept.parent = row[i]
+                                if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'filter' == headingList[i]:
@@ -164,26 +167,31 @@ class PropCsvAndMaster():
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
 
+                    # check for some invalid combinations
+                    if self.resource == self.resource.ValueSet:
+                        # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
+                        if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
+                            import sys
+                            sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
                     self.concept.append(tempConcept)
 
                 # fill members of parents
                 if self.resource == self.resource.ValueSet:
-                    concept_dict = self.buildConceptDictWithAttr('code')
+                    concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                     for one_concept in self.concept:
-                        if one_concept.parent:
-                            parent = concept_dict[one_concept.parent]
+                        if one_concept.parent and one_concept.parentSystem:
+                            parent = concept_dict[one_concept.parent+one_concept.parentSystem]
                             # setting one_concept as child of the parent
                             parent.member.append(one_concept)
-                            # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
                             # setting the parent of one_concept
                             one_concept.parent = parent
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
-        if concept.parent:
-            parent_code = concept.parent.code if hasattr(concept.parent,"code") else concept.parent
-            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[parent_code])
+        if tmp_parent := concept.parent:
+            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
             return level + 1
         else:
             return 0
@@ -202,6 +210,9 @@ class PropCsvAndMaster():
 
     def get_resource(self):
         return self.resource.value
+
+    def get_id(self):
+        return self.id
 
     def get_url(self):
         return self.url
@@ -345,13 +356,13 @@ class PropCsvAndMaster():
             f = open(csvFilename)
             f.close()
         except IOError:
-            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version']
+            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
                 csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
         # write the one processed terminology
         with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource()+"-"+self.get_name()+","+self.globalUrl + self.get_resource()+"-"+self.get_name()+"," + (tmp[0] if (tmp := self.get_identifier()) else "") + ","+self.get_version()+"\n")
+            csvfile.write(self.get_resource() + "-" + self.get_id() + "," + self.get_url() + "," + (tmp[0] if (tmp := self.get_identifier()) else "") + "," + self.get_version() + "," + self.get_id() + "," + self.get_resource() + "\n")
 
         # remove duplicates, remaining the newer/below entry
         csvlist = []
@@ -409,13 +420,16 @@ class PropCsvAndMaster():
     def gainVersionFromOid(self, oid):
         return self.resolveTerminologyMapping('oid', oid, 'version')
 
-    def buildConceptDictWithAttr(self, stringAttrAsKey):
+    def buildConceptDictWithAttr(self, *stringAttrAsKeys):
         tmpDict = {}
         for oneCon in self.get_concept():
-            tmpPointer = oneCon
-            for part in stringAttrAsKey.split("."):
-                tmpPointer = getattr(tmpPointer,part)
-            tmpDict[tmpPointer] = oneCon
+            key = ''
+            for stringAttrAsKey in stringAttrAsKeys:
+                tmp_pointer = oneCon
+                for part in stringAttrAsKey.split("."):
+                    tmpPointer = getattr(tmp_pointer,part)
+                key += tmpPointer
+            tmpDict[key] = oneCon
         return tmpDict
 
     def sortConceptsExpandStyle(self, conDict=None):
@@ -462,6 +476,7 @@ class PropCsvAndMaster():
             csv_meta = []
             # start list of metaelements
             csv_meta.append(("resource",self.get_resource()))
+            csv_meta.append(("id",self.get_id()))
             csv_meta.append(("url",self.get_url()))
             csv_meta.append(("version",self.get_version()))
             csv_meta.append(("name",self.get_name()))
@@ -499,7 +514,7 @@ class PropCsvAndMaster():
             if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
             if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
             if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp))
+            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
             if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
             if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
             if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
@@ -594,6 +609,12 @@ class PropCsvAndMaster():
                                 else:
                                     csv_line.append('')
 
+                            elif csv_header_element == 'parentSystem':
+                                if oneConcept.parent and (tmp := oneConcept.parent.system):
+                                    csv_line.append(tmp)
+                                else:
+                                    csv_line.append('')
+
                             elif csv_header_element == 'version':
                                 # write the system version if existent
                                 if  tmp := oneConcept.version:
@@ -648,6 +669,12 @@ class PropCsvAndMaster():
                                 csv_line.append(tmp.code)
                             else:
                                 csv_line.append('')
+                        if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                            csv_header.append('parentSystem')
+                            if tmp.system:
+                                csv_line.append(tmp.system)
+                            else:
+                                csv_line.append('')
                         while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
                             csv_header.append('designation')
                             csv_line.append(conceptDesig[headerDesignationIterator])
@@ -699,7 +726,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -710,7 +742,12 @@ class PropCsvAndMaster():
                     y = -1
                     for csvelement in csvline:
                         y += 1
-                        worksheet.write(x,y,str(csvelement).encode('cp1252',errors='ignore').decode('cp1252'))
+                        """
+                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+                        of \r
+                        """
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
 
                 workbook.close()
 class PropCsvAsXLSX():
@@ -781,7 +818,8 @@ class ContactDetail():
 
         splitted_telecom = splitted_contact[1].split('~')
         for telecom in splitted_telecom:
-            telecom_list.append(cls.ContactPoint.from_string(telecom))
+            if telecom:
+                telecom_list.append(cls.ContactPoint.from_string(telecom))
 
         return cls(name, telecom_list)
 

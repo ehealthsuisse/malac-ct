@@ -79,6 +79,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    def get_id(self):
+        return f4csvs.get_id(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
@@ -266,13 +269,19 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # based on the concepts processed so far, a dictionary with the
             # concept's code as key will be created in order to add information
             # which will be retrieved from ValueSet.expansion.contains
-            concept_code_dict = self.buildConceptDictWithAttr('code')
+            concept_code_dict = self.buildConceptDictWithAttr('code', 'system')
 
             # parse ValueSet.expansion.contains for retrieving information about
             # possible hierarchies
             if tmp := super().get_expansion():
                 if tmp := tmp.get_contains():
-                    ValueSetSub.parse_contains_information(0, tmp, concept_code_dict)
+                    # create a new list that sorts the concepts exactly like the expand does
+                    the_from_expand_sorted_list = []
+                    # recrusivly parse the information in the contains
+                    ValueSetSub.parse_expansion_contains_information(0, tmp, concept_code_dict, the_from_expand_sorted_list)
+                    # subtract/delete all concepts from self.concept that are in the expand and add these concepts on the end of the list
+                    # this is only done for the case, that an (invalid) fhir xml got more concepts in the include than in the expansion
+                    self.concept = the_from_expand_sorted_list + list(set(self.concept) - set(the_from_expand_sorted_list))
 
             return self.concept
 
@@ -368,7 +377,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         return the_concept_list
 
-    def parse_contains_information(level, contains_list, concept_code_dict, parent=None):
+    def parse_expansion_contains_information(level, contains_list, concept_code_dict, the_from_expand_sorted_list, parent=None):
         """Parse the given contains_list (of type ValueSet_Contains, i.e. ValueSet.expansion.contains) and add
         information regarding possible hierarchies to the pcam.VSConcepts which are part of concept_code_dict.
 
@@ -378,18 +387,24 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         concept_code_dict -- Dictionary of all concepts (retrieved from ValueSet.compose.include and ValueSet.compose.exclude) with their code as key.
 
+        the_from_expand_sorted_list -- the recrusivly build up list of concepts, occured in order of the expand
+
         parent -- the parent of the concepts within the contains_list.
 
         Currently, only information about a possible hierarchical ValueSet definition is being
         retrieved from the expansion. No other information - if available - will be processed.
         """
         for one_contains in contains_list:
-            if tmp := one_contains.get_code():
-                code = tmp.get_value()
+            if (tmp_code := one_contains.get_code()) and (tmp_system := one_contains.get_system()):
+                key = tmp_code.get_value() + tmp_system.get_value()
                 # retrieve the concept from the dictionary
-                if code in concept_code_dict.keys() and (the_concept := concept_code_dict[code]):
+                if key in concept_code_dict.keys() and (the_concept := concept_code_dict[key]):
                     # set the concept's level
                     the_concept.level = level
+
+                    # parse ValueSet.expansion.contains.abstract
+                    if tmp := one_contains.get_abstract():
+                        the_concept.abstract = tmp.get_value()
 
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
@@ -398,9 +413,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         # setting the parent of one_concept
                         the_concept.parent = parent
 
+                    the_from_expand_sorted_list.append(the_concept)
                     # if one_contains contains a list of contains go into recursion
                     if tmp := one_contains.get_contains():
-                        ValueSetSub.parse_contains_information(level+1, tmp, concept_code_dict, the_concept)
+                        ValueSetSub.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
 
     def exporto(self, outfile):
         """Write information to a FHIR ValueSet.

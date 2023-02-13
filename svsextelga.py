@@ -93,9 +93,12 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    def get_id(self):
+        return self.get_name()
+
     def get_url(self):
         if tempUrl := self.globalUrl:
-            return tempUrl+self.get_resource()+"-"+self.get_name()
+            return tempUrl+self.get_resource()+"/"+self.get_id()
         return None
 
     #def get_version(self):
@@ -459,7 +462,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
-            id = self.gainOidFromName(self.get_resource()+"-"+self.get_name())
+            id = self.gainOidFromName(self.get_resource()+"-"+self.get_id())
 
         name = self.get_name()
         statusCode = "1"
@@ -617,10 +620,10 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                 if foundIt == False:
                     type_ = "L"
             elif self.get_resource() == "ValueSet":
-                if oneConcept.member != []:
-                    type_ = "S"
-                elif oneConcept.abstract:
+                if oneConcept.abstract:
                     type_ = "A"
+                elif oneConcept.member != []:
+                    type_ = "S"
                 else:
                     type_ = "L"
 

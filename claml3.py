@@ -79,6 +79,12 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def get_resource(self):
         return get_Meta_with_name(self,'resource')
 
+    def get_id(self):
+        if tmp_id := get_Meta_with_name(self, 'id'):
+            return tmp_id
+        else:
+            return self.get_name()
+
     def get_url(self):
         return get_Meta_with_name(self,'url')
 
@@ -132,7 +138,9 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'caseSensitive')
 
     def get_hierarchymeaning(self):
-        return get_Meta_with_name(self,'hierarchyMeaning')
+        if tmp := get_Meta_with_name(self,'hierarchyMeaning'):
+            return pcam.HierarchyMeaning(tmp)
+        return None
 
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')
@@ -256,6 +264,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         #madatory FHIR fields
         metas = []
         metas.append(MetaSub('resource',self.get_resource()))
+        metas.append(MetaSub('id', self.get_id()))
         metas.append(MetaSub('url',self.get_url()))
         identifiers = []
         mainIdent = IdentifierSub(status=self.get_status())
@@ -300,7 +309,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         if tmp := self.get_casesensitive(): metas.append(MetaSub("caseSensitive",tmp))
         #todo valueset
         #if tmp := self.get_valueset(): csv_list.append(("valueSet",self.get_valueset()))
-        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp))
+        if tmp := self.get_hierarchymeaning(): metas.append(MetaSub("hierarchyMeaning",tmp.value))
         if tmp := self.get_compositional(): metas.append(MetaSub("compositional",tmp))
         if tmp := self.get_versionneeded(): metas.append(MetaSub("versionNeeded",tmp))
         #todo supplements
@@ -347,14 +356,28 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     for oneDesignation in oneConcept.designation:
                         theClass.add_Rubric(RubricSub(id="designation",Label=[LabelSub(valueOf_=str(oneDesignation))]))
 
-                if hasattr(oneConcept,'property'):
+                if self.get_resource() == "CodeSystem" and hasattr(oneConcept,'property'):
                     for oneProperty in oneConcept.property:
-                        if oneProperty.code == "parent":
+                        if oneProperty.code == "kind": # if there is more than one kind in the propertys, the last one is used
+                            theClass.set_kind(oneProperty.value)
+                        elif oneProperty.code == "parent":
                             theClass.add_SuperClass(SuperClassSub(oneProperty.value))
                         elif oneProperty.code == "child":
                             theClass.add_SubClass(SubClassSub(oneProperty.value))
-                        else:
+                        elif oneProperty.type == pcam.PropertyCodeType.code or oneProperty.type == pcam.PropertyCodeType.boolean or oneProperty.code == "Relationships":
                             theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+                        elif oneProperty.code == "None":
+                            the_desig = pcam.ConceptDesignation()
+                            the_desig.value = oneProperty.value
+                            theClass.add_Rubric(RubricSub(kind="designation", Label=[LabelSub(valueOf_=the_desig)]))
+                        else:
+                            # normally, a string property should be a rubric, because it is not specificly defined or structured, for legacy purposes it will be set as meta
+                            theClass.add_Meta(MetaSub(oneProperty.code, oneProperty.value))
+
+                # if there was no kind given, create one with "noKind"
+                if temp := theClass.get_kind():
+                    theClass.set_kind("noKind")
+
                 classes.append(theClass)
 
         claml3.add_Classification(ClassificationSub(lang,None,metas,identifiers,[title],authors,None,claKinds,None,rubKinds,None,None,classes))

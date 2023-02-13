@@ -6,6 +6,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.4+20230210]
+
+### Fixed
+
+- elga-gmbh/malac-ct#8 Fix type in VS within `.1.svsextelga.xml`, `.2.svsextelga.xml`, `.2.claml.xml`, and `.3.claml.xml`.
+
+## [4.0.3+20230207]
+
+### Fixed
+
+- When reading concepts from ValueSet same concepts codes will be distinguished by their corresponding URL in order to correctly determine hierarchies.
+- Add column `parentSystem` to `.1.propcsv.csv` and `.1.propcsv.xlsx` in order to have a clear correlation between parent code and its corresponding system.
+
+## [4.0.2+20230207]
+
+### Fixed
+
+- elga-gmbh/malac-ct#7 Fix sort order of concepts when reading `.4.fhir.xml` or `.4.fhir.json`.
+
+## [4.0.1+20230202]
+
+### Fixed
+
+- Fix use of `hierarchyMeaning`.
+
+## [4.0.0+20230201]
+
+### Added
+
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Support `CodeSystem.id` and `ValueSet.id`.
+
+### Changed
+
+- [TERGI-73](https://jira-neu.elga.gv.at/browse/TERGI-73) Upload possibility per args to multiple FHIR server
+- [TERGI-107](https://jira-neu.elga.gv.at/browse/TERGI-107) Change canonical URLs from the scheme `BASE/RESOURCETYPE-ID` to `BASE/RESOURCETYPE/ID`.
+
+### Fixed
+
+- elga-gmbh/malac-ct#5 Read `ValueSet.expansion.contains.abstract` properly if `.4.fhir.xml` or `.4.fhir.json` is the input format.
+- Fix reading of contact without telecom fails when reading `.1.propcsv.xlsx`.
+- Fix use of `hierarchyMeaning`.
+- Fix reading of `description` results if it contains `&#xD;&#xA;` when reading `.4.fhir.xml`.
+
+## [3.1.4+20230118]
+
+### Fixed
+
+- Fix using name in enum of propcsv, not value
+
 ## [3.1.3+20221121]
 
 ### Fixed
