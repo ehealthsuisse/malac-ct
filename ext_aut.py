@@ -34,14 +34,17 @@ class BMGICD(pcam.PropCsvAndMaster):
             "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
 
         #metadata
+        self.resource = pcam.Resource.CodeSystem
         self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023"
-        self.name = "icd-10-bmg-2022"
-        self.title = "ICD-10 BMG 2022"
+        self.name = "icd-10-bmg-2023"
+        self.title = "ICD-10 BMG 2023"
         self.status = pcam.Status.draft
         self.content = pcam.Content.complete
-        self.version = "Version 2022"
+        self.version = "1.0.0+20230213"
+        self.identifier.append("1.2.40.0.34.5.000")
+        self.contact.append("|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^")
+
         #self.count = "13166"
-        self.resource = pcam.Resource.CodeSystem
         #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
 
         # generating a list full of properties
@@ -237,14 +240,18 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
 
         #metadata
-        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023"
-        self.name = "bmg-icd-10-2023"
-        self.title = "BMG ICD-10 2023"
-        self.status = pcam.Status.active
-        self.content = pcam.Content.complete
-        self.version = "Version 2023"
-        #self.count = "13166"
         self.resource = pcam.Resource.CodeSystem
+        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023"
+        self.name = "bmg-lkf-2023"
+        self.title = "BMG Leistungskatalog Gesamt 2023"
+        self.status = pcam.Status.draft
+        self.content = pcam.Content.complete
+        self.version = "1.0.0+20230213"
+        self.identifier.append("1.2.40.0.34.5.000")
+        self.contact.append("|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^")
+
+        #self.count = "13166"
+
         #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
 
         # generating a list full of properties
