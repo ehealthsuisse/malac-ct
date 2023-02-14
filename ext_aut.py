@@ -43,6 +43,7 @@ class BMGICD(pcam.PropCsvAndMaster):
         self.version = "1.0.0+20230213"
         self.identifier.append("1.2.40.0.34.5.000")
         self.contact.append("|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^")
+        self.id = "icd-10-bmg-2023"
 
         #self.count = "13166"
         #print(self.name,self.title,self.status,self.content, self.version, self.count,self.resource)
@@ -85,106 +86,52 @@ class BMGICD(pcam.PropCsvAndMaster):
         dictParents = {}
 
         while row:
-            ### we are working on the lvl 1 parent (drei steller) ###
+            theDKCode = row.DKBeschreibung.split("(")[1].replace(")","") #row.DKKapitel
+            theDUKCode = row.DUKBeschreibung.split("(")[1].replace(")","") #row.DUKUnterkapitel
 
-            # if the parent cant be fount in the dict, create it
-            new_d3sdiagnose = False
+            doChildParentingDKAndDUK, doChildParentDUKAndD3S, doChildParentD3SAndD = False, False, False
+            if theDKCode != theDUKCode:
+                doChildParentingDKAndDUK = True
+                if theDKCode not in dictParents:
+                    theParentConcept = pcam.CSConcept()
+                    theParentConcept.code = theDKCode
+                    theParentConcept.display = row.DKBeschreibung
+                    parseProp(theParentConcept.property, True, "notSelectable", pcam.PropertyCodeType.boolean)
+                    dictParents[theDKCode] = theParentConcept
+                    #self.concept.append(theParentConcept)
+
+            if theDUKCode != row.D3SDiagnose:
+                doChildParentDUKAndD3S = True
+                if theDUKCode not in dictParents:
+                    theParentConcept = pcam.CSConcept()
+                    theParentConcept.code = theDUKCode
+                    theParentConcept.display = row.DUKBeschreibung
+                    parseProp(theParentConcept.property, True, "notSelectable", pcam.PropertyCodeType.boolean)
+                    dictParents[theDUKCode] = theParentConcept
+                    #self.concept.append(theParentConcept)
+                    if doChildParentingDKAndDUK:
+                        parseChild(dictParents,theDKCode,theDUKCode)
+                        parseParent(dictParents,theDUKCode,theDKCode)
 
             if row.D3SDiagnose != row.DDiagnose:
-                conceptparent = row.D3SDiagnose
+                doChildParentD3SAndD = True
                 if row.D3SDiagnose not in dictParents:
-                    new_d3sdiagnose = True
-
                     theParentConcept = pcam.CSConcept()
                     theParentConcept.code = row.D3SDiagnose
                     theParentConcept.display = row.D3SBezeichnung
+                    parseProp(theParentConcept.property, True, "notSelectable", pcam.PropertyCodeType.boolean)
                     dictParents[row.D3SDiagnose] = theParentConcept
-                    self.concept.append(theParentConcept)
-                    # setting the parent upon creation of the concept
-                    parseParent(dictParents,row.D3SDiagnose,row.DUKUnterkapitel)
+                    #self.concept.append(theParentConcept)
+                    if doChildParentDUKAndD3S:
+                        parseChild(dictParents,theDUKCode,row.D3SDiagnose)
+                        parseParent(dictParents,row.D3SDiagnose,theDUKCode)
 
-
-                parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
-            else:
-                new_d3sdiagnose=True
-                conceptparent = row.DUKUnterkapitel
-
-            # create new child link to Parent
-            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
-            # thePropertyofParent.code = "child"
-            # thePropertyofParent.value = row.DDiagnose
-            # thePropertyofParent.type = pcam.PropertyCodeType.code
-            # dictParents[row.D3SDiagnose].property.append(thePropertyofParent)
-            #
-            # # create new parent link to parent of parent
-            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
-            # thePropertyofParent.code = "parent"
-            # thePropertyofParent.value = row.DUKUnterkapitel
-            # thePropertyofParent.type = pcam.PropertyCodeType.code
-            # dictParents[row.D3SDiagnose].property.append(thePropertyofParent)
-
-            ### we are working on the lvl 2 parent (unterkapitel) ###
-
-            new_dukunterkapitel = False
-            if row.DUKUnterkapitel not in dictParents:
-                new_dukunterkapitel = True
-
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.DUKUnterkapitel
-                theParentConcept.display = row.DUKBeschreibung
-                dictParents[row.DUKUnterkapitel] = theParentConcept
-                self.concept.append(theParentConcept)
-                # setting the parent upon creation of the concept
-                parseParent(dictParents,row.DUKUnterkapitel,row.DKKapitel)
-
-            # adding child only if it is a new child
-            if new_d3sdiagnose:
-                parseChild(dictParents,row.DUKUnterkapitel,row.D3SDiagnose)
-
-            # create new child link to Parent
-            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
-            # thePropertyofParent.code = "child"
-            # thePropertyofParent.value = row.D3SDiagnose
-            # thePropertyofParent.type = pcam.PropertyCodeType.code
-            # dictParents[row.DUKUnterkapitel].property.append(thePropertyofParent)
-            #
-            # # create new parent link to parent of parent
-            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
-            # thePropertyofParent.code = "parent"
-            # thePropertyofParent.value = row.DKKapitel
-            # thePropertyofParent.type = pcam.PropertyCodeType.code
-            # dictParents[row.DUKUnterkapitel].property.append(thePropertyofParent)
-
-            ### we are working on the lvl 3 parent (kapitel) ###
-
-            if row.DKKapitel not in dictParents:
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.DKKapitel
-                theParentConcept.display = row.DKBeschreibung
-                dictParents[row.DKKapitel] = theParentConcept
-                self.concept.append(theParentConcept)
-
-            # adding child only if it is a new child
-            if new_dukunterkapitel:
-                parseChild(dictParents,row.DKKapitel,row.DUKUnterkapitel)
-            # # create new child link to Parent
-            # thePropertyofParent = pcam.CSConcept.ConceptProperty()
-            # thePropertyofParent.code = "child"
-            # thePropertyofParent.value = row.DUKUnterkapitel
-            # thePropertyofParent.type = pcam.PropertyCodeType.code
-            # dictParents[row.DKKapitel].property.append(thePropertyofParent)
 
             theConcept = pcam.CSConcept()
             theConcept.code = row.DDiagnose
             theConcept.display = row.DKurzbezeichnung
-            theConcept.definition = row.DBezeichnung
-
-            # adding parent-property to the concept
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "parent"
-            theProperty.value = conceptparent
-            theProperty.type = pcam.PropertyCodeType.code
-            theConcept.property.append(theProperty)
+            if row.DKurzbezeichnung != row.DBezeichnung:
+                theConcept.definition = row.DBezeichnung
             # parsing respective properties to one concept
             parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
             parseProp(theConcept.property, row.DGruppe, "Gruppe")
@@ -198,10 +145,18 @@ class BMGICD(pcam.PropCsvAndMaster):
             parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
             parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
             parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
+            dictParents[row.DDiagnose] = theConcept
+            # adding parent-property to the concept
+            if doChildParentD3SAndD:
+                parseChild(dictParents,row.D3SDiagnose,row.DDiagnose)
+                parseParent(dictParents,row.DDiagnose,row.D3SDiagnose)
 
-            self.concept.append(theConcept)
             row = cursor.fetchone()
 
+        # adding the dictParents to all concepts
+        self.concept = dictParents.values()
+
+        # adding the LKF reference to icd10 per property -> Ontologie
         cursor.execute("SELECT * FROM DIAGMEL")
         row = cursor.fetchone()
         conDict = self.buildConceptDictWithAttr("code")
