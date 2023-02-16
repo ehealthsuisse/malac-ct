@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.5+20230217]
+
+### Changed
+
+- sort metadatacsv by first element when writing
+
 ## [4.0.4+20230210]
 
 ### Fixed
