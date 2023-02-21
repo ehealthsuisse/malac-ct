@@ -61,7 +61,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-incHierarchyExt4VS", "--includeHierarchyExtension4ValueSet", action='store_true', help="Includes the hierarchy extension wenn creating ValueSets", required=False
     )
     parser.add_argument(
-        "-turnOffVerif", "--turnsOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
+        "-turnOffVerif", "--turnOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
     )
     return parser
 
@@ -162,7 +162,7 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnsOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -212,11 +212,11 @@ def main() -> None:
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if args.convertFHIRServer:
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnsOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
         if args.uploadToConvertFHIRServer:
             startUpload = time.time()
-            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, args.turnsOffVerification, failIfUploadGoesWrong=True)
+            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, args.turnOffVerification, failIfUploadGoesWrong=True)
             print("uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     if args.uploadToAdditionalFHIRServer:
@@ -224,7 +224,7 @@ def main() -> None:
             startUpload = time.time()
             import json
             addlServerDict = json.loads(addlServer)
-            upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"], args.turnsOffVerification)
+            upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"], args.turnOffVerification)
             print("uploaded to additional FHIR server named "+ addlServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     print("altogether in "+str(round(time.time()-start,2))+" seconds.")
