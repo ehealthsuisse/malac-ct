@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Create args for rest calls without verification.
+
 ### Changed
 
 - Sort metadatacsv by first column when writing.
