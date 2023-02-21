@@ -3,7 +3,8 @@ import sys
 import time
 
 # malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
-listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
+listOClasses = {
+    ".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
@@ -13,8 +14,10 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".2.fsh":["fsh2", "Fsh2"],
     ".1.svsextelga.xml":["svsextelga", "SVSextELGA1Sub"],
     ".2.svsextelga.xml":["svsextelga", "SVSextELGA2Sub"],
-    ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"],
+    ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     #".4.fhir.json":["fhir4_cs_and_vs", "FHIR4xml69json"] # create FHIR4xml69json inside of fhir4_cs_and_vs.py for json to xml and xml to json
+    }
+listIClasses = listOClasses | {
     ".icd.mdb":["ext_aut", "BMGICD"],
     ".lkf.mdb":["ext_aut", "BMGLKF"]
     }
@@ -64,9 +67,9 @@ def init_argparse() -> argparse.ArgumentParser:
     return parser
 
 def detectClassByEnding(filename):
-    for iclass in listClasses:
+    for iclass in listIClasses:
         if filename.endswith(iclass):
-            return listClasses[iclass],iclass
+            return listIClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
 def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
@@ -189,9 +192,9 @@ def main() -> None:
                 input.appendMetaDataTo(csv2AppendTo)
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
-        for oClass in listClasses:
+        for oClass in listOClasses:
             if not args.input.endswith(oClass):
-                oClassValue = listClasses[oClass]
+                oClassValue = listOClasses[oClass]
                 if args.output != None: # overwrite output variables if there is an fixed output
                     oClassValue,oClass = detectClassByEnding(args.output)
                 # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
