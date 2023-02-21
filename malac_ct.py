@@ -18,7 +18,7 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     #".mdb":["icd_bmg", "ICDBMG"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.0.4+20230210"
+versionNumber = "4.1.0+20230221"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
