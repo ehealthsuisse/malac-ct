@@ -433,11 +433,12 @@ class PropCsvAndMaster():
             tmpDict[key] = oneCon
         return tmpDict
 
-    def sortConceptsExpandStyle(self):
+    def sortConceptsExpandStyle(self, conDict=None):
         sortedConcepts = []
 
         # build up a dict with code as key
-        conDict = self.buildConceptDictWithAttr("code")
+        if not conDict:
+            conDict = self.buildConceptDictWithAttr("code")
 
         # sort all the child properties inside the concepts
         for key in conDict:

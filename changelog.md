@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Create args for rest calls without verification.
+- Add first austrian extension with the bmg lkf and the bmg version of Icd 10
 
 ### Changed
 
