@@ -53,7 +53,7 @@ verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 
 die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet. Die seit 1.1.2017
 verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von
 der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.
-Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die
+Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die
 zur Weiterentwicklung der Dokumentationsgrundlagen beitragen.
 """
 
