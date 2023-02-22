@@ -35,10 +35,10 @@ class BMGICD(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023"
         self.name = "bmg-icd-10-2023"
         self.title = "BMG ICD-10 2023"
-        self.status = pcam.Status.draft
+        self.status = pcam.Status.active
         self.content = pcam.Content.complete
         self.version = "1.0.0+20230213"
         self.identifier.append("1.2.40.0.34.5.000")
@@ -185,10 +185,10 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023"
         self.name = "bmg-lkf-2023"
         self.title = "BMG Leistungskatalog Gesamt 2023"
-        self.status = pcam.Status.draft
+        self.status = pcam.Status.active
         self.content = pcam.Content.complete
         self.version = "1.0.0+20230213"
         self.identifier.append("1.2.40.0.34.5.000")
