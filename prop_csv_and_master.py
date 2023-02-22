@@ -351,31 +351,32 @@ class PropCsvAndMaster():
         return retArr
 
     def appendMetaDataTo(self, csvFilename):
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
         # if file is new, add headers
         try:
             f = open(csvFilename)
             f.close()
         except IOError:
-            terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
                 csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
-        # write the one processed terminology
-        with open(csvFilename, 'a', encoding="utf8") as csvfile:
-            csvfile.write(self.get_resource() + "-" + self.get_id() + "," + self.get_url() + "," + (tmp[0] if (tmp := self.get_identifier()) else "") + "," + self.get_version() + "," + self.get_id() + "," + self.get_resource() + "\n")
+        # file is existent open and read into a dict with the first column as key
+        import csv
+        reader = csv.reader(open(csvFilename))
+        mydict = {rows[1]:rows for rows in reader}
 
-        # remove duplicates, remaining the newer/below entry
-        csvlist = []
-        with open(csvFilename, "r", encoding="utf8") as csvfile:
-            for line in csvfile:
-                for listline in csvlist:
-                    if line.split(',')[0] == listline.split(',')[0]:
-                        csvlist.remove(listline)
-                csvlist.append(line)
+        # change the one row or add the row to the dictionary
+        mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]
 
+        # sort the dict
+        import collections
+        mydict = collections.OrderedDict(sorted(mydict.items()))
+        mydict.move_to_end("canonical",False)
+
+        # wirte the whole dict
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
-            for line in csvlist:
-                outfile.write(line)
+            for line in mydict.values():
+                outfile.write(','.join(line)+'\n')
 
     def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given
@@ -432,11 +433,12 @@ class PropCsvAndMaster():
             tmpDict[key] = oneCon
         return tmpDict
 
-    def sortConceptsExpandStyle(self):
+    def sortConceptsExpandStyle(self, conDict=None):
         sortedConcepts = []
 
         # build up a dict with code as key
-        conDict = self.buildConceptDictWithAttr("code")
+        if not conDict:
+            conDict = self.buildConceptDictWithAttr("code")
 
         # sort all the child properties inside the concepts
         for key in conDict:

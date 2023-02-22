@@ -3,7 +3,8 @@ import sys
 import time
 
 # malac directly convertable classes as dictionary with fileending as key, first element value with module and second element with official name
-listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
+listOClasses = {
+    ".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
@@ -15,10 +16,13 @@ listClasses = {".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".2.svsextelga.xml":["svsextelga", "SVSextELGA2Sub"],
     ".4.fhir.xml":["fhir4_cs_and_vs", "FHIR4CsAndVs"]
     #".4.fhir.json":["fhir4_cs_and_vs", "FHIR4xml69json"] # create FHIR4xml69json inside of fhir4_cs_and_vs.py for json to xml and xml to json
-    #".mdb":["icd_bmg", "ICDBMG"]
     }
-descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. Accepted and automaticly detected input and output classes are right now ClaML 2.0.0 with a file ending \".2.claml.xml\", ClaML 3.0.0 with a file ending \".3.claml.xml\", HL7 FHIR Shorthand 1.3.0 with a file ending \".1.fsh\", HL7 FHIR Shorthand 2.0.0 with a file ending \".2.fsh\", a predefined CSV with a file ending \".1.csv\" and a extended SVS with a file ending \".1.svsextelga.xml\". Additionally gofsh and sushi can be used to convert from and to a \".4.fhir.json\" or \".4.fhir.xml\", see arguments. Also, FHIR server credentials can be given, to directly convert json to xml or xml to json and to directly upload the result, see arguments."
-versionNumber = "4.0.4+20230210"
+listIClasses = listOClasses | {
+    ".icd.mdb":["ext_aut", "BMGICD"],
+    ".lkf.mdb":["ext_aut", "BMGLKF"]
+    }
+descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
+versionNumber = "4.1.0+20230222"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
@@ -60,15 +64,18 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-incHierarchyExt4VS", "--includeHierarchyExtension4ValueSet", action='store_true', help="Includes the hierarchy extension wenn creating ValueSets", required=False
     )
+    parser.add_argument(
+        "-turnOffVerif", "--turnOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
+    )
     return parser
 
 def detectClassByEnding(filename):
-    for iclass in listClasses:
+    for iclass in listIClasses:
         if filename.endswith(iclass):
-            return listClasses[iclass],iclass
+            return listIClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
-def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
+def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, verification, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
     startConvert = time.time()
 
     import os
@@ -90,9 +97,9 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
 
     with open(source_filename, 'rb') as source_file:
         if auth is None:
-            res = requests.post(fhir_server_url+"$convert", headers=headers, data=source_file)
+            res = requests.post(fhir_server_url+"$convert", headers=headers, data=source_file, verify=verification)
         else:
-            res = requests.post(fhir_server_url+"$convert", headers=headers, auth=auth, data=source_file)
+            res = requests.post(fhir_server_url+"$convert", headers=headers, auth=auth, data=source_file, verify=verification)
 
     # remove old target file if it has existed
     if os.path.exists(target_filename):
@@ -115,7 +122,7 @@ def convert_fhir_resource(input_filename, input_filename_extension, source_forma
         else:
             sys.exit('Target format ' + target_format + ' not supported. Either xml or json.')
 
-def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerUserPassword, FHIRServerTergiTunnelToken, failIfUploadGoesWrong=False):
+def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerUserPassword, FHIRServerTergiTunnelToken, verification, failIfUploadGoesWrong=False):
     import requests
     import os
 
@@ -136,9 +143,9 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
 
     with open(input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
         if auth is None:
-            res = requests.put(FHIRServer, headers=headers, data=json_format_file) # files={'upload_file': json_format_file})
+            res = requests.put(FHIRServer, headers=headers, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
         else:
-            res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file) # files={'upload_file': json_format_file})
+            res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
 
     print(res.text)
     if failIfUploadGoesWrong: res.raise_for_status()
@@ -159,7 +166,7 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -188,9 +195,9 @@ def main() -> None:
                 input.appendMetaDataTo(csv2AppendTo)
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
-        for oClass in listClasses:
+        for oClass in listOClasses:
             if not args.input.endswith(oClass):
-                oClassValue = listClasses[oClass]
+                oClassValue = listOClasses[oClass]
                 if args.output != None: # overwrite output variables if there is an fixed output
                     oClassValue,oClass = detectClassByEnding(args.output)
                 # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as outputClass]'
@@ -209,11 +216,11 @@ def main() -> None:
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if args.convertFHIRServer:
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
         if args.uploadToConvertFHIRServer:
             startUpload = time.time()
-            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, failIfUploadGoesWrong=True)
+            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, args.turnOffVerification, failIfUploadGoesWrong=True)
             print("uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     if args.uploadToAdditionalFHIRServer:
@@ -221,7 +228,7 @@ def main() -> None:
             startUpload = time.time()
             import json
             addlServerDict = json.loads(addlServer)
-            upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"])
+            upload_to_fhir_server(args.input, iClass, addlServerDict["FHIRServer"], addlServerDict["FHIRServerUser"], addlServerDict["FHIRServerUserPassword"], addlServerDict["FHIRServerTergiTunnelToken"], args.turnOffVerification)
             print("uploaded to additional FHIR server named "+ addlServerDict["FHIRServer"]+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     print("altogether in "+str(round(time.time()-start,2))+" seconds.")
