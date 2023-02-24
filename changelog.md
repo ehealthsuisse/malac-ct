@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.1+20230224]
+
+### Fixed
+
+- Fix retrieval of identifier for `.1.svsextelga.xml` and `.2.svsextelga.xml`.
+
 ## [4.1.0+20230222]
 
 ### Added
