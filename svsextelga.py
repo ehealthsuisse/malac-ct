@@ -167,7 +167,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         if hasattr(self,"identifier"):
             return self.identifier
         identifiers = []
-        if tempID := self.get_id():
+        if tempID := super().get_id():
             identifiers.append(tempID)
         return identifiers
 
