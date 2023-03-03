@@ -22,7 +22,7 @@ listIClasses = listOClasses | {
     ".lkf.mdb":["ext_aut", "BMGLKF"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.1.1+20230224"
+versionNumber = "4.1.2+20230303"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
