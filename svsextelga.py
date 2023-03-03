@@ -253,8 +253,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             sortedConceptList = self.get_conceptList().get_concept()
             if sortedConceptList[0].get_orderNumber() is not None:
                 sortedConceptList.sort(key=supermod.concept.get_orderNumber)
-            else:
-                sortedConceptList.sort(key=supermod.concept.get_code)
+            # disable sorting of concepts if there is no ordernumber
+            #else:
+            #    sortedConceptList.sort(key=supermod.concept.get_code)
             # iterate though the list
             if self.get_resource() == "ValueSet":
                 for oneCon in sortedConceptList:

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.2+20230303]
+
+### Fixed
+
+- Disable sorting of concepts if there is no ordernumber for `.1.svsextelga.xml` and `.2.svsextelga.xml`.
+
 ## [4.1.1+20230224]
 
 ### Fixed
