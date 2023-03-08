@@ -137,13 +137,7 @@ class PropCsvAndMaster():
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'property' == headingList[i]:
-                                    propertyElements = row[i].split('|')
-                                    tempProperty = CSConcept.ConceptProperty()
-                                    tempProperty.code = propertyElements[0]
-                                    tempProperty.value = propertyElements[1]
-                                    tempProperty.type = PropertyCodeType[propertyElements[2].lower()]
-                                    tempConcept.property.append(tempProperty)
-
+                                    tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
                             elif self.resource == self.resource.ValueSet:
                                 if 'system' == headingList[i]: tempConcept.system = row[i]
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
@@ -913,10 +907,19 @@ class CSConcept():
         self.property = []
 
     class ConceptProperty():
-        def __init__(self):
-            self.code = None
-            self.value = None
-            self.type = PropertyCodeType
+        def __init__(self, str=None):
+            if not str:
+                self.code = None
+                self.value = None
+                self.type = PropertyCodeType
+            else:
+                propertyElements = str.split('|')
+                self.code = propertyElements[0]
+                self.type = PropertyCodeType[propertyElements[2].lower()]
+                if self.type == PropertyCodeType.coding:
+                    self.value = Coding(propertyElements[1])
+                else:
+                    self.value = propertyElements[1]
 
         # only used for sort
         def get_value_if_code_is_child(self):
@@ -1002,19 +1005,21 @@ class ConceptDesignation():
 
 class Coding():
     def __init__(self, str=None):
-        if str is None:
+        if not str:
             self.codesystem = None
             self.version = None
             self.code = None
             self.display = None
             self.userSelected = None
         else:
-            splittedValue = str.split('^',4)
-            self.codesystem = splittedValue[0]
-            self.version = splittedValue[1]
-            self.code = splittedValue[2]
-            self.display = splittedValue[3]
-            self.userSelected = splittedValue[4]
+            splittedValue = str.split('^',5)
+            # following is done in case the last element is empty
+            if len(splittedValue) == 4: splittedValue.append('')
+            self.codesystem = splittedValue[0] or None
+            self.version = splittedValue[1] or None
+            self.code = splittedValue[2] or None
+            self.display = splittedValue[3] or None
+            self.userSelected = splittedValue[4] or None
 
     def __str__(self) -> str:
         buildStr = ""
