@@ -467,7 +467,8 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     if (value := one_property.value) and (value_type := one_property.type):
                         # special case if type is coding
                         if value_type == pcam.PropertyCodeType.coding:
-                            the_property.set_valueCoding(CodingSub(code=codeSub(value=value)))
+                            the_property.set_valueCoding(CodingSub(system=systemSub(value=value.codesystem), version=value.version,
+                                    code=codeSub(value=value.code), display=value.display, userSelected=value.userSelected))
                         else:
                             # determine class name (e.g. string -> stringSub)
                             value_type_class_name = value_type.value + 'Sub'
