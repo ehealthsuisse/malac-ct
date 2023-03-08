@@ -182,6 +182,12 @@ class PropCsvAndMaster():
                             one_concept.parent = parent
                             # setting the hierarchy level
                             one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                elif self.resource == self.resource.CodeSystem:
+                    concept_dict = self.buildConceptDictWithAttr('code')
+
+                    for one_concept in self.concept:
+                        self.add_children_to_CS_concept(concept_dict, one_concept)
+
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
         if tmp_parent := concept.parent:
@@ -198,6 +204,19 @@ class PropCsvAndMaster():
                     return level + 1
         return 0
 
+    def add_children_to_CS_concept(self, concept_dict, concept):
+        if hasattr(concept,'property') and concept.property:
+            for oneProperty in concept.property:
+                if oneProperty.code == "parent":
+                    if not hasattr(concept_dict[oneProperty.value], "propChildDict"):
+                        # there is no managing of the now added props in the dict, but a code cant exists twice in a CS, so that should be good
+                        concept_dict[oneProperty.value].propChildDict = self.build_property_dict_on_code_with_value_as_key(concept_dict[oneProperty.value],"child")
+                    if concept.code not in concept_dict[oneProperty.value].propChildDict.keys():
+                        the_property_child = CSConcept.ConceptProperty()
+                        the_property_child.code = "child"
+                        the_property_child.value = concept.code
+                        the_property_child.type = PropertyCodeType.code
+                        concept_dict[oneProperty.value].property.append(the_property_child)
 
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
@@ -425,6 +444,13 @@ class PropCsvAndMaster():
                     tmpPointer = getattr(tmp_pointer,part)
                 key += tmpPointer
             tmpDict[key] = oneCon
+        return tmpDict
+
+    def build_property_dict_on_code_with_value_as_key(self, concept, propCode):
+        tmpDict = {}
+        for oneProp in concept.property:
+            if oneProp.code == propCode:
+                tmpDict[oneProp.value] = oneProp
         return tmpDict
 
     def sortConceptsExpandStyle(self, conDict=None):
