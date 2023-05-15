@@ -45,7 +45,7 @@ class PropCsvAndMaster():
 
         if inFile is not None:
             # open the file in read mode, special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
-            with open(inFile, 'r', encoding="cp1252") as csvfile:
+            with open(inFile, 'r', encoding="utf-8") as csvfile:
                 import csv
                 # creating dictreader object
                 file = csv.reader(csvfile, quotechar='"', delimiter=';')
@@ -701,15 +701,15 @@ class PropCsvAndMaster():
                     for csvelement in csvline:
                         # write and change all ',' to ';'
                         #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
-                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
+                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('utf-8',errors='ignore'))
                         newline = False
-                    outfile.write(("\n").encode('cp1252',errors='ignore'))
+                    outfile.write(("\n").encode('utf-8',errors='ignore'))
 
                 for csvline in csv_list:
-                    outfile.write(("\n").encode('cp1252',errors='ignore'))
+                    outfile.write(("\n").encode('utf-8',errors='ignore'))
                     newline = True
                     for csvelement in csvline:
-                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
+                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('utf-8',errors='ignore'))
                         newline = False
 
             elif outfile.name.endswith('.1.propcsv.xlsx'):
@@ -732,7 +732,7 @@ class PropCsvAndMaster():
                         all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
                         of \r
                         """
-                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('utf-8',errors='ignore').decode('utf-8'))
 
                 # for the empty row between meta and data
                 x += 1
@@ -748,7 +748,7 @@ class PropCsvAndMaster():
                         all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
                         of \r
                         """
-                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
+                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('utf-8',errors='ignore').decode('utf-8'))
 
                 workbook.close()
 class PropCsvAsXLSX():
@@ -756,7 +756,7 @@ class PropCsvAsXLSX():
         import pandas as pd
 
         read_file = pd.read_excel(inFilename, keep_default_na=False)
-        read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
+        read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
 
         return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
 
