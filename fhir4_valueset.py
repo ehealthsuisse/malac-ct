@@ -406,6 +406,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_contains.get_abstract():
                         the_concept.abstract = tmp.get_value()
 
+                    # parse ValueSet.expansion.contains.inactive
+                    if tmp := one_contains.get_inactive():
+                        the_concept.inactive = tmp.get_value()
+
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
                         # setting theConcept as child of the parent
@@ -618,7 +622,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
 
-                # NOT SUPPORTED ValueSet.expansion.contains.inactive
+                if tmp := one_concept.inactive:
+                    the_concept.set_inactive(booleanSub(value=tmp))
+                    self.inactive = True
 
                 # write the system version if existent
                 if tmp := one_concept.version:

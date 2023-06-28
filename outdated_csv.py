@@ -117,8 +117,11 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                     theConcept.designation.append(theDesig)
                                 elif 'orderNumber' == headingList[i]: theConcept.orderNumber = row[i]
                                 elif 'level' == headingList[i] and row[i] != "" and (tmpLevel := int(row[i].strip())): theConcept.level = tmpLevel
-                                elif 'type' == headingList[i] and row[i] == "A":
-                                    theConcept.abstract = True
+                                elif 'type' == headingList[i]:
+                                    if row[i] == "A":
+                                        theConcept.abstract = True
+                                    if row[i] == "D":
+                                        theConcept.inactive = True
                                 elif 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
@@ -337,6 +340,8 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
             elif self.get_resource() == "ValueSet":
                 if oneConcept.abstract:
                     conceptRow.append("A")
+                elif oneConcept.inactive:
+                    conceptRow.append("D")
                 elif oneConcept.member != []:
                     conceptRow.append("S")
                 else:
