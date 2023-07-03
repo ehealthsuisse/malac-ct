@@ -467,8 +467,13 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     if (value := one_property.value) and (value_type := one_property.type):
                         # special case if type is coding
                         if value_type == pcam.PropertyCodeType.coding:
-                            the_property.set_valueCoding(CodingSub(system=urlSub(value=value.codesystem), version=stringSub(value=value.version),
-                                    code=codeSub(value=value.code), display=stringSub(value=value.display), userSelected=booleanSub(value=value.userSelected)))
+                            # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
+                            the_property.set_valueCoding(CodingSub(
+                                    system=urlSub(value=value.codesystem) if value.codesystem else None,
+                                    version=stringSub(value=value.version) if value.version else None,
+                                    code=codeSub(value=value.code)  if value.code else None,
+                                    display=stringSub(value=value.display)  if value.display else None,
+                                    userSelected=booleanSub(value=value.userSelected) if value.userSelected else None))
                         else:
                             # determine class name (e.g. string -> stringSub)
                             value_type_class_name = value_type.value + 'Sub'
