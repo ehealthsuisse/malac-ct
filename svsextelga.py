@@ -278,6 +278,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.abstract = True
                     if oneCon.get_type() == "D":
                         theConcept.inactive = True
+                        self.inactive = True
                     if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                         theDesig = pcam.ConceptDesignation()
                         theDesig.language = "de-AT"

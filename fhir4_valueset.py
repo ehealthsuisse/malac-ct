@@ -409,6 +409,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     # parse ValueSet.expansion.contains.inactive
                     if tmp := one_contains.get_inactive():
                         the_concept.inactive = tmp.get_value()
+                        if the_concept.inactive:
+                            self.inactive = True
 
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
@@ -624,7 +626,6 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 if tmp := one_concept.inactive:
                     the_concept.set_inactive(booleanSub(value=tmp))
-                    self.inactive = True
 
                 # write the system version if existent
                 if tmp := one_concept.version:

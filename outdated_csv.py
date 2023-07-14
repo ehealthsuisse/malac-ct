@@ -122,6 +122,7 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                                         theConcept.abstract = True
                                     if row[i] == "D":
                                         theConcept.inactive = True
+                                        self.inactive = True
                                 elif 'relationships' == headingList[i] and row[i] != "":
                                     theDesig = pcam.ConceptDesignation()
                                     theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
