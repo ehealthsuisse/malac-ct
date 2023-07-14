@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Support ValueSet.expansion.contains.inactive and ValueSet.compose.inactive
+- Support expansions in fsh2, including concepts "inactive" information
+
 ## [4.1.2+20230303]
 
 ### Fixed
