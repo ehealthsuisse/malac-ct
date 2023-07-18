@@ -1038,9 +1038,7 @@ class Coding():
             self.display = None
             self.userSelected = None
         else:
-            splittedValue = str.split('^',5)
-            # following is done in case the last element is empty
-            if len(splittedValue) == 4: splittedValue.append('')
+            splittedValue = str.split('^',4)
             self.codesystem = splittedValue[0] or None
             self.version = splittedValue[1] or None
             self.code = splittedValue[2] or None
