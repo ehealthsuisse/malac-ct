@@ -609,10 +609,12 @@ def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
         elif tmp := self.gainVersionFromOid(oneConcept.system):
             outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt), tmp))
 
-    # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
-    # That given, a fsh valueset cant be used for input, if having abstract codes
+    # abstract and inactive for the valueset are a onewaystreet, only showing in a fsh when expanded.
+    # That given, a fsh valueset cant be used for input, if having abstract or inactive codes
     if oneConcept.abstract:
         outfile.write('* expansion%s.abstract = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
+    if oneConcept.inactive:
+        outfile.write('* expansion%s.inactive = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
     outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
 
