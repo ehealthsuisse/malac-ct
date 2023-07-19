@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - #5 Support `ValueSet.expansion.contains.inactive` and `ValueSet.compose.inactive`.
 - Support expansions in `.2.fsh`.
+- Coding properties can be parsed and exported in `.4.fhir.xml`, `.4.fhir.json`, `.1.propcsv.csv` and `.1.propcsv.xlsx`.
+- Coding properties can be exported in `.1.fsh` and `.2.fsh`.
+- Reference building for the missing child property with information from the parent property in the child 
+
+### Changed
+
+- Refactor SVS regarding order of metadata-ifs like in the format itself and replace property name `hinweise` with `hints`
+
+### Fixed
+
+- Fix the specified metadata values of the bmg icd 10 (in 2023 they reused the 2022 catalog)
+- Fix the specified metadata values of the bmg lkf 
 
 ## [4.1.2+20230303]
 
