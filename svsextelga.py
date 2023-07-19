@@ -276,6 +276,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
                     if oneCon.get_type() == "A":
                         theConcept.abstract = True
+                    if oneCon.get_type() == "D":
+                        theConcept.inactive = True
+                        self.inactive = True
                     if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                         theDesig = pcam.ConceptDesignation()
                         theDesig.language = "de-AT"
@@ -623,6 +626,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             elif self.get_resource() == "ValueSet":
                 if oneConcept.abstract:
                     type_ = "A"
+                elif oneConcept.inactive:
+                    type_ = "D"
                 elif oneConcept.member != []:
                     type_ = "S"
                 else:

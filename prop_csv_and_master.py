@@ -31,7 +31,7 @@ class PropCsvAndMaster():
         # following are used only in ValueSets
         self.immutable = None
         self.lockeddate = None
-        self.inactive = None
+        self.inactive = False
         # following are used only in CodeSystems
         self.casesensitive = None
         self.valueset = None
@@ -163,6 +163,10 @@ class PropCsvAndMaster():
                                 if 'abstract' == headingList[i]:
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.abstract = True
+                                if 'inactive' == headingList[i]:
+                                    if row[i].lower() == "true" or "yes" or "1":
+                                        tempConcept.inactive = True
+                                        self.inactive = True
                                 if 'exclude' == headingList[i]:
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
@@ -687,6 +691,9 @@ class PropCsvAndMaster():
                         if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
                             csv_header.append('abstract')
                             csv_line.append(tmp)
+                        if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
+                            csv_header.append('inactive')
+                            csv_line.append(tmp)
                         if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                             csv_header.append('exclude')
                             csv_line.append(tmp)
@@ -951,6 +958,7 @@ class VSConcept():
                        # The default value implies that this concept is a top level concept.
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
+        self.inactive = False
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
