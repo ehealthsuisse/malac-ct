@@ -1,4 +1,5 @@
-from fsh1 import Fsh1
+from fsh1 import Fsh1, writeSelfAndRecrCallMembers
+from datetime import datetime
 import sys
 import prop_csv_and_master as pcam
 
@@ -163,6 +164,13 @@ class Fsh2(Fsh1):
         conceptList = self.get_concept()
         if len(conceptList) > 0:
             tempConcept = None
+
+            # look into the concepts and see if there are any members, so that these will be specially printed
+            vsMemberAnywhere = False
+            for oneConcept in conceptList:
+                if hasattr(oneConcept,"member") and oneConcept.member != []:
+                    vsMemberAnywhere = True
+
             j = -1
             k = -1
             for oneConcept in conceptList:
@@ -195,6 +203,13 @@ class Fsh2(Fsh1):
                             if hasattr(oneProperty, 'value') and oneProperty.type.value == "string": outfile.write('* #%s ^property[%s].value%s = "%s" \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "code": outfile.write('* #%s ^property[%s].value%s = #%s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "boolean": outfile.write('* #%s ^property[%s].value%s = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value).lower().replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Coding":
+                                if hasattr(oneProperty.value, 'codesystem') and oneProperty.value.codesystem: outfile.write('* #%s ^property[%s].value%s.system = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.codesystem).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'version') and oneProperty.value.version: outfile.write('* #%s ^property[%s].value%s.version = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.version).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'code') and oneProperty.value.code: outfile.write('* #%s ^property[%s].value%s.code = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.code).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'display') and oneProperty.value.display: outfile.write('* #%s ^property[%s].value%s.display = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.display).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'userSelected') and oneProperty.value.userSelected: outfile.write('* #%s ^property[%s].value%s.userSelected = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.userSelected).lower().replace('"','\\"')))
+
                             i += 1
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
@@ -243,3 +258,33 @@ class Fsh2(Fsh1):
 
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension
+
+            # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode) and the args param is set
+            if vsMemberAnywhere and self.get_resource() == 'ValueSet' and incHierarchyExt4VS:
+                # write the extension
+                outerExtensionCnt = 0
+                outfile.write('\n')
+                outfile.write('* compose.include.extension[0].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-rules"\n')
+                outfile.write('* compose.include.extension[0].valueCode = #all-codes\n')
+                outfile.write('\n')
+                for oneConcept in conceptList:
+                    if hasattr(oneConcept,"member") and oneConcept.member != []:
+                        outerExtensionCnt += 1
+                        outfile.write('* compose.include.extension[%s].url = "http://hl7.org/fhir/StructureDefinition/valueset-expand-group"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].url = "code"\n' % (outerExtensionCnt))
+                        outfile.write('* compose.include.extension[%s].extension[0].valueCode = #%s\n' % (outerExtensionCnt, oneConcept.code))
+                        innerExtensionCnt = 0
+                        for oneMember in oneConcept.member:
+                            innerExtensionCnt += 1
+                            outfile.write('* compose.include.extension[%s].extension[%s].url = "member"\n' % (outerExtensionCnt, innerExtensionCnt))
+                            outfile.write('* compose.include.extension[%s].extension[%s].valueCode = #%s\n' % (outerExtensionCnt, innerExtensionCnt, oneMember.code))
+
+            # write the expansion
+            if self.get_resource() == 'ValueSet':
+                outfile.write('\n')
+                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('\n')
+                containCnt = [-1]
+                for oneConcept in conceptList:
+                    if oneConcept.level == 0:
+                        writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt)

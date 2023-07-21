@@ -31,7 +31,7 @@ class PropCsvAndMaster():
         # following are used only in ValueSets
         self.immutable = None
         self.lockeddate = None
-        self.inactive = None
+        self.inactive = False
         # following are used only in CodeSystems
         self.casesensitive = None
         self.valueset = None
@@ -137,13 +137,7 @@ class PropCsvAndMaster():
                                 if 'designation' == headingList[i]:
                                     tempConcept.designation.append(ConceptDesignation(row[i]))
                                 if 'property' == headingList[i]:
-                                    propertyElements = row[i].split('|')
-                                    tempProperty = CSConcept.ConceptProperty()
-                                    tempProperty.code = propertyElements[0]
-                                    tempProperty.value = propertyElements[1]
-                                    tempProperty.type = PropertyCodeType[propertyElements[2].lower()]
-                                    tempConcept.property.append(tempProperty)
-
+                                    tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
                             elif self.resource == self.resource.ValueSet:
                                 if 'system' == headingList[i]: tempConcept.system = row[i]
                                 if 'version' == headingList[i]: tempConcept.version = row[i]
@@ -163,6 +157,10 @@ class PropCsvAndMaster():
                                 if 'abstract' == headingList[i]:
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.abstract = True
+                                if 'inactive' == headingList[i]:
+                                    if row[i].lower() == "true" or "yes" or "1":
+                                        tempConcept.inactive = True
+                                        self.inactive = True
                                 if 'exclude' == headingList[i]:
                                     if row[i].lower() == "true" or "yes" or "1":
                                         tempConcept.exclude = True
@@ -188,6 +186,12 @@ class PropCsvAndMaster():
                             one_concept.parent = parent
                             # setting the hierarchy level
                             one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                elif self.resource == self.resource.CodeSystem:
+                    concept_dict = self.buildConceptDictWithAttr('code')
+
+                    for one_concept in self.concept:
+                        self.add_children_to_CS_concept(concept_dict, one_concept)
+
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
         if tmp_parent := concept.parent:
@@ -204,6 +208,19 @@ class PropCsvAndMaster():
                     return level + 1
         return 0
 
+    def add_children_to_CS_concept(self, concept_dict, concept):
+        if hasattr(concept,'property') and concept.property:
+            for oneProperty in concept.property:
+                if oneProperty.code == "parent":
+                    if not hasattr(concept_dict[oneProperty.value], "propChildDict"):
+                        # there is no managing of the now added props in the dict, but a code cant exists twice in a CS, so that should be good
+                        concept_dict[oneProperty.value].propChildDict = self.build_property_dict_on_code_with_value_as_key(concept_dict[oneProperty.value],"child")
+                    if concept.code not in concept_dict[oneProperty.value].propChildDict.keys():
+                        the_property_child = CSConcept.ConceptProperty()
+                        the_property_child.code = "child"
+                        the_property_child.value = concept.code
+                        the_property_child.type = PropertyCodeType.code
+                        concept_dict[oneProperty.value].property.append(the_property_child)
 
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
@@ -431,6 +448,13 @@ class PropCsvAndMaster():
                     tmpPointer = getattr(tmp_pointer,part)
                 key += tmpPointer
             tmpDict[key] = oneCon
+        return tmpDict
+
+    def build_property_dict_on_code_with_value_as_key(self, concept, propCode):
+        tmpDict = {}
+        for oneProp in concept.property:
+            if oneProp.code == propCode:
+                tmpDict[oneProp.value] = oneProp
         return tmpDict
 
     def sortConceptsExpandStyle(self, conDict=None):
@@ -687,6 +711,9 @@ class PropCsvAndMaster():
                         if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
                             csv_header.append('abstract')
                             csv_line.append(tmp)
+                        if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
+                            csv_header.append('inactive')
+                            csv_line.append(tmp)
                         if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                             csv_header.append('exclude')
                             csv_line.append(tmp)
@@ -913,10 +940,19 @@ class CSConcept():
         self.property = []
 
     class ConceptProperty():
-        def __init__(self):
-            self.code = None
-            self.value = None
-            self.type = PropertyCodeType
+        def __init__(self, str=None):
+            if not str:
+                self.code = None
+                self.value = None
+                self.type = PropertyCodeType
+            else:
+                propertyElements = str.split('|')
+                self.code = propertyElements[0]
+                self.type = PropertyCodeType[propertyElements[2].lower()]
+                if self.type == PropertyCodeType.coding:
+                    self.value = Coding(propertyElements[1])
+                else:
+                    self.value = propertyElements[1]
 
         # only used for sort
         def get_value_if_code_is_child(self):
@@ -951,6 +987,7 @@ class VSConcept():
                        # The default value implies that this concept is a top level concept.
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
+        self.inactive = False
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
@@ -1002,7 +1039,7 @@ class ConceptDesignation():
 
 class Coding():
     def __init__(self, str=None):
-        if str is None:
+        if not str:
             self.codesystem = None
             self.version = None
             self.code = None
@@ -1010,11 +1047,11 @@ class Coding():
             self.userSelected = None
         else:
             splittedValue = str.split('^',4)
-            self.codesystem = splittedValue[0]
-            self.version = splittedValue[1]
-            self.code = splittedValue[2]
-            self.display = splittedValue[3]
-            self.userSelected = splittedValue[4]
+            self.codesystem = splittedValue[0] or None
+            self.version = splittedValue[1] or None
+            self.code = splittedValue[2] or None
+            self.display = splittedValue[3] or None
+            self.userSelected = splittedValue[4] or None
 
     def __str__(self) -> str:
         buildStr = ""
