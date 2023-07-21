@@ -35,27 +35,18 @@ class BMGICD(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023"
-        self.name = "bmg-icd-10-2023"
-        self.title = "BMG ICD-10 2023"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2022"
+        self.id = "bmg-icd-10-2022"
+        self.name = "bmg-icd-10-2022"
+        self.title = "ICD-10 BMSGPK 2022"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.0+20230213"
-        self.identifier.append("1.2.40.0.34.5.000")
+        self.version = "1.0.0+20230228"
+        self.identifier.append("1.2.40.0.34.5.209")
         self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^"))
-        self.id = "bmg-icd-10-2023"
-        self.description = """Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter
-Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. Dabei sollte der
-bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO
-in möglichst unveränderter Form beibehalten werden. In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001
-verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG
-2013 zu ersetzen. In die seit dem 1.1.2014 verwendete ICD-10 BMG 2014 wurden zusätzlich
-die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet. Die seit 1.1.2017
-verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von
-der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.
-Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die
-zur Weiterentwicklung der Dokumentationsgrundlagen beitragen.
-"""
+        self.description = """Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.
+In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen. In die seit dem 1.1.2014 verwendete ICD-10 BMG 2014 wurden zusätzlich die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet. Die seit 1.1.2017 verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.
+Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die zur Weiterentwicklung der Dokumentationsgrundlagen beitragen."""
 
         self.parseConcepts(cursor)
 
@@ -186,22 +177,20 @@ class BMGLKF(pcam.PropCsvAndMaster):
         #metadata
         self.resource = pcam.Resource.CodeSystem
         self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023"
+        self.id = "bmg-lkf-2023"
         self.name = "bmg-lkf-2023"
         self.title = "BMG Leistungskatalog Gesamt 2023"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.0+20230213"
-        self.identifier.append("1.2.40.0.34.5.000")
+        self.version = "1.0.0+20230228"
+        self.identifier.append("1.2.40.0.34.5.216")
         self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^"))
-        self.id = "bmg-lkf-2023"
-        self.description = """Der Leistungskatalog BMSGPK 2023 bildet die verbindliche Grundlage für die bundesweit
-einheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2023.
+        self.description = """Der Leistungskatalog BMSGPK 2023 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2023.
 Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:
 * 884 stationäre Leistungen (große Operationen etc.)
 * 875 Leistungen, die sowohl ambulant als auch stationär zu erfassen sind
 * (CT, MR, kleine Operationen etc.)
-* 350 Leistungen, die nur bei ambulanten Besuchen zu erfassen sind (EKG, Sonographie,
-ambulante Untersuchungen etc."""
+* 350 Leistungen, die nur bei ambulanten Besuchen zu erfassen sind (EKG, Sonographie, ambulante Untersuchungen etc."""
 
         self.parseConcepts(cursor)
 

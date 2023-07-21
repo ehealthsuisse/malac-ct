@@ -454,6 +454,13 @@ class Fsh1(pcam.PropCsvAndMaster):
                             if hasattr(oneProperty, 'value') and oneProperty.type.value == "string": outfile.write('* concept[%s].property[%s].value%s = "%s" \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "code": outfile.write('* concept[%s].property[%s].value%s = #%s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), oneProperty.value.replace('"','\\"')))
                             elif hasattr(oneProperty, 'value') and oneProperty.type.value == "boolean": outfile.write('* concept[%s].property[%s].value%s = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value).lower().replace('"','\\"')))
+                            elif hasattr(oneProperty, 'value') and oneProperty.type.value == "Coding":
+                                if hasattr(oneProperty.value, 'codesystem') and oneProperty.value.codesystem: outfile.write('* concept[%s].property[%s].value%s.system = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.codesystem).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'version') and oneProperty.value.version: outfile.write('* concept[%s].property[%s].value%s.version = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.version).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'code') and oneProperty.value.code: outfile.write('* concept[%s].property[%s].value%s.code = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.code).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'display') and oneProperty.value.display: outfile.write('* concept[%s].property[%s].value%s.display = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.display).replace('"','\\"')))
+                                if hasattr(oneProperty.value, 'userSelected') and oneProperty.value.userSelected: outfile.write('* concept[%s].property[%s].value%s.userSelected = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.userSelected).lower().replace('"','\\"')))
+
                             i += 1
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
@@ -602,10 +609,12 @@ def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
         elif tmp := self.gainVersionFromOid(oneConcept.system):
             outfile.write('* expansion%s.version = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt), tmp))
 
-    # TODO should the abstract for the valueset be a onewaystreet, only showing in a fsh when expanded.
-    # That given, a fsh valueset cant be used for input, if having abstract codes
+    # abstract and inactive for the valueset are a onewaystreet, only showing in a fsh when expanded.
+    # That given, a fsh valueset cant be used for input, if having abstract or inactive codes
     if oneConcept.abstract:
         outfile.write('* expansion%s.abstract = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
+    if oneConcept.inactive:
+        outfile.write('* expansion%s.inactive = true\n' % (strContainsAsLevels(oneConcept.level,containCnt)))
     outfile.write('* expansion%s.code = #%s\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.code))
     outfile.write('* expansion%s.display = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.display))
 

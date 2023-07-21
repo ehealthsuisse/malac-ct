@@ -276,20 +276,28 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
                     if oneCon.get_type() == "A":
                         theConcept.abstract = True
+                    if oneCon.get_type() == "D":
+                        theConcept.inactive = True
+                        self.inactive = True
                     if (tmpDeutsch := oneCon.get_deutsch()) and tmpDeutsch.strip() != "" and tmpDeutsch != oneCon.get_displayName():
                         theDesig = pcam.ConceptDesignation()
                         theDesig.language = "de-AT"
                         theDesig.value = tmpDeutsch
                         theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "" and tmp != oneCon.get_displayName() and tmp != tmpDeutsch and tmp != tmpDisAlt:
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
+                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
+                        theDesig = pcam.ConceptDesignation()
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
+                        theDesig.value = tmp
+                        theConcept.designation.append(theDesig)
                     if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                         theDesig = pcam.ConceptDesignation()
                         theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^alt^alt^")
                         theDesig.value = tmpDisAlt
-                        theConcept.designation.append(theDesig)
-                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
-                        theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
-                        theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
@@ -304,11 +312,6 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
                         theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^")
-                        theDesig.value = tmp
-                        theConcept.designation.append(theDesig)
-                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
-                        theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
 
@@ -349,6 +352,21 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     theConcept.display = oneCon.get_displayName()
                     retiredAlreadySet = False
 
+                    if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
+                        theMemberParent[tmpLevel] = theConcept
+                        if tmpLevel > 0:
+                            theProperty = pcam.CSConcept.ConceptProperty()
+                            theProperty.code = "child"
+                            theProperty.value = oneCon.get_code()
+                            theProperty.type = pcam.PropertyCodeType.code
+                            theMemberParent[tmpLevel-1].property.append(theProperty)
+
+                            theProperty = pcam.CSConcept.ConceptProperty()
+                            theProperty.code = "parent"
+                            theProperty.value = theMemberParent[tmpLevel-1].code
+                            theProperty.type = pcam.PropertyCodeType.code
+                            theConcept.property.append(theProperty)
+
                     if (theConcept.display.upper().startswith("DEPRECATED") and not retiredAlreadySet):
                         self.set_statusToRetired(theConcept)
                         retiredAlreadySet = True
@@ -373,12 +391,13 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theProp.value = tmpDisAlt
                         theProp.type = pcam.PropertyCodeType.string
                         theConcept.property.append(theProp)
-                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "":
-                        theProp = pcam.CSConcept.ConceptProperty()
-                        theProp.code = "concept_beschreibung"
-                        theProp.value = tmp
-                        theProp.type = pcam.PropertyCodeType.string
-                        theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "" and tmp != oneCon.get_displayName() and tmp != tmpDeutsch and tmp != tmpDisAlt:
+                        theConcept.definition = tmp
+                        #theProp = pcam.CSConcept.ConceptProperty()
+                        #theProp.code = "concept_beschreibung"
+                        #theProp.value = tmp
+                        #theProp.type = pcam.PropertyCodeType.string
+                        #theConcept.property.append(theProp)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theProp = pcam.CSConcept.ConceptProperty()
                         theProp.code = "einheit_codiert"
@@ -391,38 +410,22 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theProp.value = tmp
                         theProp.type = pcam.PropertyCodeType.string
                         theConcept.property.append(theProp)
+                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
+                        theProp = pcam.CSConcept.ConceptProperty()
+                        theProp.code = "Relationships"
+                        theProp.value = tmp
+                        theProp.type = pcam.PropertyCodeType.string
+                        theConcept.property.append(theProp)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         if (tmp.upper().startswith("DEPRECATED") or tmp.upper().startswith("INAKTIV")) and not retiredAlreadySet:
                             self.set_statusToRetired(theConcept)
                             retiredAlreadySet = True
                         else:
                             theProp = pcam.CSConcept.ConceptProperty()
-                            theProp.code = "hinweise"
+                            theProp.code = "hints"
                             theProp.value = tmp
                             theProp.type = pcam.PropertyCodeType.string
                             theConcept.property.append(theProp)
-                    if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
-                        theProp = pcam.CSConcept.ConceptProperty()
-                        theProp.code = "relationships"
-                        theProp.value = tmp
-                        theProp.type = pcam.PropertyCodeType.string
-                        theConcept.property.append(theProp)
-
-
-                    if 0 <= (tmpLevel := int(oneCon.get_level().strip())):
-                        theMemberParent[tmpLevel] = theConcept
-                        if tmpLevel > 0:
-                            theProperty = pcam.CSConcept.ConceptProperty()
-                            theProperty.code = "child"
-                            theProperty.value = oneCon.get_code()
-                            theProperty.type = pcam.PropertyCodeType.code
-                            theMemberParent[tmpLevel-1].property.append(theProperty)
-
-                            theProperty = pcam.CSConcept.ConceptProperty()
-                            theProperty.code = "parent"
-                            theProperty.value = theMemberParent[tmpLevel-1].code
-                            theProperty.type = pcam.PropertyCodeType.code
-                            theConcept.property.append(theProperty)
 
                     # read anyAttribute if version 2
                     if self.versionSVSextELGA == 2:
@@ -623,6 +626,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             elif self.get_resource() == "ValueSet":
                 if oneConcept.abstract:
                     type_ = "A"
+                elif oneConcept.inactive:
+                    type_ = "D"
                 elif oneConcept.member != []:
                     type_ = "S"
                 else:
@@ -664,7 +669,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                     for oneDesig in oneConcept.designation:
                         if (oneDesig.use.code != "relationships" and oneDesig.use.code != "hinweise"
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
-                        and oneDesig.use.code != "alt" and oneDesig.language != "de-AT"
+                        and oneDesig.use.code != "alt" and oneDesig.language != "de-AT" # TODO: andere Sprachen wie de-DE?
                         and oneDesig.use.code != "concept_beschreibung"):
                             code = oneDesig.use.code
                             for one_xml_escape_special_char in xml_escape_special_char:

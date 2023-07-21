@@ -653,6 +653,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if self.get_resource() == "ValueSet":
                     if oneConcept.abstract:
                         type_ = "A"
+                    elif oneConcept.inactive:
+                        type_ = "D"
                     elif oneConcept.member != []:
                         type_ = "S"
 

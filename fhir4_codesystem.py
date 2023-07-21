@@ -331,11 +331,16 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                             the_property.value = tmp.get_value()
                             # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
                             the_property.type = pcam.PropertyCodeType(pcam.first_char_to_lower(tmp.original_tagname_.replace('value','')))
-                        elif tmp_coding := one_property.get_valueCoding():
-                            if tmp := tmp_coding.get_code():
-                                the_property.value = tmp.get_value()
-                                # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                                the_property.type = pcam.PropertyCodeType(tmp_coding.original_tagname_.replace('value',''))
+                        elif tmp_prop := one_property.get_valueCoding():
+                            the_coding = pcam.Coding()
+                            if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
+                            if tmp := tmp_prop.get_version(): the_coding.version = tmp.get_value()
+                            if tmp := tmp_prop.get_code(): the_coding.code= tmp.get_value()
+                            if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
+                            if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
+                            the_property.value = the_coding
+                            # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                            the_property.type = pcam.PropertyCodeType(tmp_prop.original_tagname_.replace('value',''))
 
                         the_concept.property.append(the_property)
 
@@ -467,7 +472,13 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                     if (value := one_property.value) and (value_type := one_property.type):
                         # special case if type is coding
                         if value_type == pcam.PropertyCodeType.coding:
-                            the_property.set_valueCoding(CodingSub(code=codeSub(value=value)))
+                            # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
+                            the_property.set_valueCoding(CodingSub(
+                                    system=urlSub(value=value.codesystem) if value.codesystem else None,
+                                    version=stringSub(value=value.version) if value.version else None,
+                                    code=codeSub(value=value.code)  if value.code else None,
+                                    display=stringSub(value=value.display)  if value.display else None,
+                                    userSelected=booleanSub(value=value.userSelected) if value.userSelected else None))
                         else:
                             # determine class name (e.g. string -> stringSub)
                             value_type_class_name = value_type.value + 'Sub'
