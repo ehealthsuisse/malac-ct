@@ -49,8 +49,14 @@ class PropCsvAndMaster():
                 import csv
                 # creating dictreader object
                 file = csv.reader(csvfile, quotechar='"', delimiter=';')
-                # iterating over first two rows and append values to empty list
-                metaList = [file.__next__()]+[file.__next__()]
+                try:
+                    # iterating over first two rows and append values to empty list
+                    metaList = [file.__next__()]+[file.__next__()]
+                except UnicodeDecodeError:
+                    csvfile = open(inFile, 'r', encoding="cp1252")
+                    # creating dictreader object
+                    file = csv.reader(csvfile, quotechar='"', delimiter=';')
+                    metaList = [file.__next__()]+[file.__next__()]
                 # iterating over a empty row
                 file.__next__()
                 # iterating over the next row with headings for concepts
