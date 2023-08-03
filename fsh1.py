@@ -20,6 +20,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             # preparing lists and some variables
             lstFilter = []
             lstProperty = []
+            lstContact = []
             dictConcept = {}
 
             finalVSSystem = None
@@ -70,9 +71,37 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* date ': self.date = value
                 elif splittedLine[0] == '* publisher ': self.publisher = value
                 elif '* contact' in splittedLine[0]:
-                    if not hasattr(self,'contact'):
-                        self.contact = []
-                    self.contact.append(value)
+                    theContactDetail = None
+                    theContactPoint = None
+
+                    # look with idInFsh for contact in the contact list
+                    for oneContactDetail in lstContact:
+                        if oneContactDetail.idInFsh == splittedLine[0].split(']')[0]:
+                            theContactDetail = oneContactDetail
+                    # if none is found in the list, make one
+                    if theContactDetail is None:
+                        theContactDetail = ContactDetail(splittedLine[0].split(']')[0])
+                        lstContact.append(theContactDetail)
+
+                    for oneContactPoint in theContactDetail.telecom:
+                        if oneContactPoint.idInFsh == splittedLine[0].split('.')[1].split(']')[0]:
+                            theContactPoint = oneContactPoint
+                    # if none is found in the list, make one
+                    if theContactPoint is None:
+                        theContactPoint = ContactPoint(splittedLine[0].split('.')[1].split(']')[0])
+                        theContactDetail.telecom.append(theContactPoint)
+
+                    # add the data to the Filter
+                    if splittedLine[0].split('.')[1].strip() == 'name':
+                        theContactDetail.name = value
+                    elif splittedLine[0].split('.')[2].strip() == 'system':
+                        theContactPoint.system = ContactDetail.ContactPoint.ContactPointSystem[value]
+                    elif splittedLine[0].split('.')[2].strip() == 'value':
+                        theContactPoint.value = value
+
+                    # if not hasattr(self,'contact'):
+                    #     self.contact = []
+                    # self.contact.append(value)
                 elif '* useContext' in splittedLine[0]:
                     if not hasattr(self,'useContext'):
                         self.usecontext = []
@@ -143,6 +172,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                 self.filter = lstFilter
             if lstProperty != []:
                 self.property = lstProperty
+            if lstContact != []:
+                self.contact = lstContact
             if dictConcept != {}:
                 self.concept = list(dictConcept.values())
 
@@ -661,6 +692,16 @@ class Filter(pcam.Filter):
         self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
 
 class Property(pcam.Property):
+    def __init__(self, idInFsh):
+        super().__init__()
+        self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
+
+class ContactDetail(pcam.ContactDetail):
+    def __init__(self, idInFsh):
+        super().__init__()
+        self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
+
+class ContactPoint(pcam.ContactDetail.ContactPoint):
     def __init__(self, idInFsh):
         super().__init__()
         self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
