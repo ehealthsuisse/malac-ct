@@ -184,8 +184,10 @@ class PropCsvAndMaster():
                             parent.member.append(one_concept)
                             # setting the parent of one_concept
                             one_concept.parent = parent
-                            # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                    # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
+                    for one_concept in self.concept:
+                        # setting the hierarchy level
+                        one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
                 elif self.resource == self.resource.CodeSystem:
                     concept_dict = self.buildConceptDictWithAttr('code')
 
