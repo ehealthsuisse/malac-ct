@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Fix troubles if concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` is stating children before parents, that themselves do have parents
+
 ## [4.2.0+20230720]
 
 ### Added
@@ -12,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support expansions in `.2.fsh`.
 - Coding properties can be parsed and exported in `.4.fhir.xml`, `.4.fhir.json`, `.1.propcsv.csv` and `.1.propcsv.xlsx`.
 - Coding properties can be exported in `.1.fsh` and `.2.fsh`.
-- Reference building for the missing child property with information from the parent property in the child 
+- Reference building for the missing child property with information from the parent property in the child
 
 ### Changed
 
@@ -21,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix the specified metadata values of the bmg icd 10 (in 2023 they reused the 2022 catalog)
-- Fix the specified metadata values of the bmg lkf 
+- Fix the specified metadata values of the bmg lkf
 
 ## [4.1.2+20230303]
 
