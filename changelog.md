@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix reading `.4.fhir.xml` CS with `filter`-Elements with an `operator`
-- Fix writing `.1.fsh` CS with `filter`-Elements with an `value`
+- elga-gmbh/malac-ct#26 Fix reading `.4.fhir.xml` CS with `filter`-Elements with an `operator`
+- elga-gmbh/malac-ct#26 Fix writing `.1.fsh` CS with `filter`-Elements with an `value`
 
 ## [4.2.0+20230720]
 
