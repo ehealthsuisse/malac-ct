@@ -387,7 +387,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 if hasattr(oneFilter, 'code') and oneFilter.code: outfile.write('* filter[%s].code = #%s \n' % (i, oneFilter.code))
                 if hasattr(oneFilter, 'description') and oneFilter.description: outfile.write('* filter[%s].description = "%s" \n' % (i, oneFilter.description))
                 if hasattr(oneFilter, 'operator') and oneFilter.operator: outfile.write('* filter[%s].operator = #%s \n' % (i, oneFilter.operator))
-                if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* filter[%s].value = #%s \n' % (i, oneFilter.value))
+                if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* filter[%s].value = "%s" \n' % (i, oneFilter.value))
                 i += 1
         if tmp := self.get_property():
             i = 0

@@ -225,7 +225,7 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 will be retrieved.
                 """
                 if tmp := one_filter.get_operator():
-                    if tmp := tmp[0].get_value():
+                    if tmp := tmp[0]:
                         the_filter.operator = tmp.get_value()
 
                 if tmp := one_filter.get_value():
