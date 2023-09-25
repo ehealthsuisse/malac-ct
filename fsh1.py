@@ -1,4 +1,3 @@
-from datetime import datetime
 from pickletools import string4
 import prop_csv_and_master as pcam
 import re
@@ -534,7 +533,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             # write the expansion
             if self.get_resource() == 'ValueSet':
                 outfile.write('\n')
-                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('* expansion.timestamp = "%s"\n' % self.metadata_change_timestamp)
                 outfile.write('\n')
                 containCnt = [-1]
                 for oneConcept in conceptList:

@@ -20,7 +20,6 @@
 
 import os
 import sys
-from datetime import datetime
 from xml.etree.ElementInclude import include
 from lxml import etree as etree_
 
@@ -464,7 +463,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # NOT SUPPORTED ValueSet_Expansion.identifier
 
                 # set timestamp accordingly (required)
-                the_expansion.set_timestamp(dateTimeSub(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                the_expansion.set_timestamp(dateTimeSub(value=self.metadata_change_timestamp))
 
                 # NOT SUPPORTED ValueSet_Expansion.total
 
