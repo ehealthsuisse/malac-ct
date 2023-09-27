@@ -114,7 +114,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         return self.get_Classification()[0].get_Identifier()[0].get_date()
 
     def get_publisher(self):
-        return self.get_Classification()[0].get_Authors().get_Author()[0].get_name()
+        return self.get_Classification()[0].get_Authors().get_Author()[0].get_name() or self.get_contact[0].telecom.get_value() or None
 
     def get_contact(self):
         return self.get_Classification()[0].get_Authors().get_Author()[0].get_valueOf_()
@@ -288,12 +288,13 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
             mainIdent.set_date(datetime.datetime.strptime(tmp, '%Y-%m-%d'))
         authors = None
         if tmp := self.get_publisher():
-            authors = AuthorsSub(Author=[AuthorSub(tmp)])
+            if (tmpCon := self.get_contact()) and len(tmpCon) == 0:
+                authors = AuthorsSub(Author=[AuthorSub(tmp)])
         if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
             for oneContact in tmp:
-                oneAuthor = AuthorSub(oneContact.name or None, None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
+                oneAuthor = AuthorSub(oneContact.name or self.get_publisher() or None, None, None if not oneContact.telecom else oneContact.telecom[0].value or None)
                 authors.get_Author().append(oneAuthor)
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:

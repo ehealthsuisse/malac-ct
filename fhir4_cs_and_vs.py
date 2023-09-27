@@ -180,7 +180,12 @@ def get_publisher(self):
     """
     if tmp := self.get_publisher():
         return tmp.get_value()
-    return None
+    contacts = []
+    for contact in self.get_contact():
+        for telecom in contact.telecom:
+            if tmp := telecom.value:
+                contacts.append(tmp)
+    return ' & '.join(contacts) or None
 
 def get_contact(self):
     """Return CodeSystem.contact or ValueSet.contact.

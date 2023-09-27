@@ -117,6 +117,11 @@ class PropCsvAndMaster():
                         tempProperty.type = PropertyCodeType[propElements[3].lower()]
                         self.property.append(tempProperty)
 
+                # if no publisher is existent, than add the first contact as publisher if existent
+                if (not self.publisher and len(self.contact) > 0 and (tmp := self.contact[0]) and
+                        len(tmp.telecom) > 0 and (tmp := tmp.telecom[0])):
+                    self.publisher = tmp.value
+
                 #initializing the body/content
                 for row in file:
 

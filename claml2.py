@@ -144,7 +144,16 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             for author in authors.get_Author():
                 if tmp_name := author.get_name():
                     author_name_list.append(tmp_name)
-        return ' & '.join(author_name_list) or None
+
+            # if no authors name is existent, than add all the values as publisher
+            if len(author_name_list) == 0:
+                for contact in self.get_contact():
+                    for telecom in contact.telecom:
+                        if tmp := telecom.value:
+                            author_name_list.append(tmp)
+
+            return ' & '.join(author_name_list)
+        return None
 
     def get_contact(self):
         tempConDetS = []
@@ -153,7 +162,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if authors := self.get_Authors():
             for oneAuthor in authors.get_Author():
                 if tempValueOf := oneAuthor.get_valueOf_():
-                    if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
+                    if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string("|"+tempValueOf)):
                         for oneConDetTele in oneConDet.telecom:
                             if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
                                 if website and oneConDetTele.value and oneConDetTele.value.strip() == website.strip():
@@ -540,14 +549,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_date(): title.date = tmp
         authors = None
         if (tmp := self.get_publisher()) and (tmp != "None"):
-            # setting valueOf_ of Author to '' explicitly - other wise the Author-tag will be filled with 'None', i.e. <Author name="name_of_author">None</Author>
-            authors = AuthorsSub([AuthorSub(tmp, '')])
+            if (tmpCon := self.get_contact()) and len(tmpCon) == 0:
+                # setting valueOf_ of Author to '' explicitly - other wise the Author-tag will be filled with 'None', i.e. <Author name="name_of_author">None</Author>
+                authors = AuthorsSub([AuthorSub(tmp, '')])
         if tmp := self.get_contact():
             if authors is None:
                 authors = AuthorsSub()
             website = ""
             for oneContact in tmp:
-                oneAuthor = AuthorSub(oneContact.name or "", str(oneContact).split('|',2)[1])
+                oneAuthor = AuthorSub(oneContact.name or self.get_publisher() or "", str(oneContact).split('|',2)[1])
                 authors.add_Author(oneAuthor)
                 for oneConTele in oneContact.telecom:
                     if oneConTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
