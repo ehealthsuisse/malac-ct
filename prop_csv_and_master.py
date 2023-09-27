@@ -383,6 +383,9 @@ class PropCsvAndMaster():
         reader = csv.reader(open(csvFilename))
         mydict = {rows[1]:rows for rows in reader}
 
+        # overwrite the first row with the now valid columns stated here
+        mydict["canonical"] = terminology_metadata_csv_columns
+
         # check if any value changed
         if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
             self.metadata_change_timestamp = tmpTup[-1]
