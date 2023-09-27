@@ -384,7 +384,7 @@ class PropCsvAndMaster():
         mydict = {rows[1]:rows for rows in reader}
 
         # check if any value changed
-        if (tmpTup := mydict[self.get_url()]) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
+        if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
             self.metadata_change_timestamp = tmpTup[-1]
         else:
             self.metadata_change_timestamp = timestamp
