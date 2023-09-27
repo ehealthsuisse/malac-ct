@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Changed
+
+- #25 Because expansion.timestamp got updated in every malac-ct run, even if there were no changes, this timestamp was added to the metadata and will only change, if anything else in the metadata would change
+
 ## [4.2.0+20230720]
 
 ### Added
