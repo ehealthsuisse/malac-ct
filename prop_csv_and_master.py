@@ -45,9 +45,6 @@ class PropCsvAndMaster():
 
 
         if inFile is not None:
-            # open file in read mode with utf-8
-            # it is easier an quicker to first try utf-8 coded and
-            # than change to cp1252, than the other way around
             try:
                 # usally open file with special encoding because of Excel compatibility,
                 # see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
@@ -198,6 +195,7 @@ class PropCsvAndMaster():
                         for one_concept in self.concept:
                             self.add_children_to_CS_concept(concept_dict, one_concept)
             except UnicodeDecodeError:
+                print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
 
 
