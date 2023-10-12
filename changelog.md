@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix troubles if concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` is stating children before parents, that themselves do have parents
+- Fix concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` if children are stated before parents, that themselves do have parents.
 
 ## [4.2.0+20230720]
 

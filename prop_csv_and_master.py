@@ -467,9 +467,10 @@ class PropCsvAndMaster():
             conDict = self.buildConceptDictWithAttr("code")
 
         # sort all the child properties inside the concepts (only for CS!)
-        for key in conDict:
-            if hasattr(conDict[key],"property") and conDict[key].property:
-                conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
+        if self.get_resource() == "CodeSystem":
+            for key in conDict:
+                if hasattr(conDict[key],"property") and conDict[key].property:
+                    conDict[key].property.sort(key=CSConcept.ConceptProperty.get_value_if_code_is_child)
 
         # find all the concepts with no parent, sorted after key
         allLvl0 = []
@@ -479,7 +480,7 @@ class PropCsvAndMaster():
                 for oneProp in conDict[key].property:
                     if oneProp.code == "parent":
                         thereIsAPropertyParent = True
-            if (not thereIsAPropertyParent or
+            if (self.get_resource() == "CodeSystem" and not thereIsAPropertyParent or
                     self.get_resource() == "ValueSet" and not conDict[key].parent):
                 allLvl0.append(key)
 
