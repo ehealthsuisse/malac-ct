@@ -791,10 +791,10 @@ class PropCsvAsXLSX():
         read_file = pd.read_excel(inFilename, keep_default_na=False)
         try:
             read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
+            return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
         except UnicodeEncodeError:
             read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
-
-        return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
+            return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), encoding='utf-8')
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         PropCsvAndMaster.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
