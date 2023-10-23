@@ -177,10 +177,6 @@ class Fsh1(pcam.PropCsvAndMaster):
             if dictConcept != {}:
                 self.concept = list(dictConcept.values())
 
-            if (not self.publisher and len(self.contact) > 0 and (tmp := self.contact[0]) and
-                    len(tmp.telecom) > 0 and (tmp := tmp.telecom[0])):
-                self.publisher = tmp.value
-
     def parse(inFilename):
         return Fsh1(inFilename)
 
