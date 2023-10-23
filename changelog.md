@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - #23 Fix reading of contacts in `.1.fsh` and `.2.fsh`.
-- #27 Fix contact handling, because a contact cant exist without a publisher, so the value of contact will be used as publisher, if no name exists
+- #27 Fix contact handling when writing `.1.fsh`, `.2.fsh`, `.4.fhir.xml` and `.4.fhir.json`,. A contact can't exist and will not be rendered without a publisher. So a default value for publisher will be used, if not existent. Additionally, the value from contact.telecom[0].value will be used as contact.name, if that would be empty.
 
 ## [4.2.1+20230918]
 

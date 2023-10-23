@@ -375,16 +375,31 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
-        # todo make the contact write also possible for claml2&3
+        # for the case, that there is no publisher but one or many contacts available, put in a default value
+        elif (tmp := self.get_contact()) and len(tmp) > 0: outfile.write('* publisher = "%s" \n' % "see")
         if tmp := self.get_contact():
             i = 0
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
-                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system.value):
-                    outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
-                if tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
-                    outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
+                # for the case, that there is no name in the contact but one or many telecom available, use first telecom value element as name
+                elif tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
+                    outfile.write('* contact[%s].name = "%s" \n' % (i,tmpValue))
+                j = 0
+                for oneTelecom in oneContact.telecom:
+                    if tmpSystem := oneTelecom.system.value:
+                        outfile.write('* contact[%s].telecom[%s].system = #%s \n' % (i,j,tmpSystem))
+                    if tmpValue := oneTelecom.value:
+                        outfile.write('* contact[%s].telecom[%s].value = "%s" \n' % (i,j,tmpValue))
+                    if tmpUse := oneTelecom.use:
+                        outfile.write('* contact[%s].telecom[%s].use = #%s \n' % (i,j,tmpUse))
+                    if tmpRank := oneTelecom.rank:
+                        outfile.write('* contact[%s].telecom[%s].rank = %s \n' % (i,j,tmpRank))
+                    if tmpStart := oneTelecom.period_start:
+                        outfile.write('* contact[%s].telecom[%s].period.start = "%s" \n' % (i,j,tmpStart))
+                    if tmpEnd := oneTelecom.period_end:
+                        outfile.write('* contact[%s].telecom[%s].period.end = "%s" \n' % (i,j,tmpEnd))
+                    j += 1
                 i += 1
         if tmp := self.get_usecontext():
             i = 0
