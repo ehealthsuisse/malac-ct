@@ -117,12 +117,12 @@ class PropCsvAndMaster():
                         tempProperty.type = PropertyCodeType[propElements[3].lower()]
                         self.property.append(tempProperty)
 
-                # if no publisher is existent, than add the first contact as publisher if existent
-                if (not self.publisher and len(self.contact) > 0)
+                # if no publisher is existent, concatenate the values of the contact details
+                if (not self.publisher and len(self.contact) > 0):
                     contacts = []
                     for oneContact in self.contact:
-                        for oneTelecom := oneContact.telecom[0]:
-                            if tmp := oneTelecom.value
+                        for oneTelecom in oneContact.telecom:
+                            if tmp := oneTelecom.value:
                                 contacts.append(tmp)
                     self.publisher = ' & '.join(contacts) or None
 
