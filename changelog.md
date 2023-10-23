@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` if children are stated before parents, that themselves do have parents.
+- #23 Fix reading of contacts in `.1.fsh` and `.2.fsh`.
 
 ## [4.2.1+20230918]
 
