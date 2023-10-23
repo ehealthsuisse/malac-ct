@@ -201,8 +201,6 @@ class PropCsvAndMaster():
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
 
-
-
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
         if tmp_parent := concept.parent:
             level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
@@ -479,9 +477,12 @@ class PropCsvAndMaster():
     def sortConceptsExpandStyle(self, conDict=None):
         sortedConcepts = []
 
-        # build up a dict with code as key
+        # build up a dict with code as key, with valuesets add system for using the same concept-codes in different codesystems
         if not conDict:
-            conDict = self.buildConceptDictWithAttr("code")
+            if self.get_resource() == "CodeSystem":
+                conDict = self.buildConceptDictWithAttr("code")
+            elif self.get_resource() == "ValueSet":
+                conDict = self.buildConceptDictWithAttr("code", "system")
 
         # sort all the child properties inside the concepts (only for CS!)
         if self.get_resource() == "CodeSystem":
