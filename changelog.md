@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - !73 Add support of complex characters, changing the encoding of the `.1.propcsv.csv` if needed to utf-8 instead of cp1252
 
+### Changed
+
+- #25 Because `ValueSet.expansion.timestamp` got updated in every MaLaC-CT run, even if there were no changes, this timestamp was added to the metadata and will only change, if anything else in the metadata was changed.
+
 ## [4.2.1+20230918]
 
 ### Fixed

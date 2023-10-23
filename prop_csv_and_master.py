@@ -373,8 +373,9 @@ class PropCsvAndMaster():
                     #    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
         return retArr
 
-    def appendMetaDataTo(self, csvFilename):
-        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
+    def appendMetaDataTo(self, csvFilename, timestamp):
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp']
+
         # if file is new, add headers
         try:
             f = open(csvFilename)
@@ -388,8 +389,16 @@ class PropCsvAndMaster():
         reader = csv.reader(open(csvFilename))
         mydict = {rows[1]:rows for rows in reader}
 
-        # change the one row or add the row to the dictionary
-        mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]
+        # overwrite the first row with the now valid columns stated here
+        mydict["canonical"] = terminology_metadata_csv_columns
+
+        # check if any value changed
+        if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
+            self.metadata_change_timestamp = tmpTup[-1]
+        else:
+            self.metadata_change_timestamp = timestamp
+            # change the one row or add the row to the dictionary
+            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
 
         # sort the dict
         import collections

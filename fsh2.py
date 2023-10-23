@@ -1,5 +1,4 @@
 from fsh1 import Fsh1, writeSelfAndRecrCallMembers
-from datetime import datetime
 import sys
 import prop_csv_and_master as pcam
 
@@ -282,7 +281,7 @@ class Fsh2(Fsh1):
             # write the expansion
             if self.get_resource() == 'ValueSet':
                 outfile.write('\n')
-                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('* expansion.timestamp = "%s"\n' % self.metadata_change_timestamp)
                 outfile.write('\n')
                 containCnt = [-1]
                 for oneConcept in conceptList:
