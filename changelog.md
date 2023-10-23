@@ -6,8 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- !73 Add support of complex characters, changing the encoding of the `.1.propcsv.csv` if needed to utf-8 instead of cp1252
+
+### Changed
+
+- #25 Because `ValueSet.expansion.timestamp` got updated in every MaLaC-CT run, even if there were no changes, this timestamp was added to the metadata and will only change, if anything else in the metadata was changed.
+
 ### Fixed
 
+- Fix concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` if children are stated before parents, that themselves do have parents.
 - #23 Fix reading of contacts in `.1.fsh` and `.2.fsh`.
 
 ## [4.2.1+20230918]
@@ -16,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - elga-gmbh/malac-ct#26 Fix reading `.4.fhir.xml` CS with `filter`-Elements with an `operator`
 - elga-gmbh/malac-ct#26 Fix writing `.1.fsh` CS with `filter`-Elements with an `value`
+>>>>>>> changelog.md
 
 ## [4.2.0+20230720]
 

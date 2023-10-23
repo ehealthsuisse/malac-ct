@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 import sys
 import time
 
@@ -185,14 +186,14 @@ def main() -> None:
         input.globalUrl = args.fhirIgUrl
         input.filename = args.input
         # sort the input
-        if "CodeSystem-" in args.input:
-            input.sortConceptsExpandStyle()
+        input.sortConceptsExpandStyle()
 
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
             input.processedTerminologies = args.appendProcessedTerminologyTo[0]
+            timestamp = datetime.now().strftime("%Y-%m-%dT%X.0000Z")
             for csv2AppendTo in args.appendProcessedTerminologyTo:
-                input.appendMetaDataTo(csv2AppendTo)
+                input.appendMetaDataTo(csv2AppendTo, timestamp)
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:
