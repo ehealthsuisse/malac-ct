@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 import sys
 import time
 
@@ -22,7 +23,7 @@ listIClasses = listOClasses | {
     ".lkf.mdb":["ext_aut", "BMGLKF"]
     }
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.2.0+20230720"
+versionNumber = "4.2.1+20230918"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
@@ -190,8 +191,9 @@ def main() -> None:
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
             input.processedTerminologies = args.appendProcessedTerminologyTo[0]
+            timestamp = datetime.now().strftime("%Y-%m-%dT%X.0000Z")
             for csv2AppendTo in args.appendProcessedTerminologyTo:
-                input.appendMetaDataTo(csv2AppendTo)
+                input.appendMetaDataTo(csv2AppendTo, timestamp)
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:

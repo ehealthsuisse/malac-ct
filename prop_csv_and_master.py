@@ -2,7 +2,7 @@ import enum
 from unittest import skip
 
 class PropCsvAndMaster():
-    def __init__(self, inFile = None):
+    def __init__(self, inFile = None, encoding='cp1252'):
         self.resource = Resource
         self.id = None
         self.url = None
@@ -43,156 +43,164 @@ class PropCsvAndMaster():
         self.filter = []
         self.property = []
 
+
         if inFile is not None:
-            # open the file in read mode, special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
-            with open(inFile, 'r', encoding="cp1252") as csvfile:
-                import csv
-                # creating dictreader object
-                file = csv.reader(csvfile, quotechar='"', delimiter=';')
-                # iterating over first two rows and append values to empty list
-                metaList = [file.__next__()]+[file.__next__()]
-                # iterating over a empty row
-                file.__next__()
-                # iterating over the next row with headings for concepts
-                headingList = file.__next__()
+            try:
+                # usally open file with special encoding because of Excel compatibility,
+                # see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
+                with open(inFile, 'r', encoding=encoding) as csvfile:
+                    import csv
+                    # creating dictreader object
+                    file = csv.reader(csvfile, quotechar='"', delimiter=';')
+                    # iterating over first two rows and append values to empty list
+                    metaList = [file.__next__()]+[file.__next__()]
+                    # iterating over a empty row
+                    file.__next__()
+                    # iterating over the next row with headings for concepts
+                    headingList = file.__next__()
 
-                #initializing the header/metadata
-                i = -1
-                for metaObj in metaList[0]:
-                    i += 1
-                    # change all ';' to ','
-                    #metaList[1][i].replace(';',',')
-                    metaList[1][i].strip("\"")
+                    #initializing the header/metadata
+                    i = -1
+                    for metaObj in metaList[0]:
+                        i += 1
+                        # change all ';' to ','
+                        #metaList[1][i].replace(';',',')
+                        metaList[1][i].strip("\"")
 
-                    if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
-                    if 'id' == metaObj: self.id = metaList[1][i]
-                    if 'url' == metaObj: self.url = metaList[1][i]
-                    if 'version' == metaObj: self.version = metaList[1][i]
-                    if 'name' == metaObj: self.name = metaList[1][i]
-                    if 'title' == metaObj: self.title = metaList[1][i]
-                    if 'status' == metaObj: self.status = Status(metaList[1][i])
-                    if 'description' == metaObj: self.description = metaList[1][i]
-                    if 'content' == metaObj: self.content = Content(metaList[1][i])
-                    if 'implicitRules' == metaObj: self.implicitrules = metaList[1][i]
-                    if 'language' == metaObj: self.language = metaList[1][i]
-                    if 'text' == metaObj: self.text = metaList[1][i]
-                    if 'contained' == metaObj: self.contained = metaList[1][i]
-                    if 'extension' == metaObj: self.extension = metaList[1][i]
-                    if 'modifierExtension' == metaObj: self.modifierextension = metaList[1][i]
-                    if metaObj.startswith('identifier'): self.identifier.append(metaList[1][i])
-                    if 'date' == metaObj: self.date = metaList[1][i]
-                    if 'experimental' == metaObj: self.experimental = metaList[1][i]
-                    if 'publisher' == metaObj: self.publisher = metaList[1][i]
-                    if metaObj.startswith('contact'):
-                        # append contact if not None
-                        if tmp := ContactDetail.from_string(metaList[1][i]):
-                            self.contact.append(tmp)
-                    if metaObj.startswith('useContext'): self.usecontext.append(metaList[1][i])
-                    if metaObj.startswith('jurisdiction'): self.jurisdiction.append(metaList[1][i])
-                    if 'purpose' == metaObj: self.purpose = metaList[1][i]
-                    if 'copyright' == metaObj: self.copyright = metaList[1][i]
-                    if 'immutable' == metaObj: self.immutable = metaList[1][i]
-                    if 'lockedDate' == metaObj: self.lockeddate = metaList[1][i]
-                    if 'caseSensitive' == metaObj: self.casesensitive = metaList[1][i]
-                    if 'valueSet' == metaObj: self.valueset = metaList[1][i]
-                    if 'hierarchyMeaning' == metaObj and metaList[1][i]: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
-                    if 'compositional' == metaObj: self.compositional = metaList[1][i]
-                    if 'versionNeeded' == metaObj: self.versionneeded = metaList[1][i]
-                    if 'supplements' == metaObj: self.supplements = metaList[1][i]
-                    if 'count' == metaObj: self.count = metaList[1][i]
-                    if metaObj.startswith('filter'):
-                        filterElements = metaList[1][i].split('|')
-                        tempFilter = Filter()
-                        tempFilter.code = filterElements[0]
-                        tempFilter.description = filterElements[1]
-                        tempFilter.operator = filterElements[2]
-                        tempFilter.value = filterElements[3]
-                        self.filter.append(tempFilter)
-                    if metaObj.startswith('property'):
-                        propElements = metaList[1][i].split('|')
-                        tempProperty = Property()
-                        tempProperty.code = propElements[0]
-                        tempProperty.uri = propElements[1]
-                        tempProperty.description = propElements[2]
-                        tempProperty.type = PropertyCodeType[propElements[3].lower()]
-                        self.property.append(tempProperty)
+                        if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
+                        if 'id' == metaObj: self.id = metaList[1][i]
+                        if 'url' == metaObj: self.url = metaList[1][i]
+                        if 'version' == metaObj: self.version = metaList[1][i]
+                        if 'name' == metaObj: self.name = metaList[1][i]
+                        if 'title' == metaObj: self.title = metaList[1][i]
+                        if 'status' == metaObj: self.status = Status(metaList[1][i])
+                        if 'description' == metaObj: self.description = metaList[1][i]
+                        if 'content' == metaObj: self.content = Content(metaList[1][i])
+                        if 'implicitRules' == metaObj: self.implicitrules = metaList[1][i]
+                        if 'language' == metaObj: self.language = metaList[1][i]
+                        if 'text' == metaObj: self.text = metaList[1][i]
+                        if 'contained' == metaObj: self.contained = metaList[1][i]
+                        if 'extension' == metaObj: self.extension = metaList[1][i]
+                        if 'modifierExtension' == metaObj: self.modifierextension = metaList[1][i]
+                        if metaObj.startswith('identifier'): self.identifier.append(metaList[1][i])
+                        if 'date' == metaObj: self.date = metaList[1][i]
+                        if 'experimental' == metaObj: self.experimental = metaList[1][i]
+                        if 'publisher' == metaObj: self.publisher = metaList[1][i]
+                        if metaObj.startswith('contact'):
+                            # append contact if not None
+                            if tmp := ContactDetail.from_string(metaList[1][i]):
+                                self.contact.append(tmp)
+                        if metaObj.startswith('useContext'): self.usecontext.append(metaList[1][i])
+                        if metaObj.startswith('jurisdiction'): self.jurisdiction.append(metaList[1][i])
+                        if 'purpose' == metaObj: self.purpose = metaList[1][i]
+                        if 'copyright' == metaObj: self.copyright = metaList[1][i]
+                        if 'immutable' == metaObj: self.immutable = metaList[1][i]
+                        if 'lockedDate' == metaObj: self.lockeddate = metaList[1][i]
+                        if 'caseSensitive' == metaObj: self.casesensitive = metaList[1][i]
+                        if 'valueSet' == metaObj: self.valueset = metaList[1][i]
+                        if 'hierarchyMeaning' == metaObj and metaList[1][i]: self.hierarchymeaning = HierarchyMeaning(metaList[1][i])
+                        if 'compositional' == metaObj: self.compositional = metaList[1][i]
+                        if 'versionNeeded' == metaObj: self.versionneeded = metaList[1][i]
+                        if 'supplements' == metaObj: self.supplements = metaList[1][i]
+                        if 'count' == metaObj: self.count = metaList[1][i]
+                        if metaObj.startswith('filter'):
+                            filterElements = metaList[1][i].split('|')
+                            tempFilter = Filter()
+                            tempFilter.code = filterElements[0]
+                            tempFilter.description = filterElements[1]
+                            tempFilter.operator = filterElements[2]
+                            tempFilter.value = filterElements[3]
+                            self.filter.append(tempFilter)
+                        if metaObj.startswith('property'):
+                            propElements = metaList[1][i].split('|')
+                            tempProperty = Property()
+                            tempProperty.code = propElements[0]
+                            tempProperty.uri = propElements[1]
+                            tempProperty.description = propElements[2]
+                            tempProperty.type = PropertyCodeType[propElements[3].lower()]
+                            self.property.append(tempProperty)
 
-                #initializing the body/content
-                for row in file:
+                    #initializing the body/content
+                    for row in file:
 
-                    if self.resource == self.resource.CodeSystem:
-                        tempConcept = CSConcept()
-                    elif self.resource == self.resource.ValueSet:
-                        tempConcept = VSConcept()
+                        if self.resource == self.resource.CodeSystem:
+                            tempConcept = CSConcept()
+                        elif self.resource == self.resource.ValueSet:
+                            tempConcept = VSConcept()
 
-                    # reading the content of the row
-                    for i in range(0, len(row)):
-                        if row[i].strip() != "":
-                            row[i].strip("\"").strip("\'")
+                        # reading the content of the row
+                        for i in range(0, len(row)):
+                            if row[i].strip() != "":
+                                row[i].strip("\"").strip("\'")
 
-                            if self.resource == self.resource.CodeSystem:
-                                if 'code' == headingList[i]: tempConcept.code = row[i]
-                                if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if 'definition' == headingList[i]: tempConcept.definition = row[i]
-                                if 'designation' == headingList[i]:
-                                    tempConcept.designation.append(ConceptDesignation(row[i]))
-                                if 'property' == headingList[i]:
-                                    tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
-                            elif self.resource == self.resource.ValueSet:
-                                if 'system' == headingList[i]: tempConcept.system = row[i]
-                                if 'version' == headingList[i]: tempConcept.version = row[i]
-                                if 'code' == headingList[i]: tempConcept.code = row[i]
-                                if 'display' == headingList[i]: tempConcept.display = row[i]
-                                if 'parent' == headingList[i]: tempConcept.parent = row[i]
-                                if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
-                                if 'designation' == headingList[i]:
-                                    tempConcept.designation.append(ConceptDesignation(row[i]))
-                                if 'filter' == headingList[i]:
-                                    filterElements = row[i].split('|')
-                                    tempFilter = VSConcept.VSConceptFilter()
-                                    tempFilter.property = filterElements[0]
-                                    tempFilter.op = filterElements[1]
-                                    tempFilter.value = filterElements[2]
-                                    tempConcept.filter = tempFilter # this is not a list!
-                                if 'abstract' == headingList[i]:
-                                    if row[i].lower() == "true" or "yes" or "1":
-                                        tempConcept.abstract = True
-                                if 'inactive' == headingList[i]:
-                                    if row[i].lower() == "true" or "yes" or "1":
-                                        tempConcept.inactive = True
-                                        self.inactive = True
-                                if 'exclude' == headingList[i]:
-                                    if row[i].lower() == "true" or "yes" or "1":
-                                        tempConcept.exclude = True
+                                if self.resource == self.resource.CodeSystem:
+                                    if 'code' == headingList[i]: tempConcept.code = row[i]
+                                    if 'display' == headingList[i]: tempConcept.display = row[i]
+                                    if 'definition' == headingList[i]: tempConcept.definition = row[i]
+                                    if 'designation' == headingList[i]:
+                                        tempConcept.designation.append(ConceptDesignation(row[i]))
+                                    if 'property' == headingList[i]:
+                                        tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
+                                elif self.resource == self.resource.ValueSet:
+                                    if 'system' == headingList[i]: tempConcept.system = row[i]
+                                    if 'version' == headingList[i]: tempConcept.version = row[i]
+                                    if 'code' == headingList[i]: tempConcept.code = row[i]
+                                    if 'display' == headingList[i]: tempConcept.display = row[i]
+                                    if 'parent' == headingList[i]: tempConcept.parent = row[i]
+                                    if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
+                                    if 'designation' == headingList[i]:
+                                        tempConcept.designation.append(ConceptDesignation(row[i]))
+                                    if 'filter' == headingList[i]:
+                                        filterElements = row[i].split('|')
+                                        tempFilter = VSConcept.VSConceptFilter()
+                                        tempFilter.property = filterElements[0]
+                                        tempFilter.op = filterElements[1]
+                                        tempFilter.value = filterElements[2]
+                                        tempConcept.filter = tempFilter # this is not a list!
+                                    if 'abstract' == headingList[i]:
+                                        if row[i].lower() == "true" or "yes" or "1":
+                                            tempConcept.abstract = True
+                                    if 'inactive' == headingList[i]:
+                                        if row[i].lower() == "true" or "yes" or "1":
+                                            tempConcept.inactive = True
+                                            self.inactive = True
+                                    if 'exclude' == headingList[i]:
+                                        if row[i].lower() == "true" or "yes" or "1":
+                                            tempConcept.exclude = True
 
-                    # check for some invalid combinations
+                        # check for some invalid combinations
+                        if self.resource == self.resource.ValueSet:
+                            # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
+                            if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
+                                import sys
+                                sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
+                        self.concept.append(tempConcept)
+
+                    # fill members of parents
                     if self.resource == self.resource.ValueSet:
-                        # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
-                        if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
-                            import sys
-                            sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
-                    self.concept.append(tempConcept)
+                        concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
-                # fill members of parents
-                if self.resource == self.resource.ValueSet:
-                    concept_dict = self.buildConceptDictWithAttr('code', 'system')
+                        for one_concept in self.concept:
+                            if one_concept.parent and one_concept.parentSystem:
+                                parent = concept_dict[one_concept.parent+one_concept.parentSystem]
+                                # setting one_concept as child of the parent
+                                parent.member.append(one_concept)
+                                # setting the parent of one_concept
+                                one_concept.parent = parent
+                        # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
+                        for one_concept in self.concept:
+                            # setting the hierarchy level
+                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                    elif self.resource == self.resource.CodeSystem:
+                        concept_dict = self.buildConceptDictWithAttr('code')
 
-                    for one_concept in self.concept:
-                        if one_concept.parent and one_concept.parentSystem:
-                            parent = concept_dict[one_concept.parent+one_concept.parentSystem]
-                            # setting one_concept as child of the parent
-                            parent.member.append(one_concept)
-                            # setting the parent of one_concept
-                            one_concept.parent = parent
-                    # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
-                    for one_concept in self.concept:
-                        # setting the hierarchy level
-                        one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
-                elif self.resource == self.resource.CodeSystem:
-                    concept_dict = self.buildConceptDictWithAttr('code')
+                        for one_concept in self.concept:
+                            self.add_children_to_CS_concept(concept_dict, one_concept)
 
-                    for one_concept in self.concept:
-                        self.add_children_to_CS_concept(concept_dict, one_concept)
+            except UnicodeDecodeError:
+                print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
+                return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
+
 
 
     def retrieve_level_of_VS_concept(self, concept_dict, concept):
@@ -369,8 +377,9 @@ class PropCsvAndMaster():
                     #    retArr.append(Property(code=oneCProperty.code,type=oneCProperty.type))
         return retArr
 
-    def appendMetaDataTo(self, csvFilename):
-        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type']
+    def appendMetaDataTo(self, csvFilename, timestamp):
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp']
+
         # if file is new, add headers
         try:
             f = open(csvFilename)
@@ -384,8 +393,16 @@ class PropCsvAndMaster():
         reader = csv.reader(open(csvFilename))
         mydict = {rows[1]:rows for rows in reader}
 
-        # change the one row or add the row to the dictionary
-        mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]
+        # overwrite the first row with the now valid columns stated here
+        mydict["canonical"] = terminology_metadata_csv_columns
+
+        # check if any value changed
+        if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
+            self.metadata_change_timestamp = tmpTup[-1]
+        else:
+            self.metadata_change_timestamp = timestamp
+            # change the one row or add the row to the dictionary
+            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
 
         # sort the dict
         import collections
@@ -793,9 +810,12 @@ class PropCsvAsXLSX():
         import pandas as pd
 
         read_file = pd.read_excel(inFilename, keep_default_na=False)
-        read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
-
-        return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
+        try:
+            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
+            return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
+        except UnicodeEncodeError:
+            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
+            return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), encoding='utf-8')
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         PropCsvAndMaster.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
