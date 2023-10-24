@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` if children are stated before parents, that themselves do have parents.
 - #23 Fix reading of contacts in `.1.fsh` and `.2.fsh`.
+- #27 Fix contact handling when writing `.1.fsh`, `.2.fsh`, `.4.fhir.xml` and `.4.fhir.json`. A contact element can't exist and will not be rendered without a publisher element. So, if contacts exists, a default value for publisher will be used, if not existent. Additionally, the value from contact.telecom[0].value will be used as contact.name, if not existend.
 
 ## [4.2.1+20230918]
 

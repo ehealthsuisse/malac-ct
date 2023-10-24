@@ -409,14 +409,17 @@ def exporto(self, globals, fhir_resource):
 
     if tmp := self.get_publisher():
         fhir_resource.set_publisher(globals.get('stringSub')(value=tmp))
+    # for the case, that there is no publisher but one or many contacts available, put in a default value
+    elif (tmp := self.get_contact()) and len(tmp) > 0:
+        fhir_resource.set_publisher(globals.get('stringSub')(value="see"))
 
     if tmp := self.get_contact():
         contact_list = tmp
         for one_contact in contact_list:
             the_contact = globals.get('ContactDetailSub')()
 
-            if tmp := one_contact.name:
-                the_contact.set_name(globals.get('stringSub')(value=tmp))
+            if tmpConctactName := one_contact.name:
+                the_contact.set_name(globals.get('stringSub')(value=tmpConctactName))
 
             if tmp := one_contact.telecom:
                 contact_point_list = tmp
@@ -428,6 +431,10 @@ def exporto(self, globals, fhir_resource):
 
                     if tmp := one_contact_point.value:
                         the_contact_point.set_value(globals.get('stringSub')(value=tmp))
+                        # for the case, that there is no name in the contact but one or many telecom available, use first telecom value element as name
+                        if not tmpConctactName:
+                            the_contact.set_name(globals.get('stringSub')(value=tmp))
+                            tmpConctactName = tmp
 
                     if tmp := one_contact_point.use:
                         the_contact_point.set_use(globals.get('ContactPointUseSub')(value=tmp.value))

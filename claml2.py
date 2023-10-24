@@ -555,8 +555,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             website = oneConTele.value
                         else:
                             website += " & " + oneConTele.value
-                metas.append(MetaSub("website",website))
-                # dont add the author information as website-meta, like it once was in the austrian termpub, cant deliver name and telecom in one meta
+            # explicitly don't add the author information as website-meta, like it once was in the austrian termpub, can't deliver name and telecom in one meta
+            metas.append(MetaSub("website",website))
+            
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
