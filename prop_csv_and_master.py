@@ -523,179 +523,149 @@ class PropCsvAndMaster():
 
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
-        with open(outfile.name, 'wb') as outfile:
+        csv_meta = []
+        # start list of metaelements
+        csv_meta.append(("resource",self.get_resource()))
+        csv_meta.append(("id",self.get_id()))
+        csv_meta.append(("url",self.get_url()))
+        csv_meta.append(("version",self.get_version()))
+        csv_meta.append(("name",self.get_name()))
+        csv_meta.append(("title",self.get_title()))
+        csv_meta.append(("status",self.get_status()))
+        if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
-            csv_meta = []
-            # start list of metaelements
-            csv_meta.append(("resource",self.get_resource()))
-            csv_meta.append(("id",self.get_id()))
-            csv_meta.append(("url",self.get_url()))
-            csv_meta.append(("version",self.get_version()))
-            csv_meta.append(("name",self.get_name()))
-            csv_meta.append(("title",self.get_title()))
-            csv_meta.append(("status",self.get_status()))
-            if tmp := self.get_description(): csv_meta.append(("description", tmp))
+        if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
 
-            if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
+        if tmp := self.get_implicitrules(): csv_meta.append(("implicitRules",tmp))
+        if tmp := self.get_language(): csv_meta.append(("language",tmp))
+        if tmp := self.get_text(): csv_meta.append(("text",tmp))
+        if tmp := self.get_contained(): csv_meta.append(("contained",tmp))
+        if tmp := self.get_extension(): csv_meta.append(("extension",tmp))
+        if tmp := self.get_modifierextension(): csv_meta.append(("modifierExtension",tmp))
+        if tmp := self.get_identifier():
+            for oneIdentifier in tmp:
+                csv_meta.append(("identifier",oneIdentifier))
+        if tmp := self.get_experimental(): csv_meta.append(("experimental",tmp))
+        if tmp := self.get_date(): csv_meta.append(("date",tmp))
+        if tmp := self.get_publisher(): csv_meta.append(("publisher",tmp))
+        if tmp := self.get_contact():
+            for oneContact in tmp:
+                csv_meta.append(("contact", str(oneContact)))
+        if tmp := self.get_usecontext():
+            for oneUseContext in tmp:
+                csv_meta.append(("useContext",oneUseContext))
+        if tmp := self.get_jurisdiction():
+            for oneJurisdiction in tmp:
+                csv_meta.append(("jurisdiction",oneJurisdiction))
+        if tmp := self.get_purpose(): csv_meta.append(("purpose",tmp))
+        if tmp := self.get_copyright(): csv_meta.append(("copyright",tmp))
+        if tmp := self.get_immutable(): csv_meta.append(("immutable",tmp))
+        if tmp := self.get_lockeddate(): csv_meta.append(("lockedDate",tmp))
+        if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
+        if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
+        if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
+        if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
+        if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
+        if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
+        if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
+        if tmp := self.get_count(): csv_meta.append(("count",tmp))
+        if tmp := self.get_filter():
+            for oneFilter in tmp:
+                csv_meta.append(("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
+        if tmp := self.get_property():
+            for oneProperty in tmp:
+                csv_meta.append(("property",str(oneProperty)))
+        # end list of metaelements
 
-            if tmp := self.get_implicitrules(): csv_meta.append(("implicitRules",tmp))
-            if tmp := self.get_language(): csv_meta.append(("language",tmp))
-            if tmp := self.get_text(): csv_meta.append(("text",tmp))
-            if tmp := self.get_contained(): csv_meta.append(("contained",tmp))
-            if tmp := self.get_extension(): csv_meta.append(("extension",tmp))
-            if tmp := self.get_modifierextension(): csv_meta.append(("modifierExtension",tmp))
-            if tmp := self.get_identifier():
-                for oneIdentifier in tmp:
-                    csv_meta.append(("identifier",oneIdentifier))
-            if tmp := self.get_experimental(): csv_meta.append(("experimental",tmp))
-            if tmp := self.get_date(): csv_meta.append(("date",tmp))
-            if tmp := self.get_publisher(): csv_meta.append(("publisher",tmp))
-            if tmp := self.get_contact():
-                for oneContact in tmp:
-                    csv_meta.append(("contact", str(oneContact)))
-            if tmp := self.get_usecontext():
-                for oneUseContext in tmp:
-                    csv_meta.append(("useContext",oneUseContext))
-            if tmp := self.get_jurisdiction():
-                for oneJurisdiction in tmp:
-                    csv_meta.append(("jurisdiction",oneJurisdiction))
-            if tmp := self.get_purpose(): csv_meta.append(("purpose",tmp))
-            if tmp := self.get_copyright(): csv_meta.append(("copyright",tmp))
-            if tmp := self.get_immutable(): csv_meta.append(("immutable",tmp))
-            if tmp := self.get_lockeddate(): csv_meta.append(("lockedDate",tmp))
-            if tmp := self.get_inactive(): csv_meta.append(("inactive",tmp))
-            if tmp := self.get_casesensitive(): csv_meta.append(("caseSensitive",tmp))
-            if tmp := self.get_valueset(): csv_meta.append(("valueSet",tmp))
-            if tmp := self.get_hierarchymeaning(): csv_meta.append(("hierarchyMeaning",tmp.value))
-            if tmp := self.get_compositional(): csv_meta.append(("compositional",tmp))
-            if tmp := self.get_versionneeded(): csv_meta.append(("versionNeeded",tmp))
-            if tmp := self.get_supplements(): csv_meta.append(("supplements",tmp))
-            if tmp := self.get_count(): csv_meta.append(("count",tmp))
-            if tmp := self.get_filter():
-                for oneFilter in tmp:
-                    csv_meta.append(("filter",oneFilter.code+"|"+oneFilter.description+"|"+oneFilter.operator+"|"+oneFilter.value))
-            if tmp := self.get_property():
-                for oneProperty in tmp:
-                    csv_meta.append(("property",str(oneProperty)))
-            # end list of metaelements
+        csv_header = []
 
-            csv_header = []
+        #csv_header_designation_count = 0
+        csv_list = []
 
-            #csv_header_designation_count = 0
-            csv_list = []
+        conceptList = self.get_concept()
+        if len(conceptList) > 0:
+            for oneConcept in conceptList:
 
-            conceptList = self.get_concept()
-            if len(conceptList) > 0:
-                for oneConcept in conceptList:
+                csv_line = []
 
-                    csv_line = []
+                #for CodeSystems
+                if self.get_resource() == 'CodeSystem':
+                    #adding values to already existing columns, if value empty than a empty string is added
+                    headerDesignationIterator = 0
+                    headerPropertyIterator = 0
+                    for csv_header_element in csv_header:
 
-                    #for CodeSystems
-                    if self.get_resource() == 'CodeSystem':
-                        #adding values to already existing columns, if value empty than a empty string is added
-                        headerDesignationIterator = 0
-                        headerPropertyIterator = 0
-                        for csv_header_element in csv_header:
-
-                            if csv_header_element == "designation":
-                                if headerDesignationIterator < len(oneConcept.designation):
-                                    csv_line.append(oneConcept.designation[headerDesignationIterator])
-                                else:
-                                    csv_line.append('')
-                                headerDesignationIterator += 1
-
-                            elif csv_header_element == "property":
-                                if headerPropertyIterator < len(oneConcept.property):
-                                    csv_line.append(oneConcept.property[headerPropertyIterator])
-                                else:
-                                    csv_line.append('')
-                                headerPropertyIterator += 1
-                            elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                                csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        if csv_header_element == "designation":
+                            if headerDesignationIterator < len(oneConcept.designation):
+                                csv_line.append(oneConcept.designation[headerDesignationIterator])
                             else:
                                 csv_line.append('')
-
-                        #adding not existing columns because we just got some values
-                        if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
-                            csv_header.append('code')
-                            csv_line.append(tmp)
-                        if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
-                            csv_header.append('display')
-                            csv_line.append(tmp)
-                        if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
-                            csv_header.append('definition')
-                            csv_line.append(tmp)
-                        while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
-                            csv_header.append('designation')
-                            csv_line.append(conceptDesig[headerDesignationIterator])
                             headerDesignationIterator += 1
-                        while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
-                            csv_header.append('property')
-                            csv_line.append(conceptProps[headerPropertyIterator])
+
+                        elif csv_header_element == "property":
+                            if headerPropertyIterator < len(oneConcept.property):
+                                csv_line.append(oneConcept.property[headerPropertyIterator])
+                            else:
+                                csv_line.append('')
                             headerPropertyIterator += 1
+                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        else:
+                            csv_line.append('')
 
-                    #for ValueSets
-                    elif self.get_resource() == 'ValueSet':
-                        #adding values to already existing columns, if value empty than a empty string is added
-                        headerDesignationIterator = 0
-                        headerFilterIterator = 0
-                        for csv_header_element in csv_header:
+                    #adding not existing columns because we just got some values
+                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                        csv_header.append('code')
+                        csv_line.append(tmp)
+                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                        csv_header.append('display')
+                        csv_line.append(tmp)
+                    if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
+                        csv_header.append('definition')
+                        csv_line.append(tmp)
+                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                        csv_header.append('designation')
+                        csv_line.append(conceptDesig[headerDesignationIterator])
+                        headerDesignationIterator += 1
+                    while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
+                        csv_header.append('property')
+                        csv_line.append(conceptProps[headerPropertyIterator])
+                        headerPropertyIterator += 1
 
-                            if csv_header_element == "designation":
-                                if headerDesignationIterator < len(oneConcept.designation):
-                                    csv_line.append(oneConcept.designation[headerDesignationIterator])
-                                else:
-                                    csv_line.append('')
-                                headerDesignationIterator += 1
+                #for ValueSets
+                elif self.get_resource() == 'ValueSet':
+                    #adding values to already existing columns, if value empty than a empty string is added
+                    headerDesignationIterator = 0
+                    headerFilterIterator = 0
+                    for csv_header_element in csv_header:
 
-                            elif csv_header_element == "filter":
-                                if headerFilterIterator < len(oneConcept.filter):
-                                    csv_line.append(oneConcept.filter[headerFilterIterator])
-                                else:
-                                    csv_line.append('')
-                                headerFilterIterator += 1
+                        if csv_header_element == "designation":
+                            if headerDesignationIterator < len(oneConcept.designation):
+                                csv_line.append(oneConcept.designation[headerDesignationIterator])
+                            else:
+                                csv_line.append('')
+                            headerDesignationIterator += 1
 
-                            elif csv_header_element == 'parent':
-                                if oneConcept.parent and (tmp := oneConcept.parent.code):
-                                    csv_line.append(tmp)
-                                else:
-                                    csv_line.append('')
+                        elif csv_header_element == "filter":
+                            if headerFilterIterator < len(oneConcept.filter):
+                                csv_line.append(oneConcept.filter[headerFilterIterator])
+                            else:
+                                csv_line.append('')
+                            headerFilterIterator += 1
 
-                            elif csv_header_element == 'parentSystem':
-                                if oneConcept.parent and (tmp := oneConcept.parent.system):
-                                    csv_line.append(tmp)
-                                else:
-                                    csv_line.append('')
-
-                            elif csv_header_element == 'version':
-                                # write the system version if existent
-                                if  tmp := oneConcept.version:
-                                    csv_line.append(tmp)
-                                else:
-                                    # retrieve version from metadata
-
-                                    # theoretically one_concept.system could be either canonical or OID in
-                                    # most cases, however, it would be the canonical
-                                    if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                                        csv_line.append(tmp)
-                                    elif tmp := self.gainVersionFromOid(oneConcept.system):
-                                        csv_line.append(tmp)
-                                    else: # in case no version for the codesystem is available
-                                        csv_line.append('')
-
-                            elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                                csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        elif csv_header_element == 'parent':
+                            if oneConcept.parent and (tmp := oneConcept.parent.code):
+                                csv_line.append(tmp)
                             else:
                                 csv_line.append('')
 
-                        #adding not existing columns because we just got some values
-                        if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
-                            csv_header.append('system')
-                            csv_line.append(tmp)
-                        if 'version' not in csv_header:
-                            # create 'version' header in any case
-                            csv_header.append('version')
+                        elif csv_header_element == 'parentSystem':
+                            if oneConcept.parent and (tmp := oneConcept.parent.system):
+                                csv_line.append(tmp)
+                            else:
+                                csv_line.append('')
+
+                        elif csv_header_element == 'version':
                             # write the system version if existent
                             if  tmp := oneConcept.version:
                                 csv_line.append(tmp)
@@ -710,102 +680,140 @@ class PropCsvAndMaster():
                                     csv_line.append(tmp)
                                 else: # in case no version for the codesystem is available
                                     csv_line.append('')
-                        if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
-                            csv_header.append('code')
+
+                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        else:
+                            csv_line.append('')
+
+                    #adding not existing columns because we just got some values
+                    if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
+                        csv_header.append('system')
+                        csv_line.append(tmp)
+                    if 'version' not in csv_header:
+                        # create 'version' header in any case
+                        csv_header.append('version')
+                        # write the system version if existent
+                        if  tmp := oneConcept.version:
                             csv_line.append(tmp)
-                        if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
-                            csv_header.append('display')
-                            csv_line.append(tmp)
-                        if 'parent' not in csv_header and (tmp := oneConcept.parent):
-                            csv_header.append('parent')
-                            if tmp.code:
-                                csv_line.append(tmp.code)
-                            else:
+                        else:
+                            # retrieve version from metadata
+
+                            # theoretically one_concept.system could be either canonical or OID in
+                            # most cases, however, it would be the canonical
+                            if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                                csv_line.append(tmp)
+                            elif tmp := self.gainVersionFromOid(oneConcept.system):
+                                csv_line.append(tmp)
+                            else: # in case no version for the codesystem is available
                                 csv_line.append('')
-                        if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
-                            csv_header.append('parentSystem')
-                            if tmp.system:
-                                csv_line.append(tmp.system)
-                            else:
-                                csv_line.append('')
-                        while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
-                            csv_header.append('designation')
-                            csv_line.append(conceptDesig[headerDesignationIterator])
-                            headerDesignationIterator += 1
-                        while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
-                            csv_header.append('filter')
-                            csv_line.append(conceptFilter[headerFilterIterator])
-                            headerFilterIterator += 1
-                        if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
-                            csv_header.append('abstract')
-                            csv_line.append(tmp)
-                        if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
-                            csv_header.append('inactive')
-                            csv_line.append(tmp)
-                        if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
-                            csv_header.append('exclude')
-                            csv_line.append(tmp)
+                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                        csv_header.append('code')
+                        csv_line.append(tmp)
+                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                        csv_header.append('display')
+                        csv_line.append(tmp)
+                    if 'parent' not in csv_header and (tmp := oneConcept.parent):
+                        csv_header.append('parent')
+                        if tmp.code:
+                            csv_line.append(tmp.code)
+                        else:
+                            csv_line.append('')
+                    if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                        csv_header.append('parentSystem')
+                        if tmp.system:
+                            csv_line.append(tmp.system)
+                        else:
+                            csv_line.append('')
+                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                        csv_header.append('designation')
+                        csv_line.append(conceptDesig[headerDesignationIterator])
+                        headerDesignationIterator += 1
+                    while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
+                        csv_header.append('filter')
+                        csv_line.append(conceptFilter[headerFilterIterator])
+                        headerFilterIterator += 1
+                    if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
+                        csv_header.append('abstract')
+                        csv_line.append(tmp)
+                    if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
+                        csv_header.append('inactive')
+                        csv_line.append(tmp)
+                    if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
+                        csv_header.append('exclude')
+                        csv_line.append(tmp)
 
-                    csv_list.append(csv_line)
+                csv_list.append(csv_line)
 
-            csv_list.insert(0,csv_header)
+        csv_list.insert(0,csv_header)
 
-            if outfile.name.endswith('.1.propcsv.csv'):
-                for csvline in zip(*csv_meta): #transpose the list
-                    newline = True
-                    for csvelement in csvline:
-                        # write and change all ',' to ';'
-                        #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
-                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
-                        newline = False
-                    outfile.write(("\n").encode('cp1252',errors='ignore'))
+        if outfile.name.endswith('.1.propcsv.csv'):
+            # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
+            try:
+                writeCSV(outfile, csv_meta, csv_list, encoding="cp1252")
+            except UnicodeEncodeError:
+                print(" (because of some EncodeError, this terminologys *.1.propcsv.csv will be written in utf-8 instead of cp1252)")
+                writeCSV(outfile, csv_meta, csv_list, encoding="utf-8")
 
-                for csvline in csv_list:
-                    outfile.write(("\n").encode('cp1252',errors='ignore'))
-                    newline = True
-                    for csvelement in csvline:
-                        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode('cp1252',errors='ignore'))
-                        newline = False
+        elif outfile.name.endswith('.1.propcsv.xlsx'):
+            writeXLSX(outfile, csv_meta, csv_list)
 
-            elif outfile.name.endswith('.1.propcsv.xlsx'):
-                import xlsxwriter
-                # close the in malac generally opend file, xlsxwriter would create a unreadable xlsx
-                outfile.close()
-                # Create an new Excel file and add a worksheet.
-                workbook = xlsxwriter.Workbook(outfile.name)
-                worksheet = workbook.add_worksheet()
+def writeCSV(outfile, csv_meta, csv_list, encoding):
+    with open(outfile.name, 'wb') as outfile:
+        for csvline in zip(*csv_meta): #transpose the list
+            newline = True
+            for csvelement in csvline:
+                # write and change all ',' to ';'
+                #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
+                outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
+                newline = False
+            outfile.write(("\n").encode(encoding))
 
-                # fill with meta
-                x = -1
-                for csvline in zip(*csv_meta): #transpose the list
-                    x += 1
-                    y = -1
-                    for csvelement in csvline:
-                        y += 1
-                        """
-                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
-                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
-                        of \r
-                        """
-                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
+        for csvline in csv_list:
+            outfile.write(("\n").encode(encoding))
+            newline = True
+            for csvelement in csvline:
+                outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
+                newline = False
 
-                # for the empty row between meta and data
-                x += 1
+def writeXLSX(outfile, csv_meta, csv_list):
+    import xlsxwriter
+    # Create an new Excel file and add a worksheet.
+    workbook = xlsxwriter.Workbook(outfile.name)
+    worksheet = workbook.add_worksheet()
 
-                # fill with data
-                for csvline in csv_list:
-                    x += 1
-                    y = -1
-                    for csvelement in csvline:
-                        y += 1
-                        """
-                        based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
-                        all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
-                        of \r
-                        """
-                        worksheet.write(x,y,str(csvelement).replace('\r\n', '\n').encode('cp1252',errors='ignore').decode('cp1252'))
+    # fill with meta
+    x = -1
+    for csvline in zip(*csv_meta): #transpose the list
+        x += 1
+        y = -1
+        for csvelement in csvline:
+            y += 1
+            """
+            based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+            all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+            of \r
+            """
+            worksheet.write(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
 
-                workbook.close()
+    # for the empty row between meta and data
+    x += 1
+
+    # fill with data
+    for csvline in csv_list:
+        x += 1
+        y = -1
+        for csvelement in csvline:
+            y += 1
+            """
+            based on https://stackoverflow.com/questions/71574319/how-to-remove-newline-characters-so-it-doesnt-produce-x000d-when-reading-exce
+            all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
+            of \r
+            """
+            worksheet.write(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
+
+    workbook.close()
+
 class PropCsvAsXLSX():
     def parse(inFilename):
         import pandas as pd
