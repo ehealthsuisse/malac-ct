@@ -185,8 +185,9 @@ def main() -> None:
         input = inputClass.parse(args.input)
         input.globalUrl = args.fhirIgUrl
         input.filename = args.input
-        # sort the input
-        input.sortConceptsExpandStyle()
+        # sort the input (implemented for CS and VS, active only for CS till the manually given expansionOrder is implemented)
+        if 'CodeSystem-' in input.filename:
+            input.sortConceptsExpandStyle()
 
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
