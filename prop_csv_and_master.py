@@ -518,7 +518,7 @@ class PropCsvAndMaster():
                         self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
         elif self.get_resource() == "ValueSet":
             for oneMember in oneCon.member:
-                if popdCon := conDict.pop(oneMember.code, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
+                if popdCon := conDict.pop(oneMember.code+oneMember.system, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
 
 
