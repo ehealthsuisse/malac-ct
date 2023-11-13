@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0+20231113]
+
+### Added
+
+- !73 Add support of complex characters, changing the encoding of the `.1.propcsv.csv` if needed to utf-8 instead of cp1252
+
+### Changed
+
+- #25 Because `ValueSet.expansion.timestamp` got updated in every MaLaC-CT run, even if there were no changes, this timestamp was added to the metadata and will only change, if anything else in the metadata was changed.
+
+### Fixed
+
+- Fix concept order in `.1.propcsv.csv` and `.1.propcsv.xlsx` if children are stated before parents, that themselves do have parents.
+- #23 Fix reading of contacts in `.1.fsh` and `.2.fsh`.
+- #27 Fix contact handling when writing `.1.fsh`, `.2.fsh`, `.4.fhir.xml` and `.4.fhir.json`. A contact element can't exist and will not be rendered without a publisher element. So, if contacts exists, a default value for publisher will be used, if not existent. Additionally, the value from contact.telecom[0].value will be used as contact.name, if not existend.
+
 ## [4.2.1+20230918]
 
 ### Fixed
@@ -19,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support expansions in `.2.fsh`.
 - Coding properties can be parsed and exported in `.4.fhir.xml`, `.4.fhir.json`, `.1.propcsv.csv` and `.1.propcsv.xlsx`.
 - Coding properties can be exported in `.1.fsh` and `.2.fsh`.
-- Reference building for the missing child property with information from the parent property in the child 
+- Reference building for the missing child property with information from the parent property in the child
 
 ### Changed
 
@@ -28,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix the specified metadata values of the bmg icd 10 (in 2023 they reused the 2022 catalog)
-- Fix the specified metadata values of the bmg lkf 
+- Fix the specified metadata values of the bmg lkf
 
 ## [4.1.2+20230303]
 

@@ -1,4 +1,3 @@
-from datetime import datetime
 from pickletools import string4
 import prop_csv_and_master as pcam
 import re
@@ -20,6 +19,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             # preparing lists and some variables
             lstFilter = []
             lstProperty = []
+            lstContact = []
             dictConcept = {}
 
             finalVSSystem = None
@@ -70,9 +70,37 @@ class Fsh1(pcam.PropCsvAndMaster):
                 elif splittedLine[0] == '* date ': self.date = value
                 elif splittedLine[0] == '* publisher ': self.publisher = value
                 elif '* contact' in splittedLine[0]:
-                    if not hasattr(self,'contact'):
-                        self.contact = []
-                    self.contact.append(value)
+                    theContactDetail = None
+                    theContactPoint = None
+
+                    # look with idInFsh for contact in the contact list
+                    for oneContactDetail in lstContact:
+                        if oneContactDetail.idInFsh == splittedLine[0].split(']')[0]:
+                            theContactDetail = oneContactDetail
+                    # if none is found in the list, make one
+                    if theContactDetail is None:
+                        theContactDetail = ContactDetail(splittedLine[0].split(']')[0])
+                        lstContact.append(theContactDetail)
+
+                    for oneContactPoint in theContactDetail.telecom:
+                        if oneContactPoint.idInFsh == splittedLine[0].split('.')[1].split(']')[0]:
+                            theContactPoint = oneContactPoint
+                    # if none is found in the list, make one
+                    if theContactPoint is None:
+                        theContactPoint = ContactPoint(splittedLine[0].split('.')[1].split(']')[0])
+                        theContactDetail.telecom.append(theContactPoint)
+
+                    # add the data to the Filter
+                    if splittedLine[0].split('.')[1].strip() == 'name':
+                        theContactDetail.name = value
+                    elif splittedLine[0].split('.')[2].strip() == 'system':
+                        theContactPoint.system = ContactDetail.ContactPoint.ContactPointSystem[value]
+                    elif splittedLine[0].split('.')[2].strip() == 'value':
+                        theContactPoint.value = value
+
+                    # if not hasattr(self,'contact'):
+                    #     self.contact = []
+                    # self.contact.append(value)
                 elif '* useContext' in splittedLine[0]:
                     if not hasattr(self,'useContext'):
                         self.usecontext = []
@@ -143,6 +171,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                 self.filter = lstFilter
             if lstProperty != []:
                 self.property = lstProperty
+            if lstContact != []:
+                self.contact = lstContact
             if dictConcept != {}:
                 self.concept = list(dictConcept.values())
 
@@ -344,16 +374,31 @@ class Fsh1(pcam.PropCsvAndMaster):
         if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
-        # todo make the contact write also possible for claml2&3
+        # for the case, that there is no publisher but one or many contacts available, put in a default value
+        elif (tmp := self.get_contact()) and len(tmp) > 0: outfile.write('* publisher = "%s" \n' % "see")
         if tmp := self.get_contact():
             i = 0
             for oneContact in tmp:
                 if tmpName := oneContact.name:
                     outfile.write('* contact[%s].name = "%s" \n' % (i,tmpName))
-                if tmpSystem := (None if not oneContact.telecom else oneContact.telecom[0].system.value):
-                    outfile.write('* contact[%s].telecom[0].system = #%s \n' % (i,tmpSystem))
-                if tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
-                    outfile.write('* contact[%s].telecom[0].value = "%s" \n' % (i,tmpValue))
+                # for the case, that there is no name in the contact but one or many telecom available, use first telecom value element as name
+                elif tmpValue := (None if not oneContact.telecom else oneContact.telecom[0].value):
+                    outfile.write('* contact[%s].name = "%s" \n' % (i,tmpValue))
+                j = 0
+                for oneTelecom in oneContact.telecom:
+                    if tmpSystem := oneTelecom.system.value:
+                        outfile.write('* contact[%s].telecom[%s].system = #%s \n' % (i,j,tmpSystem))
+                    if tmpValue := oneTelecom.value:
+                        outfile.write('* contact[%s].telecom[%s].value = "%s" \n' % (i,j,tmpValue))
+                    if tmpUse := oneTelecom.use:
+                        outfile.write('* contact[%s].telecom[%s].use = #%s \n' % (i,j,tmpUse))
+                    if tmpRank := oneTelecom.rank:
+                        outfile.write('* contact[%s].telecom[%s].rank = %s \n' % (i,j,tmpRank))
+                    if tmpStart := oneTelecom.period_start:
+                        outfile.write('* contact[%s].telecom[%s].period.start = "%s" \n' % (i,j,tmpStart))
+                    if tmpEnd := oneTelecom.period_end:
+                        outfile.write('* contact[%s].telecom[%s].period.end = "%s" \n' % (i,j,tmpEnd))
+                    j += 1
                 i += 1
         if tmp := self.get_usecontext():
             i = 0
@@ -534,7 +579,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             # write the expansion
             if self.get_resource() == 'ValueSet':
                 outfile.write('\n')
-                outfile.write('* expansion.timestamp = "%s"\n' % (datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                outfile.write('* expansion.timestamp = "%s"\n' % self.metadata_change_timestamp)
                 outfile.write('\n')
                 containCnt = [-1]
                 for oneConcept in conceptList:
@@ -661,6 +706,16 @@ class Filter(pcam.Filter):
         self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
 
 class Property(pcam.Property):
+    def __init__(self, idInFsh):
+        super().__init__()
+        self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
+
+class ContactDetail(pcam.ContactDetail):
+    def __init__(self, idInFsh):
+        super().__init__()
+        self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
+
+class ContactPoint(pcam.ContactDetail.ContactPoint):
     def __init__(self, idInFsh):
         super().__init__()
         self.idInFsh = idInFsh # this is a temporary ID for reading in fsh files
