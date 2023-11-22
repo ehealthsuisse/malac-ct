@@ -145,23 +145,23 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         else:
             return pcam.Content.complete.value
 
-    def get_implicitrules(self):
-        return None
+    # def get_implicitrules(self):
+    #     return None
 
-    def get_language(self):
-        return None
+    # def get_language(self):
+    #     return None
 
-    def get_text(self):
-        return None
+    # def get_text(self):
+    #     return None
 
-    def get_contained(self):
-        return None
+    # def get_contained(self):
+    #     return None
 
-    def get_extension(self):
-        return None
+    # def get_extension(self):
+    #     return None
 
-    def get_modifierextension(self):
-        return None
+    # def get_modifierextension(self):
+    #     return None
 
     def get_identifier(self):
         if hasattr(self,"identifier"):
@@ -171,8 +171,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             identifiers.append(tempID)
         return identifiers
 
-    def get_experimental(self):
-        return None
+    # def get_experimental(self):
+    #     return None
 
     def get_date(self):
         return str(self.get_effectiveDate())
@@ -193,41 +193,41 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             tempConDetS.append(oneConDet)
         return tempConDetS
 
-    def get_usecontext(self):
-        return None
+    # def get_usecontext(self):
+    #     return None
 
-    def get_jurisdiction(self):
-        return None
+    # def get_jurisdiction(self):
+    #     return None
 
-    def get_purpose(self):
-        return None
+    # def get_purpose(self):
+    #     return None
 
-    def get_copyright(self):
-        return None
+    # def get_copyright(self):
+    #     return None
 
-    def get_immutable(self):
-        return None
+    # def get_immutable(self):
+    #     return None
 
-    def get_lockeddate(self):
-        return None
+    # def get_lockeddate(self):
+    #     return None
 
-    def get_inactive(self):
-        return None
+    # def get_inactive(self):
+    #     return None
 
-    def get_casesensitive(self):
-        return None
+    # def get_casesensitive(self):
+    #     return None
 
-    def get_valueset(self):
-        return None
+    # def get_valueset(self):
+    #     return None
 
-    def get_hierarchymeaning(self):
-        return None
+    # def get_hierarchymeaning(self):
+    #     return None
 
-    def get_compositional(self):
-        return None
+    # def get_compositional(self):
+    #     return None
 
-    def get_versionneeded(self):
-        return None
+    # def get_versionneeded(self):
+    #     return None
 
     def get_supplements(self):
         tmpSupplUrl = ""
@@ -240,8 +240,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_count(self):
         return len(self.get_concept())
 
-    def get_filter(self):
-        return None
+    # def get_filter(self):
+    #     return None
 
     def get_concept(self):
         if hasattr(self, "concept") and self.concept:
