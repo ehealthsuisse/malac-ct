@@ -20,7 +20,6 @@
 
 import os
 import sys
-from datetime import datetime
 from xml.etree.ElementInclude import include
 from lxml import etree as etree_
 
@@ -278,7 +277,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     # create a new list that sorts the concepts exactly like the expand does
                     the_from_expand_sorted_list = []
                     # recrusivly parse the information in the contains
-                    ValueSetSub.parse_expansion_contains_information(0, tmp, concept_code_dict, the_from_expand_sorted_list)
+                    self.parse_expansion_contains_information(0, tmp, concept_code_dict, the_from_expand_sorted_list)
                     # subtract/delete all concepts from self.concept that are in the expand and add these concepts on the end of the list
                     # this is only done for the case, that an (invalid) fhir xml got more concepts in the include than in the expansion
                     self.concept = the_from_expand_sorted_list + list(set(self.concept) - set(the_from_expand_sorted_list))
@@ -377,7 +376,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         return the_concept_list
 
-    def parse_expansion_contains_information(level, contains_list, concept_code_dict, the_from_expand_sorted_list, parent=None):
+    def parse_expansion_contains_information(self, level, contains_list, concept_code_dict, the_from_expand_sorted_list, parent=None):
         """Parse the given contains_list (of type ValueSet_Contains, i.e. ValueSet.expansion.contains) and add
         information regarding possible hierarchies to the pcam.VSConcepts which are part of concept_code_dict.
 
@@ -406,6 +405,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_contains.get_abstract():
                         the_concept.abstract = tmp.get_value()
 
+                    # parse ValueSet.expansion.contains.inactive
+                    if tmp := one_contains.get_inactive():
+                        the_concept.inactive = tmp.get_value()
+                        if the_concept.inactive:
+                            self.inactive = True
+
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
                         # setting theConcept as child of the parent
@@ -416,7 +421,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_from_expand_sorted_list.append(the_concept)
                     # if one_contains contains a list of contains go into recursion
                     if tmp := one_contains.get_contains():
-                        ValueSetSub.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
+                        self.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
 
     def exporto(self, outfile):
         """Write information to a FHIR ValueSet.
@@ -464,7 +469,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # NOT SUPPORTED ValueSet_Expansion.identifier
 
                 # set timestamp accordingly (required)
-                the_expansion.set_timestamp(dateTimeSub(value=datetime.now().strftime("%Y-%m-%dT%X.0000Z")))
+                the_expansion.set_timestamp(dateTimeSub(value=self.metadata_change_timestamp))
 
                 # NOT SUPPORTED ValueSet_Expansion.total
 
@@ -638,7 +643,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
 
-                # NOT SUPPORTED ValueSet.expansion.contains.inactive
+                if tmp := one_concept.inactive:
+                    the_concept.set_inactive(booleanSub(value=tmp))
 
                 # write the system version if existent
                 if tmp := one_concept.version:
