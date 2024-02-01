@@ -82,6 +82,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
     def get_id(self):
         return f4csvs.get_id(super())
 
+    def get_profiles(self):
+        return f4csvs.get_profiles(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
@@ -435,10 +438,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         # Create new FHIR ValueSet
         valueset = ValueSetSub()
 
+        # make sure the profile is being added
+        systemoid.fhir4_vs_exporto_profile(self)
+
         # export general metadata
         f4csvs.exporto(self, globals(), valueset)
-
-        systemoid.fhir_4_vs_add_profile(globals(), valueset)
 
         if tmp := self.get_immutable():
             valueset.set_immutable(booleanSub(value = tmp))
@@ -557,7 +561,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_include.set_system(uriSub(value=the_system))
 
                     # add the extension to the include
-                    systemoid.fhir_4_vs_add_extension(self, globals(), the_system, the_include)
+                    systemoid.fhir4_vs_add_extension(self, globals(), the_system, the_include)
                 if the_version:
                     the_include.set_version(stringSub(value=the_version))
                 the_system_dict[system_key] = the_include
@@ -627,7 +631,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_concept.set_system(uriSub(value=one_system))
 
                     # add the extension to the concept
-                    systemoid.fhir_4_vs_add_extension(self, globals(), one_system, the_concept)
+                    systemoid.fhir4_vs_add_extension(self, globals(), one_system, the_concept)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))

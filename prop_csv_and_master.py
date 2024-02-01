@@ -5,6 +5,7 @@ class PropCsvAndMaster():
     def __init__(self, inFile = None, encoding='cp1252'):
         self.resource = Resource
         self.id = None
+        self.profiles = []
         self.url = None
         self.version = None
         self.name = None
@@ -69,6 +70,7 @@ class PropCsvAndMaster():
 
                         if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
                         if 'id' == metaObj: self.id = metaList[1][i]
+                        if metaObj.startswith('profile'): self.profiles.append(metaList[1][i])
                         if 'url' == metaObj: self.url = metaList[1][i]
                         if 'version' == metaObj: self.version = metaList[1][i]
                         if 'name' == metaObj: self.name = metaList[1][i]
@@ -238,6 +240,9 @@ class PropCsvAndMaster():
 
     def get_id(self):
         return self.id
+
+    def get_profiles(self):
+        return self.profiles
 
     def get_url(self):
         return self.url
@@ -532,6 +537,9 @@ class PropCsvAndMaster():
         csv_meta.append(("name",self.get_name()))
         csv_meta.append(("title",self.get_title()))
         csv_meta.append(("status",self.get_status()))
+        if tmp := self.get_profiles():
+            for one_profile in tmp:
+                csv_meta.append(("profile", one_profile))
         if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
         if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))

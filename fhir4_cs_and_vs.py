@@ -21,8 +21,20 @@ def get_id(self):
     return None
 
 # NOT SUPPORTED:
-#   CodeSystem.meta or ValueSet.meta
+#   CodeSystem.meta or ValueSet.meta in general
 # def get_meta(resource):
+def get_profiles(self):
+    """Return CodeSytem.meta.profile or ValueSet.meta.profile.
+    """
+    the_profile_list = []
+
+    if meta := self.get_meta():
+        if profiles := meta.get_profile():
+            for one_profile in profiles:
+                if tmp := one_profile.get_value():
+                    the_profile_list.append(tmp)
+
+    return the_profile_list
 
 def get_implicitrules(self):
     """Return CodeSytem.implicitRules or ValueSet.implicitRules.
@@ -349,7 +361,13 @@ def exporto(self, globals, fhir_resource):
     if tmp := self.get_id():
         fhir_resource.set_id(globals.get('idSub')(value=tmp))
 
-    # NOT SUPPORTED CodeSystem.meta or ValueSet.meta
+    # NOT SUPPORTED CodeSystem.meta or ValueSet.meta in general
+    # CodeSystem.meta.profile or ValueSet.meta.profile
+    if one_profile_list := self.get_profiles():
+        the_profile_list = []
+        for one_profile in one_profile_list:
+            the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
+        fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
 
     if tmp := self.get_implicitrules():
         fhir_resource.set_implicitRules(globals.get('uriSub')(value=tmp))
