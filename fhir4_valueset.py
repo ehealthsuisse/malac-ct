@@ -26,6 +26,7 @@ from lxml import etree as etree_
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
+import ext_aut_systemoid as systemoid
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -437,11 +438,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         # export general metadata
         f4csvs.exporto(self, globals(), valueset)
 
-        """ TODO
-         - introduce parameter
-         - support profiles in general
-        """
-        valueset.set_meta(MetaSub(profile=[canonicalSub(value='http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-valueset')]))
+        systemoid.fhir_4_vs_add_profile(globals(), valueset)
 
         if tmp := self.get_immutable():
             valueset.set_immutable(booleanSub(value = tmp))
@@ -559,12 +556,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if the_system:
                     the_include.set_system(uriSub(value=the_system))
 
-                    """ TODO
-                    - introduce parameter
-                    - support extensions in general
-                    """
-                    if tmp := self.gainOidFromCanonical(the_system):
-                        the_include.add_extension(ExtensionSub(url='http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid', valueOid=oidSub(value='urn:oid:' + tmp)))
+                    # add the extension to the include
+                    systemoid.fhir_4_vs_add_extension(self, globals(), the_system, the_include)
                 if the_version:
                     the_include.set_version(stringSub(value=the_version))
                 the_system_dict[system_key] = the_include
@@ -633,12 +626,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if one_system:
                     the_concept.set_system(uriSub(value=one_system))
 
-                    """ TODO
-                    - introduce parameter
-                    - support extensions in general
-                    """
-                    if tmp := self.gainOidFromCanonical(one_system):
-                        the_concept.add_extension(ExtensionSub(url='http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid', valueOid=oidSub(value='urn:oid:' + tmp)))
+                    # add the extension to the concept
+                    systemoid.fhir_4_vs_add_extension(self, globals(), one_system, the_concept)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
