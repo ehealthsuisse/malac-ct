@@ -169,6 +169,9 @@ class PropCsvAndMaster():
                                     if 'exclude' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.exclude = True
+                                    if 'extension' == headingList[i]:
+                                        tempConcept.extension_list.append(Extension(row[i]))
+
 
                         # check for some invalid combinations
                         if self.resource == self.resource.ValueSet:
@@ -645,6 +648,7 @@ class PropCsvAndMaster():
                     #adding values to already existing columns, if value empty than a empty string is added
                     headerDesignationIterator = 0
                     headerFilterIterator = 0
+                    headerExtensionIterator = 0
                     for csv_header_element in csv_header:
 
                         if csv_header_element == "designation":
@@ -660,6 +664,13 @@ class PropCsvAndMaster():
                             else:
                                 csv_line.append('')
                             headerFilterIterator += 1
+
+                        elif csv_header_element == "extension":
+                            if headerExtensionIterator < len(oneConcept.extension_list):
+                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            else:
+                                csv_line.append('')
+                            headerExtensionIterator += 1
 
                         elif csv_header_element == 'parent':
                             if oneConcept.parent and (tmp := oneConcept.parent.code):
@@ -741,6 +752,10 @@ class PropCsvAndMaster():
                         csv_header.append('filter')
                         csv_line.append(conceptFilter[headerFilterIterator])
                         headerFilterIterator += 1
+                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                        csv_header.append('extension')
+                        csv_line.append(conceptExtension[headerExtensionIterator])
+                        headerExtensionIterator += 1
                     if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
                         csv_header.append('abstract')
                         csv_line.append(tmp)
@@ -750,6 +765,7 @@ class PropCsvAndMaster():
                     if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                         csv_header.append('exclude')
                         csv_line.append(tmp)
+
 
                 csv_list.append(csv_line)
 
@@ -868,6 +884,11 @@ class PropertyCodeType(enum.Enum):
     boolean = "boolean"
     datetime = "dateTime"
     decimal = "decimal"
+
+class ExtensionType(enum.Enum):
+    oid = "oid"
+    coding = "Coding"
+    # more to be defined
 
 class ContactDetail():
     def __init__(self, name=None, telecom=None):
@@ -1035,6 +1056,7 @@ class VSConcept():
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
         self.inactive = False
+        self.extension_list = []
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
@@ -1112,6 +1134,24 @@ class Coding():
         buildStr += "^"
         if self.userSelected: buildStr += self.userSelected
         return buildStr
+
+class Extension():
+    def __init__(self, str=None):
+        if not str:
+            self.url = None
+            self.value = None
+            self.type = ExtensionType
+        else:
+            extension_elements = str.split('|')
+            self.url = extension_elements[0]
+            self.type = ExtensionType(extension_elements[2].lower())
+            if self.type == PropertyCodeType.coding:
+                self.value = Coding(extension_elements[1])
+            else:
+                self.value = extension_elements[1]
+
+    def __str__(self) -> str:
+        return self.url+"|"+(self.value or "")+"|"+self.type.value
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''

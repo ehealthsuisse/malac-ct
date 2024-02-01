@@ -322,6 +322,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # for each concept within ValueSet_Include a pcam.VSConcept will be created
                 for one_concept in concept_list:
                     the_concept = pcam.VSConcept()
+
+                    # read extensions
+                    systemoid.fhir4_vs_get_extension(the_concept, one_include)
+
                     the_concept.system = the_include_system
                     the_concept.version = the_include_version
                     the_concept.exclude = exclude
@@ -438,8 +442,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         # Create new FHIR ValueSet
         valueset = ValueSetSub()
 
+        # TODO: introduce functionality to activate/deactivate extension
         # make sure the profile is being added
-        systemoid.fhir4_vs_exporto_profile(self)
+        systemoid.fhir4_vs_add_profile(self)
 
         # export general metadata
         f4csvs.exporto(self, globals(), valueset)
@@ -561,7 +566,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_include.set_system(uriSub(value=the_system))
 
                     # add the extension to the include
-                    systemoid.fhir4_vs_add_extension(self, globals(), the_system, the_include)
+                    if not systemoid.fhir4_vs_exporto_extension(globals(), the_include, one_concept, systemoid.EXTENSION_CANONICAL):
+                        pass
+                        # TODO: introduce functionality to activate/deactivate extension
+                        #systemoid.fhir4_vs_add_extension(self, globals(), the_system, the_include)
                 if the_version:
                     the_include.set_version(stringSub(value=the_version))
                 the_system_dict[system_key] = the_include
@@ -631,7 +639,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_concept.set_system(uriSub(value=one_system))
 
                     # add the extension to the concept
-                    systemoid.fhir4_vs_add_extension(self, globals(), one_system, the_concept)
+                    if not systemoid.fhir4_vs_exporto_extension(globals(), the_concept, one_concept, systemoid.EXTENSION_CANONICAL):
+                        pass
+                        # TODO: introduce functionality to activate/deactivate extension
+                        # systemoid.fhir4_vs_add_extension(self, globals(), one_system, the_concept)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
