@@ -76,7 +76,32 @@ def detectClassByEnding(filename):
             return listIClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
-def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, verification, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
+def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format):
+    startConvert = time.time()
+    source_filename = input_filename.replace(input_filename_extension, '.4.fhir.' + source_format)
+    target_filename = input_filename.replace(input_filename_extension, '.4.fhir.' + target_format)
+    source = None
+
+    if ("CodeSystem-" in input_filename):
+        from fhir.resources.codesystem import CodeSystem
+        source = CodeSystem.parse_file(source_filename)
+    elif ("ValueSet-" in input_filename):
+        from fhir.resources.valueset import ValueSet
+        source = ValueSet.parse_file(source_filename)
+    else:
+        sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
+
+    with open(target_filename, 'w', newline='', encoding='utf-8') as target_file:
+        if target_format == 'json':
+            target_file.write(source.json(indent=2))
+            print("*.4.fhir.json (in "+str(round(time.time()-startConvert,3))+" seconds)")
+        elif target_format == 'xml':
+            target_file.write(source.xml(pretty_print=True))
+            print("*.4.fhir.xml (in "+str(round(time.time()-startConvert,3))+" seconds)")
+        else:
+            sys.exit('Target format ' + target_format + ' not supported. Either xml or json.')
+
+def convert_fhir_resource_with_fhir_server(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, verification, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
     startConvert = time.time()
 
     import os
@@ -167,7 +192,7 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -218,7 +243,7 @@ def main() -> None:
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if args.convertFHIRServer:
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
         if args.uploadToConvertFHIRServer:
             startUpload = time.time()
