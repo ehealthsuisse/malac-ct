@@ -2,6 +2,7 @@ from pickletools import string4
 import prop_csv_and_master as pcam
 import re
 import copy
+import ext_aut_systemoid as systemoid
 
 tempindex = None
 
@@ -526,6 +527,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                             incOrExclude = "exclude"
                         else:
                             incOrExclude = "include"
+                        # add the extension to the include/exclude
+                        exporto_extension(outfile, '* compose.%s[%s]' % (incOrExclude, cntIncAndExclude), oneConcept, systemoid.EXTENSION_CANONICAL)
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -648,6 +651,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
+    exporto_extension(outfile, '* expansion%s' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, systemoid.EXTENSION_CANONICAL)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
@@ -708,6 +712,32 @@ def strContainsAsLevels (level, containCnt):
     for x in range(0,level+1):
         ret += ".contains["+ str(containCnt[x]) +"]"
     return ret
+
+def exporto_extension(outfile, fsh_target, pcam_source, extension_url):
+    """Write the extension with the given extenstion_url from the pcam_source to the fsh_target.
+
+    fsh_target -- the element the extension will be written to
+
+    pcam_source -- the object whose extension according to the extension_url will be written to the fhir_target.
+
+    extension_url -- identification of the extension to be written.
+    """
+    count_extension = 0
+    for one_extension in pcam_source.extension_list:
+        if one_extension.url == extension_url:
+            # outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
+            outfile.write('%s.extension[%s].url = "%s"\n' % (fsh_target, count_extension, one_extension.url))
+
+            if (value := one_extension.value) and (value_type := one_extension.type):
+                if value_type == pcam.ExtensionType.coding:
+                    # TODO support Coding
+                    pass
+                else:
+                    outfile.write('%s.extension[%s].value%s = "%s"\n' % (fsh_target, count_extension, pcam.first_char_to_upper(value_type.value), value.replace('"','\\"')))
+            # return true and break the loop once the extension has been written to the fhir_target
+            return True
+    # return false in case the extension with the given extension_url was not written to the fhir_target
+    return False
 
 class Filter(pcam.Filter):
     def __init__(self, idInFsh):
