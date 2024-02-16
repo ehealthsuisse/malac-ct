@@ -27,6 +27,7 @@ from lxml import etree as etree_
 
 import claml2super as supermod
 import prop_csv_and_master as pcam
+import ext_aut_systemoid as systemoid
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -77,6 +78,26 @@ def get_meta_list_with_name(self, meta_name):
             meta_list.append(one_meta.get_value())
 
     return meta_list
+
+def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_class, pcam_source, extension_url):
+    """Write the extension with the given extenstion_url from the pcam_source to claml.
+
+    claml_metas -- list of metas that will contain meta-information about extension
+
+    claml_class -- claml class that will contain the value of the extension
+
+    pcam_source -- the object whose extension according to the extension_url will be written to claml.
+
+    extension_url -- identification of the extension to be written.
+    """
+    for one_extension in pcam_source.extension_list:
+        if one_extension.url == extension_url:
+            if one_extension.url not in extensions_written_to_metas:
+                extensions_written_to_metas.add(one_extension.url)
+                claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
+
+            if value := one_extension.value:
+                claml_class.add_Meta(MetaSub(one_extension.url, value))
 
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
@@ -609,10 +630,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 concept_dict = self.buildConceptDictWithAttr('code')
             elif self.get_resource() == "ValueSet":
                 concept_dict = self.buildConceptDictWithAttr('code', 'system')
+
+            # keep track of extensions that have already been documented in metas
+            extensions_written_to_metas = set()
+
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
+
+                # exporting extensions
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept, systemoid.EXTENSION_CANONICAL)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
