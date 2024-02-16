@@ -69,6 +69,15 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
+def get_meta_list_with_name(self, meta_name):
+    meta_list = []
+
+    for one_meta in self.get_Meta():
+        if one_meta.get_name() == meta_name:
+            meta_list.append(one_meta.get_value())
+
+    return meta_list
+
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
 #        return get_Meta_with_name(self,'Sortierreihenfolge')
@@ -92,6 +101,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return tmp_id
         else:
             return self.get_name()
+
+    def get_profiles(self):
+        return get_meta_list_with_name(self, 'profile')
 
     # todo create get url for other classifications
     def get_url(self):
@@ -491,6 +503,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('id', self.get_id()))
+
+        if one_profile_list := self.get_profiles():
+            for one_profile in one_profile_list:
+                metas.append(MetaSub('profile', one_profile))
+
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":
@@ -557,7 +574,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             website += " & " + oneConTele.value
             # explicitly don't add the author information as website-meta, like it once was in the austrian termpub, can't deliver name and telecom in one meta
             metas.append(MetaSub("website",website))
-            
+
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
