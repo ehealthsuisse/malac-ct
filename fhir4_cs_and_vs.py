@@ -532,7 +532,7 @@ def exporto_concept_designation(globals, designation_class, designation_list):
 
     return the_designation_list
 
-def get_extension(pcam_target, fhir_source):
+def parse_extension(pcam_target, fhir_source):
     """Retrieve all extensions from the fhir_source and store them in the pcam_target.
     Open question: can the same extension (same url) be used on one fhir_source more than once (with differing values)?
     Attention: The pcam_target might collect extensions of different fhir_source elements. Beware, that currently only one value per extension url will be stored!
