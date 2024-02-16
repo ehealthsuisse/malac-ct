@@ -49,6 +49,10 @@ class Fsh1(pcam.PropCsvAndMaster):
 
                 # optional fields
                 elif splittedLine[0] == '* id ' : self.id = value
+                elif splittedLine[0].startswith('* meta.profile'):
+                    if not hasattr(self, 'profiles'):
+                        self.profiles = []
+                    self.profiles.append(value)
                 elif splittedLine[0] == '* url ': self.url = value
                 elif splittedLine[0] == '* version ':self.version = value
                 elif splittedLine[0] == '* title ':self.title = value
@@ -347,6 +351,11 @@ class Fsh1(pcam.PropCsvAndMaster):
         outfile.write('InstanceOf: %s \n' % self.get_resource())
         outfile.write('Usage: #definition \n')
         outfile.write('* id = "%s" \n' % self.get_id())
+        if tmp := self.get_profiles():
+            i = 0
+            for one_profile in tmp:
+                outfile.write('* meta.profile[0] = "%s" \n' % (one_profile))
+                i += 1
         outfile.write('* url = "%s" \n' % self.get_url())
         outfile.write('* name = "%s" \n' % self.get_name())
         outfile.write('* title = "%s" \n' % self.get_title())
