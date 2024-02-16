@@ -532,7 +532,7 @@ def exporto_concept_designation(globals, designation_class, designation_list):
 
     return the_designation_list
 
-def fhir4_get_extension(pcam_target, fhir_source):
+def get_extension(pcam_target, fhir_source):
     """Retrieve all extensions from the fhir_source and store them in the pcam_target.
     Open question: can the same extension (same url) be used on one fhir_source more than once (with differing values)?
     Attention: The pcam_target might collect extensions of different fhir_source elements. Beware, that currently only one value per extension url will be stored!
@@ -564,7 +564,7 @@ def fhir4_get_extension(pcam_target, fhir_source):
 
                     pcam_target.extension_list.append(the_extension)
 
-def fhir4_exporto_extension(globals, fhir_target, pcam_source, extension_url):
+def exporto_extension(globals, fhir_target, pcam_source, extension_url):
     """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
 
     fhir_target -- the element from the FHIR resource where the extension will be written to.
