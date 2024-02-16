@@ -532,6 +532,76 @@ def exporto_concept_designation(globals, designation_class, designation_list):
 
     return the_designation_list
 
+def fhir4_get_extension(pcam_target, fhir_source):
+    """Retrieve all extensions from the fhir_source and store them in the pcam_target.
+    Open question: can the same extension (same url) be used on one fhir_source more than once (with differing values)?
+    Attention: The pcam_target might collect extensions of different fhir_source elements. Beware, that currently only one value per extension url will be stored!
+
+    pcam_target -- the object according to pcam that will store all extensions read from the fhir_source.
+
+    fhir_source -- the element from the FHIR resource whose extensions are being retrieved.
+    """
+
+    # depends on where this method is used
+    # currently only used on VSConcept which provides 'extension_list'
+    if not hasattr(pcam_target, 'extension_list'):
+        pcam_target.extension_list = []
+
+    if extension_list := fhir_source.get_extension():
+        for one_extension in extension_list:
+            if one_url := one_extension.get_url():
+                # check if extension already has been retrieved
+                extension_exists = [index for (index, item) in enumerate(pcam_target.extension_list) if item.uri == one_url]
+
+                if not extension_exists:
+                    the_extension = pcam.Extension()
+                    the_extension.url = one_url
+
+                    if (one_value := one_extension.get_valueOid()): #TODO support of further types
+                        the_extension.value = one_value.get_value()
+                        the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    # TODO support Coding
+
+                    pcam_target.extension_list.append(the_extension)
+
+def fhir4_exporto_extension(globals, fhir_target, pcam_source, extension_url):
+    """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
+
+    fhir_target -- the element from the FHIR resource where the extension will be written to.
+
+    pcam_source -- the object whose extension according to the extension_url will be written to the fhir_target.
+
+    extension_url -- identification of the extension to be written.
+    """
+    for one_extension in pcam_source.extension_list:
+        if one_extension.url == extension_url:
+            the_extension = globals.get('ExtensionSub')(url=one_extension.url)
+
+            if (value := one_extension.value) and (value_type := one_extension.type):
+                if value_type == pcam.ExtensionType.coding:
+                    # TODO support Coding
+                    pass
+                else:
+                    # determine class name (e.g. string -> stringSub)
+                    value_type_class_name = value_type.value + 'Sub'
+                    # determine proper setter method name (e.g. set_valueString)
+                    setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
+
+                    # check if the_property has got a setter according to setter_name
+                    #       if this module has got a datatype (i.e. class definition) according to value_type_class_name
+                    if hasattr(the_extension, setter_name) and globals.get(value_type_class_name):
+                        # for setter_name = 'set_valueString' and value_type_class_anme = 'stringSub' the following
+                        # line could be rewritten as:
+                        #
+                        # the_property.set_valueString(stringSub(value=tmp))
+                        getattr(the_extension, setter_name)(globals.get(value_type_class_name)(value=value))
+
+            fhir_target.add_extension(the_extension)
+            # return true and break the loop once the extension has been written to the fhir_target
+            return True
+    # return false in case the extension with the given extension_url was not written to the fhir_target
+    return False
+
 class FHIR4CsAndVs:
     """Class serves as entrypoint for properly parsing and writing
     FHIR CodeSystem and ValueSet resources.
