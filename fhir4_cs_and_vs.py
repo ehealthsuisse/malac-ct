@@ -178,7 +178,7 @@ def get_date(self):
 def get_publisher(self):
     """Return CodeSystem.publisher or ValueSet.publisher.
     """
-    if tmp := self.get_publisher():
+    if (tmp := self.get_publisher()) and tmp.get_value() != 'see':
         return tmp.get_value()
     return None
 
