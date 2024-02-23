@@ -304,6 +304,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                 the_concept = pcam.CSConcept()
 
+                # read extensions
+                f4csvs.parse_extension(the_concept, one_concept)
+
                 if tmp := one_concept.get_code():
                     the_concept.code = tmp.get_value()
 
