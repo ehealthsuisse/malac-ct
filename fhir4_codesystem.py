@@ -25,6 +25,7 @@ from lxml import etree as etree_
 import fhir4_codesystem_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
+import ext_codesystem_replacedby as replacedby
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -453,6 +454,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         for one_concept in concept_list:
             the_concept = CodeSystem_ConceptSub()
+
+            # add replaceBy extension
+            f4csvs.exporto_extension(globals(), the_concept, one_concept, replacedby.EXTENSION_CANONICAL)
 
             if tmp := one_concept.code:
                 the_concept.set_code(codeSub(value=tmp))
