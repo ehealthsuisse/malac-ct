@@ -543,7 +543,6 @@ def parse_extension(pcam_target, fhir_source):
     """
 
     # depends on where this method is used
-    # currently only used on VSConcept which provides 'extension_list'
     if not hasattr(pcam_target, 'extension_list'):
         pcam_target.extension_list = []
 
