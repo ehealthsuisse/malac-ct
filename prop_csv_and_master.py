@@ -143,6 +143,8 @@ class PropCsvAndMaster():
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
                                     if 'property' == headingList[i]:
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
+                                    if 'extension' == headingList[i]:
+                                        tempConcept.extension_list.append(Extension(row[i]))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
                                     if 'version' == headingList[i]: tempConcept.version = row[i]
@@ -1006,6 +1008,7 @@ class CSConcept():
         self.definition = None
         self.designation = []
         self.property = []
+        self.extension_list = []
 
     class ConceptProperty():
         def __init__(self, str=None):
