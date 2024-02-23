@@ -28,6 +28,7 @@ from lxml import etree as etree_
 import claml2super as supermod
 import prop_csv_and_master as pcam
 import ext_aut_systemoid as systemoid
+import ext_codesystem_replacedby as replacedby
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -641,7 +642,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass.set_code(oneConcept.code)
 
                 # exporting extensions
+                # systemOid
                 exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept, systemoid.EXTENSION_CANONICAL)
+                # replacedBy
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept, replacedby.EXTENSION_CANONICAL)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
