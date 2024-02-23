@@ -346,7 +346,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'contained')
 
     def get_extension(self):
-        return get_Meta_with_name(self,'extension')
+        # Currently, no extensions are supported on this level
+        return None
 
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
