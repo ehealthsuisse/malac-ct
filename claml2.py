@@ -90,14 +90,15 @@ def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_c
 
     extension_url -- identification of the extension to be written.
     """
-    for one_extension in pcam_source.extension_list:
-        if one_extension.url == extension_url:
-            if one_extension.url not in extensions_written_to_metas:
-                extensions_written_to_metas.add(one_extension.url)
-                claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
+    if hasattr(pcam_source, 'extension_list'):
+        for one_extension in pcam_source.extension_list:
+            if one_extension.url == extension_url:
+                if one_extension.url not in extensions_written_to_metas:
+                    extensions_written_to_metas.add(one_extension.url)
+                    claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
 
-            if value := one_extension.value:
-                claml_class.add_Meta(MetaSub(one_extension.url, value))
+                if value := one_extension.value:
+                    claml_class.add_Meta(MetaSub(one_extension.url, value))
 
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):

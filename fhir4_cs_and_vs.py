@@ -573,38 +573,41 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url):
 
     extension_url -- identification of the extension to be written.
     """
-    for one_extension in pcam_source.extension_list:
-        if one_extension.url == extension_url:
-            the_extension = globals.get('ExtensionSub')(url=one_extension.url)
+    if hasattr(pcam_source, 'extension_list'):
+        for one_extension in pcam_source.extension_list:
+            if one_extension.url == extension_url:
+                the_extension = globals.get('ExtensionSub')(url=one_extension.url)
 
-            if (value := one_extension.value) and (value_type := one_extension.type):
-                if value_type == pcam.ExtensionType.coding:
-                    # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
-                    the_extension.set_valueCoding(globals.get('CodingSub')(
-                            system=globals.get('urlSub')(value=value.codesystem) if value.codesystem else None,
-                            version=globals.get('stringSub')(value=value.version) if value.version else None,
-                            code=globals.get('codeSub')(value=value.code) if value.code else None,
-                            display=globals.get('stringSub')(value=value.display) if value.display else None,
-                            userSelected=globals.get('booleanSub')(value=value.userSelected) if value.userSelected else None))
-                else:
-                    # determine class name (e.g. string -> stringSub)
-                    value_type_class_name = value_type.value + 'Sub'
-                    # determine proper setter method name (e.g. set_valueString)
-                    setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
+                if (value := one_extension.value) and (value_type := one_extension.type):
+                    if value_type == pcam.ExtensionType.coding:
+                        # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
+                        the_extension.set_valueCoding(globals.get('CodingSub')(
+                                system=globals.get('urlSub')(value=value.codesystem) if value.codesystem else None,
+                                version=globals.get('stringSub')(value=value.version) if value.version else None,
+                                code=globals.get('codeSub')(value=value.code) if value.code else None,
+                                display=globals.get('stringSub')(value=value.display) if value.display else None,
+                                userSelected=globals.get('booleanSub')(value=value.userSelected) if value.userSelected else None))
+                    else:
+                        # determine class name (e.g. string -> stringSub)
+                        value_type_class_name = value_type.value + 'Sub'
+                        # determine proper setter method name (e.g. set_valueString)
+                        setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
 
-                    # check if the_property has got a setter according to setter_name
-                    #       if this module has got a datatype (i.e. class definition) according to value_type_class_name
-                    if hasattr(the_extension, setter_name) and globals.get(value_type_class_name):
-                        # for setter_name = 'set_valueString' and value_type_class_anme = 'stringSub' the following
-                        # line could be rewritten as:
-                        #
-                        # the_property.set_valueString(stringSub(value=tmp))
-                        getattr(the_extension, setter_name)(globals.get(value_type_class_name)(value=value))
+                        # check if the_property has got a setter according to setter_name
+                        #       if this module has got a datatype (i.e. class definition) according to value_type_class_name
+                        if hasattr(the_extension, setter_name) and globals.get(value_type_class_name):
+                            # for setter_name = 'set_valueString' and value_type_class_anme = 'stringSub' the following
+                            # line could be rewritten as:
+                            #
+                            # the_property.set_valueString(stringSub(value=tmp))
+                            getattr(the_extension, setter_name)(globals.get(value_type_class_name)(value=value))
 
-            fhir_target.add_extension(the_extension)
-            # return true and break the loop once the extension has been written to the fhir_target
-            return True
-    # return false in case the extension with the given extension_url was not written to the fhir_target
+                fhir_target.add_extension(the_extension)
+                # return true and break the loop once the extension has been written to the fhir_target
+                return True
+        # return false in case the extension with the given extension_url was not written to the fhir_target
+        return False
+    # in case no extensions could be written at all
     return False
 
 class FHIR4CsAndVs:
