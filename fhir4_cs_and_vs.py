@@ -579,8 +579,13 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url):
 
             if (value := one_extension.value) and (value_type := one_extension.type):
                 if value_type == pcam.ExtensionType.coding:
-                    # TODO support Coding
-                    pass
+                    # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
+                    the_extension.set_valueCoding(globals.get('CodingSub')(
+                            system=globals.get('urlSub')(value=value.codesystem) if value.codesystem else None,
+                            version=globals.get('stringSub')(value=value.version) if value.version else None,
+                            code=globals.get('codeSub')(value=value.code) if value.code else None,
+                            display=globals.get('stringSub')(value=value.display) if value.display else None,
+                            userSelected=globals.get('booleanSub')(value=value.userSelected) if value.userSelected else None))
                 else:
                     # determine class name (e.g. string -> stringSub)
                     value_type_class_name = value_type.value + 'Sub'
