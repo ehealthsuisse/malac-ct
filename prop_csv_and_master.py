@@ -1144,8 +1144,8 @@ class Extension():
         else:
             extension_elements = str.split('|')
             self.url = extension_elements[0]
-            self.type = ExtensionType(extension_elements[2].lower())
-            if self.type == PropertyCodeType.coding:
+            self.type = ExtensionType(extension_elements[2])
+            if self.type == ExtensionType.coding:
                 self.value = Coding(extension_elements[1])
             else:
                 self.value = extension_elements[1]
