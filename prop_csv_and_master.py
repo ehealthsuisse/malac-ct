@@ -606,6 +606,7 @@ class PropCsvAndMaster():
                     #adding values to already existing columns, if value empty than a empty string is added
                     headerDesignationIterator = 0
                     headerPropertyIterator = 0
+                    headerExtensionIterator = 0
                     for csv_header_element in csv_header:
 
                         if csv_header_element == "designation":
@@ -615,12 +616,20 @@ class PropCsvAndMaster():
                                 csv_line.append('')
                             headerDesignationIterator += 1
 
+                        elif csv_header_element == "extension":
+                            if headerExtensionIterator < len(oneConcept.extension_list):
+                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            else:
+                                csv_line.append('')
+                            headerExtensionIterator += 1
+
                         elif csv_header_element == "property":
                             if headerPropertyIterator < len(oneConcept.property):
                                 csv_line.append(oneConcept.property[headerPropertyIterator])
                             else:
                                 csv_line.append('')
                             headerPropertyIterator += 1
+
                         elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                             csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                         else:
@@ -640,6 +649,10 @@ class PropCsvAndMaster():
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
+                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                        csv_header.append('extension')
+                        csv_line.append(conceptExtension[headerExtensionIterator])
+                        headerExtensionIterator += 1
                     while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
                         csv_header.append('property')
                         csv_line.append(conceptProps[headerPropertyIterator])
@@ -1154,7 +1167,7 @@ class Extension():
                 self.value = extension_elements[1]
 
     def __str__(self) -> str:
-        return self.url+"|"+(self.value or "")+"|"+self.type.value
+        return self.url + "|" + str(self.value) if self.value else "" + "|" + self.type.value
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
