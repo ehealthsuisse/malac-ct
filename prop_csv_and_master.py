@@ -1167,7 +1167,7 @@ class Extension():
                 self.value = extension_elements[1]
 
     def __str__(self) -> str:
-        return self.url + "|" + str(self.value) if self.value else "" + "|" + self.type.value
+        return self.url + "|" + (str(self.value) if self.value else "") + "|" + self.type.value
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
