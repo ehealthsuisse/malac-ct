@@ -1,0 +1,1 @@
+EXTENSION_CANONICAL = 'http://hl7.org/fhir/StructureDefinition/codesystem-replacedby'
