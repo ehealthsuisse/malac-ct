@@ -157,42 +157,48 @@ class PropCsvAndMaster():
 
                                 if self.resource == self.resource.CodeSystem:
                                     if 'code' == headingList[i]: tempConcept.code = row[i]
-                                    if 'display' == headingList[i]: tempConcept.display = row[i]
-                                    if 'definition' == headingList[i]: tempConcept.definition = row[i]
-                                    if 'designation' == headingList[i]:
+                                    elif 'display' == headingList[i]: tempConcept.display = row[i]
+                                    elif 'definition' == headingList[i]: tempConcept.definition = row[i]
+                                    elif 'designation' == headingList[i]:
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
-                                    if 'property' == headingList[i]:
+                                    elif 'property' == headingList[i]:
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
-                                    if 'extension' == headingList[i]:
+                                    elif 'extension' == headingList[i]:
                                         tempConcept.extension.append(Extension(row[i]))
+                                    else: # everything else should be a property (aka easyProperties) 
+                                        tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|string"))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
-                                    if 'version' == headingList[i]: tempConcept.version = row[i]
-                                    if 'code' == headingList[i]: tempConcept.code = row[i]
-                                    if 'display' == headingList[i]: tempConcept.display = row[i]
-                                    if 'parent' == headingList[i]: tempConcept.parent = row[i]
-                                    if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
-                                    if 'designation' == headingList[i]:
+                                    elif 'version' == headingList[i]: tempConcept.version = row[i]
+                                    elif 'code' == headingList[i]: tempConcept.code = row[i]
+                                    elif 'display' == headingList[i]: tempConcept.display = row[i]
+                                    elif 'parent' == headingList[i]: tempConcept.parent = row[i]
+                                    elif 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
+                                    elif 'designation' == headingList[i]:
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
-                                    if 'filter' == headingList[i]:
+                                    elif 'filter' == headingList[i]:
                                         filterElements = row[i].split('|')
                                         tempFilter = VSConcept.VSConceptFilter()
                                         tempFilter.property = filterElements[0]
                                         tempFilter.op = filterElements[1]
                                         tempFilter.value = filterElements[2]
                                         tempConcept.filter = tempFilter # this is not a list!
-                                    if 'abstract' == headingList[i]:
+                                    elif 'abstract' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.abstract = True
-                                    if 'inactive' == headingList[i]:
+                                    elif 'inactive' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.inactive = True
                                             self.inactive = True
-                                    if 'exclude' == headingList[i]:
+                                    elif 'exclude' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.exclude = True
-                                    if 'extension' == headingList[i]:
+                                    elif 'extension' == headingList[i]:
                                         tempConcept.extension.append(Extension(row[i]))
+                                    else: # Everything else should be a designation (aka easyDesignation), 
+                                        # with a designation use inside https://termgit.elga.gv.at/CodeSystem/austrian-designation-use.
+                                        # Please dont forget to adapt that CodeSystem with your new designations 
+                                        tempConcept.designation.append(ConceptDesignation("|https://termgit.elga.gv.at/CodeSystem/austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^|"+row[i]))
 
 
                         # check for some invalid combinations
@@ -1091,7 +1097,7 @@ class CSConcept():
         self.definition = None
         self.designation = []
         self.property = []
-        self.extension_list = []
+        self.extension = []
 
     class ConceptProperty():
         def __init__(self, str=None):
