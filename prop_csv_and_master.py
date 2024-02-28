@@ -1,8 +1,11 @@
 import enum
 from unittest import skip
 
+class FileStyle(enum.Enum):
+    propCSV = "propCSV"
+    spreadCT = "spreadCT"
 class PropCsvAndMaster():
-    def __init__(self, inFile = None, encoding='cp1252'):
+    def __init__(self, inFile = None, encoding='cp1252', file_style=FileStyle.propCSV):
         self.resource = Resource
         self.id = None
         self.profiles = []
@@ -47,18 +50,27 @@ class PropCsvAndMaster():
 
         if inFile is not None:
             try:
+                import csv
+                if file_style is FileStyle.spreadCT:
+                    inFile = inFile.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")
+                    encoding = "utf-8"
+
                 # usally open file with special encoding because of Excel compatibility,
                 # see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
                 with open(inFile, 'r', encoding=encoding) as csvfile:
-                    import csv
                     # creating dictreader object
                     file = csv.reader(csvfile, quotechar='"', delimiter=';')
-                    # iterating over first two rows and append values to empty list
-                    metaList = [file.__next__()]+[file.__next__()]
-                    # iterating over a empty row
-                    file.__next__()
-                    # iterating over the next row with headings for concepts
-                    headingList = file.__next__()
+
+                    if file_style is FileStyle.propCSV:
+                        # iterating over first two rows and append values to empty list
+                        metaList = [file.__next__()]+[file.__next__()]
+                        # iterating over a empty row
+                        file.__next__()
+                    elif file_style is FileStyle.spreadCT:
+                        metaList = []
+                        for metaLine in file:
+                            metaList.append(metaLine)
+                        metaList = list(zip(*metaList)) #transpose the list
 
                     #initializing the header/metadata
                     i = -1
@@ -122,6 +134,14 @@ class PropCsvAndMaster():
                             tempProperty.type = PropertyCodeType[propElements[3].lower()]
                             self.property.append(tempProperty)
 
+                    if file_style is FileStyle.spreadCT:
+                        csvfile.close()
+                        csvfile = open(inFile.replace(".meta.1.spreadct.csv",".data.1.spreadct.csv"), 'r', encoding=encoding)
+                        file = csv.reader(csvfile, quotechar='"', delimiter=';')
+    	            
+                    # iterating over the next row with headings for concepts
+                    headingList = file.__next__()
+
                     #initializing the body/content
                     for row in file:
 
@@ -144,7 +164,7 @@ class PropCsvAndMaster():
                                     if 'property' == headingList[i]:
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
                                     if 'extension' == headingList[i]:
-                                        tempConcept.extension_list.append(Extension(row[i]))
+                                        tempConcept.extension.append(Extension(row[i]))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
                                     if 'version' == headingList[i]: tempConcept.version = row[i]
@@ -172,7 +192,7 @@ class PropCsvAndMaster():
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.exclude = True
                                     if 'extension' == headingList[i]:
-                                        tempConcept.extension_list.append(Extension(row[i]))
+                                        tempConcept.extension.append(Extension(row[i]))
 
 
                         # check for some invalid combinations
@@ -532,7 +552,7 @@ class PropCsvAndMaster():
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
 
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, file_style=FileStyle.propCSV):
         csv_meta = []
         # start list of metaelements
         csv_meta.append(("resource",self.get_resource()))
@@ -617,8 +637,8 @@ class PropCsvAndMaster():
                             headerDesignationIterator += 1
 
                         elif csv_header_element == "extension":
-                            if headerExtensionIterator < len(oneConcept.extension_list):
-                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            if headerExtensionIterator < len(oneConcept.extension):
+                                csv_line.append(oneConcept.extension[headerExtensionIterator])
                             else:
                                 csv_line.append('')
                             headerExtensionIterator += 1
@@ -649,7 +669,7 @@ class PropCsvAndMaster():
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
-                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                    while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension):
                         csv_header.append('extension')
                         csv_line.append(conceptExtension[headerExtensionIterator])
                         headerExtensionIterator += 1
@@ -681,8 +701,8 @@ class PropCsvAndMaster():
                             headerFilterIterator += 1
 
                         elif csv_header_element == "extension":
-                            if headerExtensionIterator < len(oneConcept.extension_list):
-                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            if headerExtensionIterator < len(oneConcept.extension):
+                                csv_line.append(oneConcept.extension[headerExtensionIterator])
                             else:
                                 csv_line.append('')
                             headerExtensionIterator += 1
@@ -767,7 +787,7 @@ class PropCsvAndMaster():
                         csv_header.append('filter')
                         csv_line.append(conceptFilter[headerFilterIterator])
                         headerFilterIterator += 1
-                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                    while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension):
                         csv_header.append('extension')
                         csv_line.append(conceptExtension[headerExtensionIterator])
                         headerExtensionIterator += 1
@@ -786,44 +806,69 @@ class PropCsvAndMaster():
 
         csv_list.insert(0,csv_header)
 
-        if outfile.name.endswith('.1.propcsv.csv'):
+        if outfile.name.endswith('.csv'):
             # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
             try:
-                writeCSV(outfile, csv_meta, csv_list, encoding="cp1252")
+                writeCSV(outfile, csv_meta, csv_list, encoding="cp1252", file_style=file_style)
             except UnicodeEncodeError:
                 print(" (because of some EncodeError, this terminologys *.1.propcsv.csv will be written in utf-8 instead of cp1252)")
                 writeCSV(outfile, csv_meta, csv_list, encoding="utf-8")
 
-        elif outfile.name.endswith('.1.propcsv.xlsx'):
-            writeXLSX(outfile, csv_meta, csv_list)
+        elif outfile.name.endswith('.xlsx'):
+            writeXLSX(outfile, csv_meta, csv_list, file_style=file_style)
 
-def writeCSV(outfile, csv_meta, csv_list, encoding):
-    with open(outfile.name, 'wb') as outfile:
-        for csvline in zip(*csv_meta): #transpose the list
+def writeCSV(outfile, csv_meta, csv_list, encoding, file_style=FileStyle.propCSV):
+    outfile_path = outfile.name
+    if file_style is FileStyle.spreadCT:
+        outfile_path = outfile_path.replace(".data.1.spreadct.csv", ".meta.1.spreadct.csv")
+        encoding = "utf-8"
+
+    with open(outfile_path, 'wb') as outfile:
+        first_line_of_file = True
+        if file_style is FileStyle.propCSV:
+            csv_meta = list(zip(*csv_meta)) #transpose the list
+        for csvline in csv_meta: 
+            if first_line_of_file:
+                first_line_of_file = False
+            else:
+                outfile.write(("\n").encode(encoding))
             newline = True
             for csvelement in csvline:
-                # write and change all ',' to ';'
-                #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
                 outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
                 newline = False
+        
+        if file_style is FileStyle.propCSV:
             outfile.write(("\n").encode(encoding))
-
+        elif file_style is FileStyle.spreadCT:
+            outfile.close()
+            outfile = open(outfile_path.replace(".meta.1.spreadct.csv",".data.1.spreadct.csv"), 'wb')
+            first_line_of_file = True
+        
         for csvline in csv_list:
-            outfile.write(("\n").encode(encoding))
+            if first_line_of_file:
+                first_line_of_file = False
+            else:
+                outfile.write(("\n").encode(encoding))
             newline = True
             for csvelement in csvline:
                 outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
                 newline = False
 
-def writeXLSX(outfile, csv_meta, csv_list):
+def writeXLSX(outfile, csv_meta, csv_list, file_style=FileStyle.propCSV):
     import xlsxwriter
     # Create an new Excel file and add a worksheet.
     workbook = xlsxwriter.Workbook(outfile.name)
-    worksheet = workbook.add_worksheet()
+    if file_style is FileStyle.propCSV:
+        worksheet = workbook.add_worksheet()
+        csv_meta = list(zip(*csv_meta))
+    elif file_style is FileStyle.spreadCT:
+        worksheet_data = workbook.add_worksheet(name="data")
+        worksheet_meta = workbook.add_worksheet(name="meta")
+        worksheet = worksheet_meta
 
     # fill with meta
     x = -1
-    for csvline in zip(*csv_meta): #transpose the list
+    for csvline in csv_meta: #transpose the list
         x += 1
         y = -1
         for csvelement in csvline:
@@ -837,6 +882,10 @@ def writeXLSX(outfile, csv_meta, csv_list):
 
     # for the empty row between meta and data
     x += 1
+
+    if file_style is FileStyle.spreadCT:
+        worksheet = worksheet_data
+        x = -1 #start from first row
 
     # fill with data
     for csvline in csv_list:
@@ -866,7 +915,28 @@ class PropCsvAsXLSX():
             return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), encoding='utf-8')
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        PropCsvAndMaster.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
+        PropCsvAndMaster.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS)
+
+class SpreadCT(PropCsvAndMaster):
+    def parse(inFilename):
+        return PropCsvAndMaster(inFilename, encoding='utf-8', file_style=FileStyle.spreadCT)
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        PropCsvAndMaster.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS, file_style=FileStyle.spreadCT)
+
+class SpreadCTasXLSX(PropCsvAsXLSX):
+    def parse(inFilename):
+        import pandas as pd
+
+        read_meta = pd.read_excel(inFilename, keep_default_na=False, sheet_name="meta")
+        read_data = pd.read_excel(inFilename, keep_default_na=False, sheet_name="data")
+        
+        read_meta.to_csv(inFilename.replace('.1.spreadct.xlsx', '.meta.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
+        read_data.to_csv(inFilename.replace('.1.spreadct.xlsx', '.data.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
+        return SpreadCT(inFilename.replace('.1.spreadct.xlsx', '.1.spreadct.csv'))
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        SpreadCT.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
 
 class Resource(enum.Enum):
     ValueSet = 'ValueSet'
@@ -1072,7 +1142,7 @@ class VSConcept():
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
         self.inactive = False
-        self.extension_list = []
+        self.extension = []
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
@@ -1168,7 +1238,7 @@ class Extension():
 
     def __str__(self) -> str:
         return self.url + "|" + (str(self.value) if self.value else "") + "|" + self.type.value
-
+    
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
 # lower case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
