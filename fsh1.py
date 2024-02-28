@@ -723,7 +723,7 @@ def exporto_extension(outfile, fsh_target, pcam_source, extension_url):
     extension_url -- identification of the extension to be written.
     """
     count_extension = 0
-    for one_extension in pcam_source.extension_list:
+    for one_extension in pcam_source.extension:
         if one_extension.url == extension_url:
             # outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
             outfile.write('%s.extension[%s].url = "%s"\n' % (fsh_target, count_extension, one_extension.url))

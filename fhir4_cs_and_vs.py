@@ -543,14 +543,14 @@ def parse_extension(pcam_target, fhir_source):
     """
 
     # depends on where this method is used
-    if not hasattr(pcam_target, 'extension_list'):
-        pcam_target.extension_list = []
+    if not hasattr(pcam_target, 'extension'):
+        pcam_target.extension = []
 
-    if extension_list := fhir_source.get_extension():
-        for one_extension in extension_list:
+    if extension := fhir_source.get_extension():
+        for one_extension in extension:
             if one_url := one_extension.get_url():
                 # check if extension already has been retrieved
-                extension_exists = [index for (index, item) in enumerate(pcam_target.extension_list) if item.uri == one_url]
+                extension_exists = [index for (index, item) in enumerate(pcam_target.extension) if item.uri == one_url]
 
                 if not extension_exists:
                     the_extension = pcam.Extension()
@@ -570,7 +570,7 @@ def parse_extension(pcam_target, fhir_source):
                         # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
                         the_extension.type = pcam.PropertyCodeType(tmp_prop.original_tagname_.replace('value',''))
 
-                    pcam_target.extension_list.append(the_extension)
+                    pcam_target.extension.append(the_extension)
 
 def exporto_extension(globals, fhir_target, pcam_source, extension_url):
     """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
@@ -581,8 +581,8 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url):
 
     extension_url -- identification of the extension to be written.
     """
-    if hasattr(pcam_source, 'extension_list'):
-        for one_extension in pcam_source.extension_list:
+    if hasattr(pcam_source, 'extension'):
+        for one_extension in pcam_source.extension:
             if one_extension.url == extension_url:
                 the_extension = globals.get('ExtensionSub')(url=one_extension.url)
 

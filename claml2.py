@@ -91,8 +91,8 @@ def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_c
 
     extension_url -- identification of the extension to be written.
     """
-    if hasattr(pcam_source, 'extension_list'):
-        for one_extension in pcam_source.extension_list:
+    if hasattr(pcam_source, 'extension'):
+        for one_extension in pcam_source.extension:
             if one_extension.url == extension_url:
                 if one_extension.url not in extensions_written_to_metas:
                     extensions_written_to_metas.add(one_extension.url)
@@ -358,9 +358,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return self.concept
         else:
             # retrieve meta information about extensions
-            extension_list = get_meta_list_with_name(self, 'extension')
+            extension = get_meta_list_with_name(self, 'extension')
             extension_datatype_dict = {}
-            for extension in extension_list:
+            for extension in extension:
                 extension_split = extension.split('|')
                 extension_datatype_dict[extension_split[0]] = extension_split[1]
 
@@ -512,7 +512,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 the_extension.value = oneMeta.get_value()
                             else:
                                 the_extension.value = pcam.Coding(oneMeta.get_value())
-                            theConcept.extension_list.append(the_extension)
+                            theConcept.extension.append(the_extension)
                         else:
                             theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
                             theProperty.value = oneMeta.get_value()
