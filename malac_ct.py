@@ -68,6 +68,9 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-turnOffVerif", "--turnOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
     )
+    parser.add_argument(
+        "-convTs", "--conversionTimestamp", help="Specify the conversion timestamp which is also used as expansion timestamp in case of value set resources.", required=False
+    )
     return parser
 
 def detectClassByEnding(filename):
@@ -192,9 +195,9 @@ def main() -> None:
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
             input.processedTerminologies = args.appendProcessedTerminologyTo[0]
-            timestamp = datetime.now().strftime("%Y-%m-%dT%X.0000Z")
+            timestamp = args.conversionTimestamp if args.conversionTimestamp else datetime.now().strftime("%Y-%m-%dT%X.0000Z")
             for csv2AppendTo in args.appendProcessedTerminologyTo:
-                input.appendMetaDataTo(csv2AppendTo, timestamp)
+                timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:

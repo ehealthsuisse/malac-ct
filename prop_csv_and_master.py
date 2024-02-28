@@ -402,7 +402,7 @@ class PropCsvAndMaster():
             mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
 
         # if metadata_change_timestamp has not yet been set
-        if not self.metadata_change_timestamp:
+        if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
             self.metadata_change_timestamp = timestamp
 
         # sort the dict
@@ -414,6 +414,8 @@ class PropCsvAndMaster():
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
             for line in mydict.values():
                 outfile.write(','.join(line)+'\n')
+
+        return self.metadata_change_timestamp
 
     def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given
