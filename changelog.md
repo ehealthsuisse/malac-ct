@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - elga-gmbh/malac-ct#31 Fix expansion timestamp for multiple appndProcTermTo CSVs and add argument for conversion timestamp.
 
+## [4.3.1+20231218]
+
+### Fixed
+
+- Fix parsing expansion when inactive concepts exist in FHIR ValueSet.
+
 ## [4.3.0+20231113]
 
 ### Added
