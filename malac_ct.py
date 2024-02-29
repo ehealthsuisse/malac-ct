@@ -22,6 +22,13 @@ listIClasses = listOClasses | {
     ".icd.mdb":["ext_aut", "BMGICD"],
     ".lkf.mdb":["ext_aut", "BMGLKF"]
     }
+
+# dictionary of extensions that may be activated by using the "-ext" parameter and specifying the corresponding canonical URL
+extensions_dict = {
+    "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid":["ext_aut", "SystemOid"],
+    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":None
+    }
+
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
 versionNumber = "4.3.1+20231218"
 
@@ -67,6 +74,9 @@ def init_argparse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-turnOffVerif", "--turnOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
+    )
+    parser.add_argument(
+        '-ext', '--extension', action='append', help='Specify the canonical URL of the FHIR extension that shall be activated.', required=False
     )
     return parser
 
@@ -195,6 +205,13 @@ def main() -> None:
             timestamp = datetime.now().strftime("%Y-%m-%dT%X.0000Z")
             for csv2AppendTo in args.appendProcessedTerminologyTo:
                 input.appendMetaDataTo(csv2AppendTo, timestamp)
+
+        # read activated extensions
+        input.activated_extension_dict = {}
+        if args.extension:
+            for extension in args.extension:
+                if extension in extensions_dict:
+                    input.activated_extension_dict[extension] = extensions_dict[extension]
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:
