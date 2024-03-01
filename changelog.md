@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- #11 Add support for [System OID](http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid).
+- #16 Add general support for extensions. However, each extension requires some custom integration in FHIR and FSH.
+
 ### Fixed
 
 - #35 Ignore publishers with the name `see` as this is a placeholder if no publisher name is available.
