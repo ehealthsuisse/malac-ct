@@ -78,26 +78,23 @@ def get_meta_list_with_name(self, meta_name):
 
     return meta_list
 
-def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_class, pcam_source, extension_url):
-    """Write the extension with the given extenstion_url from the pcam_source to claml.
+def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_class, pcam_source):
+    """Write all extensions from the pcam_source to claml.
 
     claml_metas -- list of metas that will contain meta-information about extension
 
     claml_class -- claml class that will contain the value of the extension
 
     pcam_source -- the object whose extension according to the extension_url will be written to claml.
-
-    extension_url -- identification of the extension to be written.
     """
     if hasattr(pcam_source, 'extension_list'):
         for one_extension in pcam_source.extension_list:
-            if one_extension.url == extension_url:
-                if one_extension.url not in extensions_written_to_metas:
-                    extensions_written_to_metas.add(one_extension.url)
-                    claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
+            if one_extension.url not in extensions_written_to_metas:
+                extensions_written_to_metas.add(one_extension.url)
+                claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
 
-                if value := one_extension.value:
-                    claml_class.add_Meta(MetaSub(one_extension.url, value))
+            if value := one_extension.value:
+                claml_class.add_Meta(MetaSub(one_extension.url, value))
 
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
@@ -656,19 +653,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
 
-                # exporting extensions
-                for activated_extension in self.activated_extension_dict:
-                    # retrieve python module and class
-                    module_class_list = self.activated_extension_dict[activated_extension]
-                    if module_class_list:
-                        # import corresponding module and retrieve the class for the extension
-                        extension_module = __import__(module_class_list[0])
-                        extension_class = getattr(extension_module, module_class_list[1])
-                        # export extension
-                        exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept, extension_class.extension_canonical)
-                    else:
-                        # export extension
-                        exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept, activated_extension)
+                # export extensions
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
