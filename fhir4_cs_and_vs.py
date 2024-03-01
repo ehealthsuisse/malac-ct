@@ -572,7 +572,8 @@ def parse_extension(pcam_target, fhir_source):
                     the_extension = pcam.Extension()
                     the_extension.url = one_url
 
-                    if (one_value := one_extension.get_valueOid()): #TODO support of further types
+                    if (one_value := one_extension.get_valueOid()) or\
+                       (one_value := one_extension.get_valueInteger()): #TODO support of further types
                         the_extension.value = one_value.get_value()
                         the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
                     elif tmp_prop := one_extension.get_valueCoding():
