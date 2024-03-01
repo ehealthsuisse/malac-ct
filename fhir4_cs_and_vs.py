@@ -584,7 +584,7 @@ def parse_extension(pcam_target, fhir_source):
                         if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
                         the_extension.value = the_coding
                         # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                        the_extension.type = pcam.PropertyCodeType(tmp_prop.original_tagname_.replace('value',''))
+                        the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
 
                     pcam_target.extension_list.append(the_extension)
 
