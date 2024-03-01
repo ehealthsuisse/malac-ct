@@ -363,10 +363,17 @@ def exporto(self, globals, fhir_resource):
 
     # NOT SUPPORTED CodeSystem.meta or ValueSet.meta in general
     # CodeSystem.meta.profile or ValueSet.meta.profile
+    one_profile_list = []
+    the_profile_list = []
     if one_profile_list := self.get_profiles():
-        the_profile_list = []
         for one_profile in one_profile_list:
             the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
+    # make sure that profiles corresponding to activated extension are exported for sure
+    for activated_extension in self.activated_extension_dict:
+        if activated_extension not in one_profile_list:
+            the_profile_list.append(globals.get('canonicalSub')(value=activated_extension))
+    # add the profiles if any
+    if the_profile_list:
         fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
 
     if tmp := self.get_implicitrules():
