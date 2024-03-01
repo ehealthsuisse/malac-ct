@@ -979,7 +979,8 @@ class PropertyCodeType(enum.Enum):
 class ExtensionType(enum.Enum):
     oid = "oid"
     coding = "Coding"
-    # more to be defined
+    integer = "integer"
+    # TODO more to be defined
 
 class ContactDetail():
     def __init__(self, name=None, telecom=None):
@@ -1224,7 +1225,7 @@ class Coding():
         buildStr += "^"
         if self.display: buildStr += self.display
         buildStr += "^"
-        if self.userSelected: buildStr += self.userSelected
+        if self.userSelected: buildStr += str(self.userSelected)
         return buildStr
 
 class Extension():

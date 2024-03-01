@@ -26,7 +26,7 @@ from lxml import etree as etree_
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
-import ext_aut_systemoid as systemoid
+import ext_aut
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -442,10 +442,6 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         # Create new FHIR ValueSet
         valueset = ValueSetSub()
 
-        # TODO: introduce functionality to activate/deactivate extension
-        # make sure the profile is being added
-        # systemoid.fhir4_vs_add_profile(self)
-
         # export general metadata
         f4csvs.exporto(self, globals(), valueset)
 
@@ -562,11 +558,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # with the current system + version will be created
             if system_key not in the_system_dict:
                 the_include = ValueSet_IncludeSub()
-                # add the extension to the include
-                if not f4csvs.exporto_extension(globals(), the_include, one_concept, systemoid.EXTENSION_CANONICAL):
-                    pass
-                    # TODO: introduce functionality to activate/deactivate extension
-                    # systemoid.fhir4_vs_add_extension(self, globals(), the_system, the_include)
+                # export SystemOid extension
+                if not f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
+                    # add the extension if it has been explicitly activated
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                        ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
+                        f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical)
                 if the_system:
                     the_include.set_system(uriSub(value=the_system))
                 if the_version:
@@ -637,11 +634,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 if one_system:
                     the_concept.set_system(uriSub(value=one_system))
 
-                    # add the extension to the concept
-                    if not f4csvs.exporto_extension(globals(), the_concept, one_concept, systemoid.EXTENSION_CANONICAL):
-                        pass
-                        # TODO: introduce functionality to activate/deactivate extension
-                        # systemoid.fhir4_vs_add_extension(self, globals(), one_system, the_concept)
+                    # export SystemOid extension
+                    if not f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
+                        # add the extension if it has been explicitly activated
+                        if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                            ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(one_system))
+                            f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))

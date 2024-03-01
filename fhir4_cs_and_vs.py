@@ -363,10 +363,26 @@ def exporto(self, globals, fhir_resource):
 
     # NOT SUPPORTED CodeSystem.meta or ValueSet.meta in general
     # CodeSystem.meta.profile or ValueSet.meta.profile
+    one_profile_list = []
+    the_profile_list = []
     if one_profile_list := self.get_profiles():
-        the_profile_list = []
         for one_profile in one_profile_list:
             the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
+    # make sure that profiles corresponding to activated extension are exported for sure
+    for activated_extension in self.activated_extension_dict:
+        # retrieve python module and class
+        module_class_list = self.activated_extension_dict[activated_extension]
+        # not all extensions have a designated class
+        if module_class_list:
+            # import corresponding module and retrieve the class for the extension
+            extension_module = __import__(module_class_list[0])
+            extension_class = getattr(extension_module, module_class_list[1])
+            # export profile's canonical if it has not yet been exported
+            if extension_class.profile_canonical not in one_profile_list:
+                the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
+
+    # add the profiles if any
+    if the_profile_list:
         fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
 
     if tmp := self.get_implicitrules():
@@ -556,7 +572,8 @@ def parse_extension(pcam_target, fhir_source):
                     the_extension = pcam.Extension()
                     the_extension.url = one_url
 
-                    if (one_value := one_extension.get_valueOid()): #TODO support of further types
+                    if (one_value := one_extension.get_valueOid()) or\
+                       (one_value := one_extension.get_valueInteger()): #TODO support of further types
                         the_extension.value = one_value.get_value()
                         the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
                     elif tmp_prop := one_extension.get_valueCoding():
@@ -568,7 +585,7 @@ def parse_extension(pcam_target, fhir_source):
                         if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
                         the_extension.value = the_coding
                         # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                        the_extension.type = pcam.PropertyCodeType(tmp_prop.original_tagname_.replace('value',''))
+                        the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
 
                     pcam_target.extension.append(the_extension)
 
