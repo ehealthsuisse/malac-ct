@@ -100,6 +100,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_profiles(self):
         the_profile_list = []
 
+        # make sure that profiles corresponding to activated extension are exported for sure
         for activated_extension in self.activated_extension_dict:
             # retrieve python module and class
             module_class_list = self.activated_extension_dict[activated_extension]
