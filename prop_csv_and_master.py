@@ -1148,7 +1148,7 @@ class Coding():
         buildStr += "^"
         if self.display: buildStr += self.display
         buildStr += "^"
-        if self.userSelected: buildStr += self.userSelected
+        if self.userSelected: buildStr += str(self.userSelected)
         return buildStr
 
 class Extension():
