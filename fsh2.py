@@ -216,7 +216,7 @@ class Fsh2(Fsh1):
                         j += 1
                         k = -1
                         tempConcept = oneConcept
-                        exporto_extension(outfile, '* compose.include[%s]' % (j), oneConcept, ext_aut.SystemOid.extension_canonical)
+                        exporto_extension(outfile, '* compose.include[%s].' % (j), oneConcept, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:

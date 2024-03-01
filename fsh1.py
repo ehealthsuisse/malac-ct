@@ -528,7 +528,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         else:
                             incOrExclude = "include"
                         # add the extension to the include/exclude
-                        exporto_extension(outfile, '* compose.%s[%s]' % (incOrExclude, cntIncAndExclude), oneConcept, ext_aut.SystemOid.extension_canonical)
+                        exporto_extension(outfile, '* compose.%s[%s].' % (incOrExclude, cntIncAndExclude), oneConcept, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -651,7 +651,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
-    exporto_extension(outfile, '* expansion%s' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
+    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
@@ -713,7 +713,7 @@ def strContainsAsLevels (level, containCnt):
         ret += ".contains["+ str(containCnt[x]) +"]"
     return ret
 
-def exporto_extension(outfile, fsh_target, pcam_source, extension_url):
+def exporto_extension(outfile, fsh_target, pcam_source, *extension_url_list):
     """Write the extension with the given extenstion_url from the pcam_source to the fsh_target.
 
     fsh_target -- the element the extension will be written to
@@ -724,20 +724,21 @@ def exporto_extension(outfile, fsh_target, pcam_source, extension_url):
     """
     count_extension = 0
     for one_extension in pcam_source.extension_list:
-        if one_extension.url == extension_url:
-            # outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
-            outfile.write('%s.extension[%s].url = "%s"\n' % (fsh_target, count_extension, one_extension.url))
+        if one_extension.url in extension_url_list:
+            prefix = '%sextension[%s]' % (fsh_target, count_extension)
+            outfile.write('%s.url = "%s"\n' % (prefix, one_extension.url))
 
             if (value := one_extension.value) and (value_type := one_extension.type):
                 if value_type == pcam.ExtensionType.coding:
-                    # TODO support Coding
-                    pass
+                    if hasattr(value, 'codesystem') and value.codesystem: outfile.write('%s.valueCoding.system = "%s" \n' % (prefix, str(value.codesystem).replace('"','\\"')))
+                    if hasattr(value, 'version') and value.version: outfile.write('%s.valueCoding.version = "%s" \n' % (prefix, str(value.version).replace('"','\\"')))
+                    if hasattr(value, 'code') and value.code: outfile.write('%s.valueCoding.code = #%s \n' % (prefix, str(value.code).replace('"','\\"')))
+                    if hasattr(value, 'display') and value.display: outfile.write('%s.valueCoding.display = "%s" \n' % (prefix, str(value.display).replace('"','\\"')))
+                    if hasattr(value, 'userSelected') and value.userSelected: outfile.write('%s.valueCoding.userSelected = %s \n' % (prefix, str(value.userSelected).replace('"','\\"')))
                 else:
-                    outfile.write('%s.extension[%s].value%s = "%s"\n' % (fsh_target, count_extension, pcam.first_char_to_upper(value_type.value), value.replace('"','\\"')))
-            # return true and break the loop once the extension has been written to the fhir_target
-            return True
-    # return false in case the extension with the given extension_url was not written to the fhir_target
-    return False
+                    outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), value.replace('"','\\"')))
+
+            count_extension += 1
 
 class Filter(pcam.Filter):
     def __init__(self, idInFsh):
