@@ -370,8 +370,17 @@ def exporto(self, globals, fhir_resource):
             the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
     # make sure that profiles corresponding to activated extension are exported for sure
     for activated_extension in self.activated_extension_dict:
-        if activated_extension not in one_profile_list:
-            the_profile_list.append(globals.get('canonicalSub')(value=activated_extension))
+        # retrieve python module and class
+        module_class_list = self.activated_extension_dict[activated_extension]
+        # not all extensions have a designated class
+        if module_class_list:
+            # import corresponding module and retrieve the class for the extension
+            extension_module = __import__(module_class_list[0])
+            extension_class = getattr(extension_module, module_class_list[1])
+            # export profile's canonical if it has not yet been exported
+            if extension_class.profile_canonical not in one_profile_list:
+                the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
+
     # add the profiles if any
     if the_profile_list:
         fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
