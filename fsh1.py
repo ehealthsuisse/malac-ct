@@ -3,6 +3,7 @@ import prop_csv_and_master as pcam
 import re
 import copy
 import ext_aut
+from ext_codesystem_replacedby import ReplacedBy
 
 tempindex = None
 
@@ -517,6 +518,9 @@ class Fsh1(pcam.PropCsvAndMaster):
                                 if hasattr(oneProperty.value, 'userSelected') and oneProperty.value.userSelected: outfile.write('* concept[%s].property[%s].value%s.userSelected = %s \n' % (cntCSConcept, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.userSelected).lower().replace('"','\\"')))
 
                             i += 1
+
+                    # export extension
+                    exporto_extension(outfile, '* concept[%s].' % (cntCSConcept), oneConcept, ReplacedBy.extension_canonical)
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system or tempConcept.exclude != oneConcept.exclude:

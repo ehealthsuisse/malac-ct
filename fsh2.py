@@ -2,6 +2,7 @@ from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
 import sys
 import prop_csv_and_master as pcam
 import ext_aut
+from ext_codesystem_replacedby import ReplacedBy
 
 class Fsh2(Fsh1):
 
@@ -211,6 +212,9 @@ class Fsh2(Fsh1):
                                 if hasattr(oneProperty.value, 'userSelected') and oneProperty.value.userSelected: outfile.write('* #%s ^property[%s].value%s.userSelected = %s \n' % (oneConcept.code, i, pcam.first_char_to_upper(oneProperty.type.value), str(oneProperty.value.userSelected).lower().replace('"','\\"')))
 
                             i += 1
+
+                    # export extension
+                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, ReplacedBy.extension_canonical)
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1
