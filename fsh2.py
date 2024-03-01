@@ -1,7 +1,7 @@
 from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
 import sys
 import prop_csv_and_master as pcam
-import ext_aut_systemoid as systemoid
+import ext_aut
 
 class Fsh2(Fsh1):
 
@@ -216,7 +216,7 @@ class Fsh2(Fsh1):
                         j += 1
                         k = -1
                         tempConcept = oneConcept
-                        exporto_extension(outfile, '* compose.include[%s]' % (j), oneConcept, systemoid.EXTENSION_CANONICAL)
+                        exporto_extension(outfile, '* compose.include[%s]' % (j), oneConcept, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:

@@ -2,7 +2,7 @@ from pickletools import string4
 import prop_csv_and_master as pcam
 import re
 import copy
-import ext_aut_systemoid as systemoid
+import ext_aut
 
 tempindex = None
 
@@ -528,7 +528,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         else:
                             incOrExclude = "include"
                         # add the extension to the include/exclude
-                        exporto_extension(outfile, '* compose.%s[%s]' % (incOrExclude, cntIncAndExclude), oneConcept, systemoid.EXTENSION_CANONICAL)
+                        exporto_extension(outfile, '* compose.%s[%s]' % (incOrExclude, cntIncAndExclude), oneConcept, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -651,7 +651,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
-    exporto_extension(outfile, '* expansion%s' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, systemoid.EXTENSION_CANONICAL)
+    exporto_extension(outfile, '* expansion%s' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
