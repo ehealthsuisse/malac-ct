@@ -2,8 +2,8 @@ from pickletools import string4
 import prop_csv_and_master as pcam
 import re
 import copy
+import ext
 import ext_aut
-from ext_codesystem_replacedby import ReplacedBy
 
 tempindex = None
 
@@ -92,7 +92,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if oneContactPoint.idInFsh == splittedLine[0].split('.')[1].split(']')[0]:
                             theContactPoint = oneContactPoint
                     # if none is found in the list, make one
-                    if theContactPoint is None:
+                    if theContactPoint is None and splittedLine[0].count(".")>=2: # added to skip if only contact.name is stated
                         theContactPoint = ContactPoint(splittedLine[0].split('.')[1].split(']')[0])
                         theContactDetail.telecom.append(theContactPoint)
 
@@ -520,7 +520,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             i += 1
 
                     # export extension
-                    exporto_extension(outfile, '* concept[%s].' % (cntCSConcept), oneConcept, ReplacedBy.extension_canonical)
+                    exporto_extension(outfile, '* concept[%s].' % (cntCSConcept), oneConcept, ext.ReplacedBy.extension_canonical)
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system or tempConcept.exclude != oneConcept.exclude:
@@ -656,6 +656,7 @@ class Fsh1(pcam.PropCsvAndMaster):
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
+    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext.ConceptOrder.extension_canonical)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
@@ -740,7 +741,7 @@ def exporto_extension(outfile, fsh_target, pcam_source, *extension_url_list):
                     if hasattr(value, 'display') and value.display: outfile.write('%s.valueCoding.display = "%s" \n' % (prefix, str(value.display).replace('"','\\"')))
                     if hasattr(value, 'userSelected') and value.userSelected: outfile.write('%s.valueCoding.userSelected = %s \n' % (prefix, str(value.userSelected).replace('"','\\"')))
                 else:
-                    outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), value.replace('"','\\"')))
+                    outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), str(value).replace('"','\\"')))
 
             count_extension += 1
 

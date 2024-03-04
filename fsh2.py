@@ -1,8 +1,8 @@
 from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
 import sys
 import prop_csv_and_master as pcam
+import ext
 import ext_aut
-from ext_codesystem_replacedby import ReplacedBy
 
 class Fsh2(Fsh1):
 
@@ -214,7 +214,7 @@ class Fsh2(Fsh1):
                             i += 1
 
                     # export extension
-                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, ReplacedBy.extension_canonical)
+                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, ext.ReplacedBy.extension_canonical)
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1

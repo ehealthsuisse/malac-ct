@@ -378,7 +378,7 @@ def exporto(self, globals, fhir_resource):
             extension_module = __import__(module_class_list[0])
             extension_class = getattr(extension_module, module_class_list[1])
             # export profile's canonical if it has not yet been exported
-            if extension_class.profile_canonical not in one_profile_list:
+            if hasattr(extension_class, "profile_canonical") and extension_class.profile_canonical not in one_profile_list:
                 the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
 
     # add the profiles if any

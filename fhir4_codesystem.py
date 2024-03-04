@@ -25,7 +25,7 @@ from lxml import etree as etree_
 import fhir4_codesystem_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
-from ext_codesystem_replacedby import ReplacedBy
+from ext import ReplacedBy
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:

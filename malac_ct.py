@@ -28,7 +28,8 @@ listIClasses = listOClasses | {
 # dictionary of extensions that may be activated by using the "-ext" parameter and specifying the corresponding canonical URL
 extensions_dict = {
     "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid":["ext_aut", "SystemOid"],
-    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":None
+    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":["ext","ReplacedBy"], #TODO specific FHIR version?
+    "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":["ext","ConceptOrder"]
     }
 
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."

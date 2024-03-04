@@ -26,6 +26,7 @@ from lxml import etree as etree_
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
+import ext
 import ext_aut
 
 def parsexml_(infile, parser=None, **kwargs):
@@ -564,6 +565,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
                         ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
                         f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical)
+                    if ext.ConceptOrder.extension_canonical in self.activated_extension_dict:
+                        f4csvs.exporto_extension(globals(), the_include, one_concept, ext.ConceptOrder.extension_canonical)
                 if the_system:
                     the_include.set_system(uriSub(value=the_system))
                 if the_version:
@@ -640,6 +643,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
                             ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(one_system))
                             f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical)
+                        if ext.ConceptOrder.extension_canonical in self.activated_extension_dict:
+                            f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
