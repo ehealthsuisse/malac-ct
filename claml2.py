@@ -722,7 +722,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if self.get_resource() == "CodeSystem":
                     theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 if self.get_resource() == "ValueSet":
-                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(concept_dict,oneConcept)))
+                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(oneConcept)))
                 theClass.add_Meta(MetaSub("Type", type_))
 
                 # if there was no kind given, create one with "noKind"

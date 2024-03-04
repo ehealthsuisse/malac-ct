@@ -223,7 +223,7 @@ class PropCsvAndMaster():
                         # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
                         for one_concept in self.concept:
                             # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                            one_concept.level = self.retrieve_level_of_VS_concept(one_concept)
                     elif self.resource == self.resource.CodeSystem:
                         concept_dict = self.buildConceptDictWithAttr('code')
 
@@ -234,9 +234,9 @@ class PropCsvAndMaster():
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
 
-    def retrieve_level_of_VS_concept(self, concept_dict, concept):
+    def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:
-            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
+            level = self.retrieve_level_of_VS_concept(tmp_parent)
             return level + 1
         else:
             return 0
