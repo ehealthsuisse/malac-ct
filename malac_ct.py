@@ -187,7 +187,7 @@ def main() -> None:
     iClassValue,iClass = detectClassByEnding(args.input)
 
     # special handling of .data.1.spreadct.csv, check if *.meta.1.spreadct.csv exists
-    if iClass is ".data.1.spreadct.csv":
+    if iClass == ".data.1.spreadct.csv":
         import os
         if not os.path.exists(args.input.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")):
             sys.exit("The spreadCT format requires beside the *.data.1.spreadct.csv a mandatory *.meta.1.spreadct.csv in the same folder! \n %s" % descriptionText)
@@ -205,9 +205,11 @@ def main() -> None:
         input = inputClass.parse(args.input)
         input.globalUrl = args.fhirIgUrl
         input.filename = args.input
-        # sort the input (implemented for CS and VS, active only for CS till the manually given expansionOrder is implemented)
+        # sort the input
         if 'CodeSystem-' in input.filename:
             input.sortConceptsExpandStyle()
+        elif 'ValueSet-' in input.filename:
+            input.sort_VS_concepts_by_conceptOrder()
 
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:

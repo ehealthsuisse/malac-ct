@@ -1,5 +1,6 @@
 import enum
 from unittest import skip
+from malac_ct import extensions_dict
 
 class FileStyle(enum.Enum):
     propCSV = "propCSV"
@@ -165,8 +166,18 @@ class PropCsvAndMaster():
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
                                     elif 'extension' == headingList[i]:
                                         tempConcept.extension.append(Extension(row[i]))
-                                    else: # everything else should be a property (aka easyProperties) 
-                                        tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|string"))
+                                    else: # everything else should be a known extension or unknown property (aka easyProperties & easyExtensions) 
+                                        foundOneExt = False
+                                        for extensionValueModule, extensionValueClass in extensions_dict.values():
+                                            if extensionValueClass.lower() == headingList[i].lower():
+                                                extModule = __import__(extensionValueModule)
+                                                extClass = getattr(extModule, extensionValueClass)
+                                                extClass.add_extension(tempConcept, row[i])
+                                                #tempConcept.extension.append(Extension(row[i]))
+                                                foundOneExt = True
+                                                break
+                                        if not foundOneExt:
+                                            tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|string"))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
                                     elif 'version' == headingList[i]: tempConcept.version = row[i]
@@ -195,31 +206,67 @@ class PropCsvAndMaster():
                                             tempConcept.exclude = True
                                     elif 'extension' == headingList[i]:
                                         tempConcept.extension.append(Extension(row[i]))
-                                    else: # Everything else should be a designation (aka easyDesignation), 
+                                    elif 'parentByConceptOrder' == headingList[i]: # special handling of malac-ct addition if conceptOrder is used
+                                        tempConcept.parentByConceptOrder = int(row[i])
+                                        self.parentingByConceptOrder = True
+                                    else: # Everything else should be a known extension or unknown designation (aka easyDesignation & easyExtensions), 
                                         # with a designation use inside https://termgit.elga.gv.at/CodeSystem/austrian-designation-use.
-                                        # Please dont forget to adapt that CodeSystem with your new designations 
-                                        tempConcept.designation.append(ConceptDesignation("|https://termgit.elga.gv.at/CodeSystem/austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^|"+row[i]))
+                                        # The valueset author should be aware that the CodeSystem should have that designations 
+                                        foundOneExt = False
+                                        for extensionValueModule, extensionValueClass in extensions_dict.values():
+                                            if extensionValueClass.lower() == headingList[i].lower():
+                                                extModule = __import__(extensionValueModule)
+                                                extClass = getattr(extModule, extensionValueClass)
+                                                extClass.add_extension(tempConcept, row[i])
+                                                #tempConcept.extension.append(Extension(row[i]))
+                                                foundOneExt = True
+                                                break
+                                        if not foundOneExt:
+                                            tempConcept.designation.append(ConceptDesignation("|https://termgit.elga.gv.at/CodeSystem/austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^|"+row[i]))
 
 
                         # check for some invalid combinations
                         if self.resource == self.resource.ValueSet:
-                            # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
-                            if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
+                            # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent, additionally, no parentingByConceptOrder has to be stated
+                            if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)) or (tempConcept.parent and hasattr(self, "parentingByConceptOrder")):
                                 import sys
-                                sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
+                                sys.exit('Parent code and system should always be stated together. Additionally, if using parentingByConceptOrder, parent and parentSystem are not allowed to use. See concept with code: ' + tempConcept.code)
+
                         self.concept.append(tempConcept)
 
                     # fill members of parents
                     if self.resource == self.resource.ValueSet:
                         concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
-                        for one_concept in self.concept:
-                            if one_concept.parent and one_concept.parentSystem:
-                                parent = concept_dict[one_concept.parent+one_concept.parentSystem]
-                                # setting one_concept as child of the parent
-                                parent.member.append(one_concept)
-                                # setting the parent of one_concept
-                                one_concept.parent = parent
+                        if hasattr(self,"parentingByConceptOrder"):
+                            # create a dict with the conceptOrder as key 
+                            # beware, some concept may do not have a conceptOrder, these can only be childs!
+                            # beware, if a conceptOrder is using a already given value, only the last concept with the same conceptOrder can be a parent
+                            # beware, only the first conceptOrder is beeing used
+                            concept_dict_with_order_as_key = {}
+                            for one_concept in self.concept:
+                                for one_ext in one_concept.extension:
+                                    if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder": 
+                                        concept_dict_with_order_as_key[one_ext.value] = one_concept
+                                        break
+                            # now link all the parents using the dict
+                            for one_concept in self.concept:
+                                if hasattr(one_concept,"parentByConceptOrder"):
+                                    parent = concept_dict_with_order_as_key[one_concept.parentByConceptOrder]
+                                    # setting one_concept as child of the parent
+                                    parent.member.append(one_concept)
+                                    # setting the parent of one_concept
+                                    one_concept.parent = parent
+
+                        else: # fallback to parent + parentSystem
+                            for one_concept in self.concept:
+                                if one_concept.parent and one_concept.parentSystem:
+                                    parent = concept_dict[one_concept.parent+one_concept.parentSystem]
+                                    # setting one_concept as child of the parent
+                                    parent.member.append(one_concept)
+                                    # setting the parent of one_concept
+                                    one_concept.parent = parent
+                        
                         # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
                         for one_concept in self.concept:
                             # setting the hierarchy level
@@ -545,6 +592,9 @@ class PropCsvAndMaster():
         # overwrite the concept list with the just sorted one
         self.concept = sortedConcepts
 
+    def sort_VS_concepts_by_conceptOrder(self):
+        return self.concept.sort(key=VSConcept.get_value_of_conceptOrder)
+
     def storeSelfAndRecrCallChildren(self, oneCon, conDict, sortedCons):
         sortedCons.append(oneCon)
         if self.get_resource() == "CodeSystem":
@@ -773,13 +823,21 @@ class PropCsvAndMaster():
                     if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                         csv_header.append('display')
                         csv_line.append(tmp)
-                    if 'parent' not in csv_header and (tmp := oneConcept.parent):
+                    if self.parentingByConceptOrder and 'parentByConceptOrder' not in csv_header and (tmp := oneConcept.parent):
+                        csv_header.append('parentByConceptOrder')
+                        for one_ext in tmp.extension:
+                            if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":  
+                                if one_ext.value:
+                                    csv_line.append(one_ext.value)
+                                else:
+                                    csv_line.append('')
+                    if not self.parentingByConceptOrder and 'parent' not in csv_header and (tmp := oneConcept.parent):
                         csv_header.append('parent')
                         if tmp.code:
                             csv_line.append(tmp.code)
                         else:
                             csv_line.append('')
-                    if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                    if not self.parentingByConceptOrder and 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
                         csv_header.append('parentSystem')
                         if tmp.system:
                             csv_line.append(tmp.system)
@@ -1158,6 +1216,13 @@ class VSConcept():
     # created only for sorting, shouldn't be used for anything else
     def get_code(self):
         return self.code
+    
+    # created only for sorting, shouldn't be used for anything else
+    def get_value_of_conceptOrder(self):
+        for one_ext in self.extension:
+            if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":
+                return one_ext.value
+        else: return 0
 
     class VSConceptFilter():
         def __init__(self):
