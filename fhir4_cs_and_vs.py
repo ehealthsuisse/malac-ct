@@ -21,8 +21,20 @@ def get_id(self):
     return None
 
 # NOT SUPPORTED:
-#   CodeSystem.meta or ValueSet.meta
+#   CodeSystem.meta or ValueSet.meta in general
 # def get_meta(resource):
+def get_profiles(self):
+    """Return CodeSytem.meta.profile or ValueSet.meta.profile.
+    """
+    the_profile_list = []
+
+    if meta := self.get_meta():
+        if profiles := meta.get_profile():
+            for one_profile in profiles:
+                if tmp := one_profile.get_value():
+                    the_profile_list.append(tmp)
+
+    return the_profile_list
 
 def get_implicitrules(self):
     """Return CodeSytem.implicitRules or ValueSet.implicitRules.
@@ -178,7 +190,7 @@ def get_date(self):
 def get_publisher(self):
     """Return CodeSystem.publisher or ValueSet.publisher.
     """
-    if tmp := self.get_publisher():
+    if (tmp := self.get_publisher()) and tmp.get_value() != 'see':
         return tmp.get_value()
     return None
 
@@ -349,7 +361,29 @@ def exporto(self, globals, fhir_resource):
     if tmp := self.get_id():
         fhir_resource.set_id(globals.get('idSub')(value=tmp))
 
-    # NOT SUPPORTED CodeSystem.meta or ValueSet.meta
+    # NOT SUPPORTED CodeSystem.meta or ValueSet.meta in general
+    # CodeSystem.meta.profile or ValueSet.meta.profile
+    one_profile_list = []
+    the_profile_list = []
+    if one_profile_list := self.get_profiles():
+        for one_profile in one_profile_list:
+            the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
+    # make sure that profiles corresponding to activated extension are exported for sure
+    for activated_extension in self.activated_extension_dict:
+        # retrieve python module and class
+        module_class_list = self.activated_extension_dict[activated_extension]
+        # not all extensions have a designated class
+        if module_class_list:
+            # import corresponding module and retrieve the class for the extension
+            extension_module = __import__(module_class_list[0])
+            extension_class = getattr(extension_module, module_class_list[1])
+            # export profile's canonical if it has not yet been exported
+            if extension_class.profile_canonical not in one_profile_list:
+                the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
+
+    # add the profiles if any
+    if the_profile_list:
+        fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
 
     if tmp := self.get_implicitrules():
         fhir_resource.set_implicitRules(globals.get('uriSub')(value=tmp))
@@ -513,6 +547,93 @@ def exporto_concept_designation(globals, designation_class, designation_list):
         the_designation_list.append(the_designation)
 
     return the_designation_list
+
+def parse_extension(pcam_target, fhir_source):
+    """Retrieve all extensions from the fhir_source and store them in the pcam_target.
+    Open question: can the same extension (same url) be used on one fhir_source more than once (with differing values)?
+    Attention: The pcam_target might collect extensions of different fhir_source elements. Beware, that currently only one value per extension url will be stored!
+
+    pcam_target -- the object according to pcam that will store all extensions read from the fhir_source.
+
+    fhir_source -- the element from the FHIR resource whose extensions are being retrieved.
+    """
+
+    # depends on where this method is used
+    if not hasattr(pcam_target, 'extension_list'):
+        pcam_target.extension_list = []
+
+    if extension_list := fhir_source.get_extension():
+        for one_extension in extension_list:
+            if one_url := one_extension.get_url():
+                # check if extension already has been retrieved
+                extension_exists = [index for (index, item) in enumerate(pcam_target.extension_list) if item.uri == one_url]
+
+                if not extension_exists:
+                    the_extension = pcam.Extension()
+                    the_extension.url = one_url
+
+                    if (one_value := one_extension.get_valueOid()) or\
+                       (one_value := one_extension.get_valueInteger()): #TODO support of further types
+                        the_extension.value = one_value.get_value()
+                        the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    elif tmp_prop := one_extension.get_valueCoding():
+                        the_coding = pcam.Coding()
+                        if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
+                        if tmp := tmp_prop.get_version(): the_coding.version = tmp.get_value()
+                        if tmp := tmp_prop.get_code(): the_coding.code= tmp.get_value()
+                        if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
+                        if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
+                        the_extension.value = the_coding
+                        # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                        the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
+
+                    pcam_target.extension_list.append(the_extension)
+
+def exporto_extension(globals, fhir_target, pcam_source, extension_url):
+    """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
+
+    fhir_target -- the element from the FHIR resource where the extension will be written to.
+
+    pcam_source -- the object whose extension according to the extension_url will be written to the fhir_target.
+
+    extension_url -- identification of the extension to be written.
+    """
+    if hasattr(pcam_source, 'extension_list'):
+        for one_extension in pcam_source.extension_list:
+            if one_extension.url == extension_url:
+                the_extension = globals.get('ExtensionSub')(url=one_extension.url)
+
+                if (value := one_extension.value) and (value_type := one_extension.type):
+                    if value_type == pcam.ExtensionType.coding:
+                        # the if else inside of params are checking, if ther string value is empty, else there would be e.g. <version/> elements
+                        the_extension.set_valueCoding(globals.get('CodingSub')(
+                                system=globals.get('urlSub')(value=value.codesystem) if value.codesystem else None,
+                                version=globals.get('stringSub')(value=value.version) if value.version else None,
+                                code=globals.get('codeSub')(value=value.code) if value.code else None,
+                                display=globals.get('stringSub')(value=value.display) if value.display else None,
+                                userSelected=globals.get('booleanSub')(value=value.userSelected) if value.userSelected else None))
+                    else:
+                        # determine class name (e.g. string -> stringSub)
+                        value_type_class_name = value_type.value + 'Sub'
+                        # determine proper setter method name (e.g. set_valueString)
+                        setter_name = 'set_value' + pcam.first_char_to_upper(value_type.value)
+
+                        # check if the_property has got a setter according to setter_name
+                        #       if this module has got a datatype (i.e. class definition) according to value_type_class_name
+                        if hasattr(the_extension, setter_name) and globals.get(value_type_class_name):
+                            # for setter_name = 'set_valueString' and value_type_class_anme = 'stringSub' the following
+                            # line could be rewritten as:
+                            #
+                            # the_property.set_valueString(stringSub(value=tmp))
+                            getattr(the_extension, setter_name)(globals.get(value_type_class_name)(value=value))
+
+                fhir_target.add_extension(the_extension)
+                # return true and break the loop once the extension has been written to the fhir_target
+                return True
+        # return false in case the extension with the given extension_url was not written to the fhir_target
+        return False
+    # in case no extensions could be written at all
+    return False
 
 class FHIR4CsAndVs:
     """Class serves as entrypoint for properly parsing and writing
