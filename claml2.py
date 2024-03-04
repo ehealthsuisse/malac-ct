@@ -88,7 +88,7 @@ def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_c
     pcam_source -- the object whose extension according to the extension_url will be written to claml.
     """
     if hasattr(pcam_source, 'extension'):
-        for one_extension in pcam_source.extension_list:
+        for one_extension in pcam_source.extension:
             if one_extension.url not in extensions_written_to_metas:
                 extensions_written_to_metas.add(one_extension.url)
                 claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
