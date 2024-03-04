@@ -230,23 +230,22 @@ class PropCsvAndMaster():
                             # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent, additionally, no parentingByConceptOrder has to be stated
                             if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)) or (tempConcept.parent and hasattr(self, "parentingByConceptOrder")):
                                 import sys
-                                sys.exit('Parent code and system should always be stated together. Additionally, if using parentingByConceptOrder, parent and parentSystem are not allowed to use. See concept with code: ' + tempConcept.code)
+                                sys.exit('Parent code and system should always be stated together. However, parentByConceptOrder, parent and parentSystem must not be used at the same time. See concept with code: ' + tempConcept.code)
 
                         self.concept.append(tempConcept)
 
                     # fill members of parents
                     if self.resource == self.resource.ValueSet:
-                        concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
                         if hasattr(self,"parentingByConceptOrder"):
                             # create a dict with the conceptOrder as key 
                             # beware, some concept may do not have a conceptOrder, these can only be childs!
                             # beware, if a conceptOrder is using a already given value, only the last concept with the same conceptOrder can be a parent
-                            # beware, only the first conceptOrder is beeing used
+                            # beware, if there are multiple conceptOrder extensions, only the first will be used
                             concept_dict_with_order_as_key = {}
                             for one_concept in self.concept:
                                 for one_ext in one_concept.extension:
-                                    if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder": 
+                                    if one_ext.url == ext.ConceptOrder.extension_canonical: 
                                         concept_dict_with_order_as_key[one_ext.value] = one_concept
                                         break
                             # now link all the parents using the dict
@@ -259,6 +258,7 @@ class PropCsvAndMaster():
                                     one_concept.parent = parent
 
                         else: # fallback to parent + parentSystem
+                            concept_dict = self.buildConceptDictWithAttr('code', 'system')
                             for one_concept in self.concept:
                                 if one_concept.parent and one_concept.parentSystem:
                                     parent = concept_dict[one_concept.parent+one_concept.parentSystem]
@@ -826,7 +826,7 @@ class PropCsvAndMaster():
                     if self.parentingByConceptOrder and 'parentByConceptOrder' not in csv_header and (tmp := oneConcept.parent):
                         csv_header.append('parentByConceptOrder')
                         for one_ext in tmp.extension:
-                            if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":  
+                            if one_ext.url == ext.ConceptOrder.extension_canonical:  
                                 if one_ext.value:
                                     csv_line.append(one_ext.value)
                                 else:
@@ -1000,7 +1000,7 @@ class SpreadCTasXLSX(PropCsvAsXLSX):
         return SpreadCT(inFilename.replace('.1.spreadct.xlsx', '.1.spreadct.csv'))
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        SpreadCT.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
+        SpreadCT.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS)
 
 class Resource(enum.Enum):
     ValueSet = 'ValueSet'
@@ -1220,7 +1220,7 @@ class VSConcept():
     # created only for sorting, shouldn't be used for anything else
     def get_value_of_conceptOrder(self):
         for one_ext in self.extension:
-            if one_ext.url == "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":
+            if one_ext.url == ext.ConceptOrder.extension_canonical:
                 return one_ext.value
         else: return 0
 
