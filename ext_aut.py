@@ -1,7 +1,5 @@
 import prop_csv_and_master as pcam
 import pyodbc
-import math
-import argparse
 
 # database has been downloaded from
 # https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
@@ -12,7 +10,7 @@ import argparse
 # for checking python version, start python by typing "python" in a console and see if the MSC Version in the info text is 32 or 64 bit
 # for checking the MS Access Driver loaded be pyodbc, type following into the console with the already started python:
 # first "import pyodbc" and then "[i for i in pyodbc.drivers() if i.startswith('Microsoft Access Driver')]".
-# If there is any output, a functioning driver has been found, the name there is the diver name that should be used for the connect string!
+# If there is any output, a functioning driver has been found, the name there is the driver name that should be used for the connect string!
 # If there is no output, try installing from here the driver for your bit rate: https://www.microsoft.com/en-US/download/details.aspx?id=13255
 
 # If above does not help, here are other usefull links for adjusting your Microsoft Access Driver:
@@ -31,21 +29,26 @@ class BMGICD(pcam.PropCsvAndMaster):
             "FROM [DIAGLIST] AS [D], [DIAGLIST - 3STELLER] AS [D3S], [DIAGLIST - UNTERKAPITEL] AS [DUK], [DIAGLIST - KAPITEL] AS [DK]"
             "WHERE [D].Diagnose LIKE [D3S].Diagnose + '%' "
             "AND [D3S].Diagnose BETWEEN [DUK].Diagnose_von AND [DUK].Diagnose_bis "
-            "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")
+            "AND [DUK].Diagnose_von AND [DUK].Diagnose_bis BETWEEN [DK].Diagnose_von AND [DK].Diagnose_bis ")#.fetchall() #this could help if you have odbc errors
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2022"
-        self.id = "bmg-icd-10-2022"
-        self.name = "bmg-icd-10-2022"
-        self.title = "ICD-10 BMSGPK 2022"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2024"
+        self.id = "bmg-icd-10-2024"
+        self.name = "bmg-icd-10-2024"
+        self.title = "ICD-10 BMSGPK 2024"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.0+20230228"
-        self.identifier.append("1.2.40.0.34.5.209")
-        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^"))
-        self.description = """Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.
-In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen. In die seit dem 1.1.2014 verwendete ICD-10 BMG 2014 wurden zusätzlich die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet. Die seit 1.1.2017 verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.
+        self.version = "1.0.1+20240205"
+        self.identifier.append("1.2.40.0.34.5.222")
+        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
+        self.description = """Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
+Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. 
+Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.<br/>
+In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen.<br/>
+In die seit dem 1.1.2014 verwendete ICD-10 BMG 2014 wurden zusätzlich die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet.
+Die seit 1.1.2017 verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.<br/>
+Die aktuelle, ab 1.1.2024 geltende Version ICD-10 BMSGPK 2024 beinhaltet alle von der WHO zur Verfügung gestellten Updates sowie einzelne 5-stellige Codes, die aus der vom Bundesinstitut für Arzneimittel und Medizinprodukte (BfArM) in Deutschland herausgegebenen ICD-10-GM übernommen wurden. 
 Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die zur Weiterentwicklung der Dokumentationsgrundlagen beitragen."""
 
         self.parseConcepts(cursor)
@@ -145,8 +148,6 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
                 "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023")
             row = cursor.fetchone()
 
-        self.sortConceptsExpandStyle(conDict)
-
     # just for calling the outer method
     def parse(inFilename):
         return BMGICD(inFilename)
@@ -176,21 +177,19 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023"
-        self.id = "bmg-lkf-2023"
-        self.name = "bmg-lkf-2023"
-        self.title = "BMG Leistungskatalog Gesamt 2023"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2024"
+        self.id = "bmg-lkf-2024"
+        self.name = "bmg-lkf-2024"
+        self.title = "BMG Leistungskatalog Gesamt 2024"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.0+20230228"
-        self.identifier.append("1.2.40.0.34.5.216")
-        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2023/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2023.html^^^^"))
-        self.description = """Der Leistungskatalog BMSGPK 2023 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2023.
-Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:
-* 884 stationäre Leistungen (große Operationen etc.)
-* 875 Leistungen, die sowohl ambulant als auch stationär zu erfassen sind
-* (CT, MR, kleine Operationen etc.)
-* 350 Leistungen, die nur bei ambulanten Besuchen zu erfassen sind (EKG, Sonographie, ambulante Untersuchungen etc."""
+        self.version = "1.0.1+20240205"
+        self.identifier.append("1.2.40.0.34.5.223")
+        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
+        self.description = """Der Leistungskatalog BMSGPK 2024 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2024. Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:<br/>
+* 889 stationäre Leistungen (große Operationen etc.)<br/>
+* 893 Leistungen, die sowohl ambulant als auch stationär zu erfassen sind (CT, MR, kleine Operationen etc.)<br/>
+* 347 Leistungen, die nur bei ambulanten Besuchen zu erfassen sind (EKG, Sonographie, ambulante Untersuchungen etc."""
 
         self.parseConcepts(cursor)
 
@@ -280,8 +279,6 @@ Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:
 
             self.concept.append(theConcept)
             row = cursor.fetchone()
-
-        self.sortConceptsExpandStyle()
 
     # just for calling the outer method
     def parse(inFilename):
