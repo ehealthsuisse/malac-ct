@@ -477,8 +477,9 @@ class Fsh1(pcam.PropCsvAndMaster):
             if hasattr(self,"conceptSuppl") and self.conceptSuppl:
                 tempList = self.conceptSuppl
             else:
-                tempList = conceptList
+                tempList = self.buildConceptDictWithAttr('code', 'system').values()
 
+            # building conceptDict for quickly sorting out duplicates
             for oneConcept in tempList:
                 cntCSConcept += 1
                 # for CodeSystems
@@ -571,6 +572,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
                         if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
                         if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
+                    exporto_extension(outfile, '* compose.%s[%s].concept[%s].' % (incOrExclude, cntIncAndExclude, cntVSConcept), oneConcept, ext_aut.SystemOid.extension_canonical, ext.ConceptOrder.extension_canonical)
 
             # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode) and the args param is set
             if vsMemberAnywhere and self.get_resource() == 'ValueSet' and incHierarchyExt4VS:
@@ -656,7 +658,6 @@ class Fsh1(pcam.PropCsvAndMaster):
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
     exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
-    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext.ConceptOrder.extension_canonical)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
@@ -705,7 +706,7 @@ def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
                 outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
             if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
             dCnt += 1
-
+    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext.ConceptOrder.extension_canonical)
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
         for oneMember in oneConcept.member:

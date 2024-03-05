@@ -254,13 +254,13 @@ class Fsh2(Fsh1):
                                 if tmp := oneDesignation.use.userSelected:
                                     outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
+                    exporto_extension(outfile, '* compose.include[%s].concept[%s].' % (j, k), oneConcept, ext.ConceptOrder.extension_canonical)
                     if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
                         for oneFilter in oneConcept.filter:
                             if hasattr(oneFilter, 'property') and oneFilter.property: outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
                             if hasattr(oneFilter, 'op') and oneFilter.op: outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
                             if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
-
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension
 

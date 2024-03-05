@@ -653,9 +653,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
 
-                # export extensions
-                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
-
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
                     if tmp := oneConcept.system:
@@ -728,6 +725,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
                     theClass.set_kind("noKind")
+
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 classes.append(theClass)
 

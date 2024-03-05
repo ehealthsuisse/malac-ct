@@ -548,7 +548,7 @@ def exporto_concept_designation(globals, designation_class, designation_list):
 
     return the_designation_list
 
-def parse_extension(pcam_target, fhir_source):
+def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_same_urls=False):
     """Retrieve all extensions from the fhir_source and store them in the pcam_target.
     Open question: can the same extension (same url) be used on one fhir_source more than once (with differing values)?
     Attention: The pcam_target might collect extensions of different fhir_source elements. Beware, that currently only one value per extension url will be stored!
@@ -565,29 +565,31 @@ def parse_extension(pcam_target, fhir_source):
     if extension := fhir_source.get_extension():
         for one_extension in extension:
             if one_url := one_extension.get_url():
-                # check if extension already has been retrieved
-                extension_exists = [index for (index, item) in enumerate(pcam_target.extension) if item.uri == one_url]
+                
+                if delete_extensions_in_target_with_same_urls:
+                    items_to_remove = [] # do not try to remove/pop or whatever directly on the extension list, because hell will break loose (for real, never alter a list while iterating)
+                    [items_to_remove.append(item) for item in pcam_target.extension if item.url == one_url]
+                    [pcam_target.extension.remove(item) for item in items_to_remove]
 
-                if not extension_exists:
-                    the_extension = pcam.Extension()
-                    the_extension.url = one_url
+                the_extension = pcam.Extension()
+                the_extension.url = one_url
 
-                    if (one_value := one_extension.get_valueOid()) or\
-                       (one_value := one_extension.get_valueInteger()): #TODO support of further types
-                        the_extension.value = one_value.get_value()
-                        the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
-                    elif tmp_prop := one_extension.get_valueCoding():
-                        the_coding = pcam.Coding()
-                        if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
-                        if tmp := tmp_prop.get_version(): the_coding.version = tmp.get_value()
-                        if tmp := tmp_prop.get_code(): the_coding.code= tmp.get_value()
-                        if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
-                        if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
-                        the_extension.value = the_coding
-                        # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                        the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
+                if (one_value := one_extension.get_valueOid()) or\
+                (one_value := one_extension.get_valueInteger()): #TODO support of further types
+                    the_extension.value = one_value.get_value()
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                elif tmp_prop := one_extension.get_valueCoding():
+                    the_coding = pcam.Coding()
+                    if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
+                    if tmp := tmp_prop.get_version(): the_coding.version = tmp.get_value()
+                    if tmp := tmp_prop.get_code(): the_coding.code= tmp.get_value()
+                    if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
+                    if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
+                    the_extension.value = the_coding
+                    # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
+                    the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
 
-                    pcam_target.extension.append(the_extension)
+                pcam_target.extension.append(the_extension)
 
 def exporto_extension(globals, fhir_target, pcam_source, extension_url):
     """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
