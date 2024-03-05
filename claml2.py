@@ -69,6 +69,33 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
+def get_meta_list_with_name(self, meta_name):
+    meta_list = []
+
+    for one_meta in self.get_Meta():
+        if one_meta.get_name() == meta_name:
+            meta_list.append(one_meta.get_value())
+
+    return meta_list
+
+def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_class, pcam_source):
+    """Write all extensions from the pcam_source to claml.
+
+    claml_metas -- list of metas that will contain meta-information about extension
+
+    claml_class -- claml class that will contain the value of the extension
+
+    pcam_source -- the object whose extension according to the extension_url will be written to claml.
+    """
+    if hasattr(pcam_source, 'extension_list'):
+        for one_extension in pcam_source.extension_list:
+            if one_extension.url not in extensions_written_to_metas:
+                extensions_written_to_metas.add(one_extension.url)
+                claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
+
+            if value := one_extension.value:
+                claml_class.add_Meta(MetaSub(one_extension.url, value))
+
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
 #        return get_Meta_with_name(self,'Sortierreihenfolge')
@@ -92,6 +119,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return tmp_id
         else:
             return self.get_name()
+
+    def get_profiles(self):
+        return get_meta_list_with_name(self, 'profile')
 
     # todo create get url for other classifications
     def get_url(self):
@@ -311,7 +341,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'contained')
 
     def get_extension(self):
-        return get_Meta_with_name(self,'extension')
+        # Currently, no extensions are supported on this level
+        return None
 
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
@@ -321,6 +352,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if hasattr(self, "concept") and self.concept:
             return self.concept
         else:
+            # retrieve meta information about extensions
+            extension_list = get_meta_list_with_name(self, 'extension')
+            extension_datatype_dict = {}
+            for extension in extension_list:
+                extension_split = extension.split('|')
+                extension_datatype_dict[extension_split[0]] = extension_split[1]
+
             retArr = []
             theMemberParent = [None]*9
             for oneClass in self.get_Class():
@@ -479,6 +517,15 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theConcept.system = oneMeta.get_value()
                         elif oneMeta.get_name() == "codeSystemVersion":
                             theConcept.version = oneMeta.get_value()
+                        elif oneMeta.get_name() in extension_datatype_dict:
+                            the_extension = pcam.Extension()
+                            the_extension.url = oneMeta.get_name()
+                            the_extension.type = pcam.ExtensionType(extension_datatype_dict[oneMeta.get_name()])
+                            if the_extension.type != pcam.ExtensionType.coding:
+                                the_extension.value = oneMeta.get_value()
+                            else:
+                                the_extension.value = pcam.Coding(oneMeta.get_value())
+                            theConcept.extension_list.append(the_extension)
                         else:
                             theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
                             theProperty.value = oneMeta.get_value()
@@ -509,6 +556,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('id', self.get_id()))
+
+        if one_profile_list := self.get_profiles():
+            for one_profile in one_profile_list:
+                metas.append(MetaSub('profile', one_profile))
+
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":
@@ -610,10 +662,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 concept_dict = self.buildConceptDictWithAttr('code')
             elif self.get_resource() == "ValueSet":
                 concept_dict = self.buildConceptDictWithAttr('code', 'system')
+
+            # keep track of extensions that have already been documented in metas
+            extensions_written_to_metas = set()
+
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
+
+                # export extensions
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent

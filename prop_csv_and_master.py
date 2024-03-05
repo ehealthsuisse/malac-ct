@@ -5,6 +5,7 @@ class PropCsvAndMaster():
     def __init__(self, inFile = None, encoding='cp1252'):
         self.resource = Resource
         self.id = None
+        self.profiles = []
         self.url = None
         self.version = None
         self.name = None
@@ -69,6 +70,7 @@ class PropCsvAndMaster():
 
                         if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
                         if 'id' == metaObj: self.id = metaList[1][i]
+                        if metaObj.startswith('profile'): self.profiles.append(metaList[1][i])
                         if 'url' == metaObj: self.url = metaList[1][i]
                         if 'version' == metaObj: self.version = metaList[1][i]
                         if 'name' == metaObj: self.name = metaList[1][i]
@@ -141,6 +143,8 @@ class PropCsvAndMaster():
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
                                     if 'property' == headingList[i]:
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
+                                    if 'extension' == headingList[i]:
+                                        tempConcept.extension_list.append(Extension(row[i]))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
                                     if 'version' == headingList[i]: tempConcept.version = row[i]
@@ -167,6 +171,9 @@ class PropCsvAndMaster():
                                     if 'exclude' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.exclude = True
+                                    if 'extension' == headingList[i]:
+                                        tempConcept.extension_list.append(Extension(row[i]))
+
 
                         # check for some invalid combinations
                         if self.resource == self.resource.ValueSet:
@@ -238,6 +245,9 @@ class PropCsvAndMaster():
 
     def get_id(self):
         return self.id
+
+    def get_profiles(self):
+        return self.profiles
 
     def get_url(self):
         return self.url
@@ -396,11 +406,14 @@ class PropCsvAndMaster():
 
         # check if any value changed
         if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
-            self.metadata_change_timestamp = tmpTup[-1]
+            timestamp = tmpTup[-1]
         else:
-            self.metadata_change_timestamp = timestamp
             # change the one row or add the row to the dictionary
             mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
+
+        # if metadata_change_timestamp has not yet been set
+        if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
+            self.metadata_change_timestamp = timestamp
 
         # sort the dict
         import collections
@@ -411,6 +424,8 @@ class PropCsvAndMaster():
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
             for line in mydict.values():
                 outfile.write(','.join(line)+'\n')
+
+        return self.metadata_change_timestamp
 
     def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given
@@ -532,6 +547,9 @@ class PropCsvAndMaster():
         csv_meta.append(("name",self.get_name()))
         csv_meta.append(("title",self.get_title()))
         csv_meta.append(("status",self.get_status()))
+        if tmp := self.get_profiles():
+            for one_profile in tmp:
+                csv_meta.append(("profile", one_profile))
         if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
         if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
@@ -593,6 +611,7 @@ class PropCsvAndMaster():
                     #adding values to already existing columns, if value empty than a empty string is added
                     headerDesignationIterator = 0
                     headerPropertyIterator = 0
+                    headerExtensionIterator = 0
                     for csv_header_element in csv_header:
 
                         if csv_header_element == "designation":
@@ -602,12 +621,20 @@ class PropCsvAndMaster():
                                 csv_line.append('')
                             headerDesignationIterator += 1
 
+                        elif csv_header_element == "extension":
+                            if headerExtensionIterator < len(oneConcept.extension_list):
+                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            else:
+                                csv_line.append('')
+                            headerExtensionIterator += 1
+
                         elif csv_header_element == "property":
                             if headerPropertyIterator < len(oneConcept.property):
                                 csv_line.append(oneConcept.property[headerPropertyIterator])
                             else:
                                 csv_line.append('')
                             headerPropertyIterator += 1
+
                         elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
                             csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
                         else:
@@ -627,6 +654,10 @@ class PropCsvAndMaster():
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
+                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                        csv_header.append('extension')
+                        csv_line.append(conceptExtension[headerExtensionIterator])
+                        headerExtensionIterator += 1
                     while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
                         csv_header.append('property')
                         csv_line.append(conceptProps[headerPropertyIterator])
@@ -637,6 +668,7 @@ class PropCsvAndMaster():
                     #adding values to already existing columns, if value empty than a empty string is added
                     headerDesignationIterator = 0
                     headerFilterIterator = 0
+                    headerExtensionIterator = 0
                     for csv_header_element in csv_header:
 
                         if csv_header_element == "designation":
@@ -652,6 +684,13 @@ class PropCsvAndMaster():
                             else:
                                 csv_line.append('')
                             headerFilterIterator += 1
+
+                        elif csv_header_element == "extension":
+                            if headerExtensionIterator < len(oneConcept.extension_list):
+                                csv_line.append(oneConcept.extension_list[headerExtensionIterator])
+                            else:
+                                csv_line.append('')
+                            headerExtensionIterator += 1
 
                         elif csv_header_element == 'parent':
                             if oneConcept.parent and (tmp := oneConcept.parent.code):
@@ -733,6 +772,11 @@ class PropCsvAndMaster():
                         csv_header.append('filter')
                         csv_line.append(conceptFilter[headerFilterIterator])
                         headerFilterIterator += 1
+                    while (conceptExtension := oneConcept.extension_list) and headerExtensionIterator < len(conceptExtension):
+                        csv_header.append('extension')
+                        csv_line.append(conceptExtension[headerExtensionIterator])
+                        headerExtensionIterator += 1
+
                     if 'abstract' not in csv_header and hasattr(oneConcept,'abstract') and (tmp := oneConcept.abstract):
                         csv_header.append('abstract')
                         csv_line.append(tmp)
@@ -742,6 +786,7 @@ class PropCsvAndMaster():
                     if 'exclude' not in csv_header and hasattr(oneConcept,'exclude') and (tmp := oneConcept.exclude):
                         csv_header.append('exclude')
                         csv_line.append(tmp)
+
 
                 csv_list.append(csv_line)
 
@@ -861,6 +906,12 @@ class PropertyCodeType(enum.Enum):
     datetime = "dateTime"
     decimal = "decimal"
 
+class ExtensionType(enum.Enum):
+    oid = "oid"
+    coding = "Coding"
+    integer = "integer"
+    # TODO more to be defined
+
 class ContactDetail():
     def __init__(self, name=None, telecom=None):
         self.name = name
@@ -977,6 +1028,7 @@ class CSConcept():
         self.definition = None
         self.designation = []
         self.property = []
+        self.extension_list = []
 
     class ConceptProperty():
         def __init__(self, str=None):
@@ -1027,6 +1079,7 @@ class VSConcept():
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
         self.inactive = False
+        self.extension_list = []
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
@@ -1102,8 +1155,26 @@ class Coding():
         buildStr += "^"
         if self.display: buildStr += self.display
         buildStr += "^"
-        if self.userSelected: buildStr += self.userSelected
+        if self.userSelected: buildStr += str(self.userSelected)
         return buildStr
+
+class Extension():
+    def __init__(self, str=None):
+        if not str:
+            self.url = None
+            self.value = None
+            self.type = ExtensionType
+        else:
+            extension_elements = str.split('|')
+            self.url = extension_elements[0]
+            self.type = ExtensionType(extension_elements[2])
+            if self.type == ExtensionType.coding:
+                self.value = Coding(extension_elements[1])
+            else:
+                self.value = extension_elements[1]
+
+    def __str__(self) -> str:
+        return self.url + "|" + (str(self.value) if self.value else "") + "|" + self.type.value
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
