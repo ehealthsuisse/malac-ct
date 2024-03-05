@@ -1,5 +1,4 @@
 import prop_csv_and_master as pcam
-import pyodbc
 import math
 import argparse
 
@@ -21,6 +20,9 @@ import argparse
 class BMGICD(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
@@ -154,6 +156,9 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
 class BMGLKF(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
