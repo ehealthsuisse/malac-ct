@@ -323,3 +323,18 @@ def parseParent(dictConceptParents, propertyOfConcept, nameOfParentProperty):
 #https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
 # inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
 # ICDBMG(inFile)
+
+class SystemOid():
+    profile_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-valueset'
+    extension_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid'
+
+    def add_extension(the_element, oid):
+        if not hasattr(the_element, 'extension_list'):
+            the_element.extension_list = []
+
+        the_extension = pcam.Extension()
+        the_extension.url = SystemOid.extension_canonical
+        the_extension.value = 'urn:oid:' + oid
+        the_extension.type = pcam.ExtensionType.oid
+
+        the_element.extension_list.append(the_extension)

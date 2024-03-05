@@ -27,6 +27,7 @@ from lxml import etree as etree_
 
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
+import ext_aut
 
 class XMLEscapeSpecialChar:
 
@@ -95,6 +96,23 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
     def get_id(self):
         return self.get_name()
+
+    def get_profiles(self):
+        the_profile_list = []
+
+        # make sure that profiles corresponding to activated extension are exported for sure
+        for activated_extension in self.activated_extension_dict:
+            # retrieve python module and class
+            module_class_list = self.activated_extension_dict[activated_extension]
+            # not all extensions have a designated class
+            if module_class_list:
+                # import corresponding module and retrieve the class for the extension
+                extension_module = __import__(module_class_list[0])
+                extension_class = getattr(extension_module, module_class_list[1])
+                # add profile's canonical
+                the_profile_list.append(extension_class.profile_canonical)
+
+        return the_profile_list
 
     def get_url(self):
         if tempUrl := self.globalUrl:
@@ -270,6 +288,9 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.system = self.gainCanonicalFromOid(tmp)
                     else:
                         sys.exit('Neither OID nor name of the parent CodeSytem is present. Cannot process ValueSet.')
+
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                        ext_aut.SystemOid.add_extension(theConcept, self.gainOidFromCanonical(theConcept.system))
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
