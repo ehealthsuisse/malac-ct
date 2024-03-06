@@ -142,7 +142,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         conDict = self.buildConceptDictWithAttr("code")
         while row:
             parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023")
             row = cursor.fetchone()
 
         self.sortConceptsExpandStyle(conDict)
@@ -274,9 +274,9 @@ Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:
             if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
 
             parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
             parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
 
             self.concept.append(theConcept)
             row = cursor.fetchone()

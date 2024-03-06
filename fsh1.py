@@ -621,7 +621,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             supplSelf.resource = pcam.Resource.CodeSystem.value
             supplSelf.identifier = []
             supplSelf.content = pcam.Content.supplement.value
-            supplSelf.supplements = "CodeSystem-"+oneCS
+            supplSelf.supplements = "CodeSystem/"+oneCS
             supplSelf.concept = csUsedinVSinklConceptsOrClassi[oneCS]
             # convert designations with use to properties
             for oneCon in supplSelf.concept:
@@ -648,7 +648,7 @@ class Fsh1(pcam.PropCsvAndMaster):
             tempCon.system = ""
             if tempUrl := self.globalUrl:
                 tempCon.system += tempUrl
-            tempCon.system += "CodeSystem-"+csUsedinVSinklConceptsOrClassi[oneCS].get_name()
+            tempCon.system += "CodeSystem/"+csUsedinVSinklConceptsOrClassi[oneCS].get_name()
             self.conceptSuppl.append(tempCon)
         # exporting the changed ValueSet
         outputClass.exporto(self, outfileVS, outputClass, argsLang, incHierarchyExt4VS)
