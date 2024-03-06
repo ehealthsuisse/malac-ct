@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - elga-gmbh/malac-ct#31 Fix expansion timestamp for multiple appndProcTermTo CSVs and add argument for conversion timestamp.
 - Add support of using `.2.claml.xml` for ValueSets
 
+### Changed
+
+- Use [fhir.resources](https://pypi.org/project/fhir.resources/) library for FHIR XML <-> JSON conversion because there are FHIR servers which do not support the `$convert` operation like the FHIR server in elga-gmbh/terminologit-tergi#4.
+
 ### Fixed
 
 - #35 Ignore publishers with the name `see` as this is a placeholder if no publisher name is available.
