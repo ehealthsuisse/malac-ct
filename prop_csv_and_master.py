@@ -726,10 +726,10 @@ class PropCsvAndMaster():
                             csv_line.append('')
 
                     #adding not existing columns because we just got some values
-                    if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
+                    if 'system' not in csv_header and hasattr(oneConcept,'system') and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
                         csv_header.append('system')
                         csv_line.append(tmp)
-                    if 'version' not in csv_header:
+                    if 'version' not in csv_header and hasattr(oneConcept,'version') and (tmp := oneConcept.version): # will always be done with the system together
                         # create 'version' header in any case
                         csv_header.append('version')
                         # write the system version if existent
@@ -752,23 +752,23 @@ class PropCsvAndMaster():
                     if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
                         csv_header.append('display')
                         csv_line.append(tmp)
-                    if 'parent' not in csv_header and (tmp := oneConcept.parent):
+                    if 'parent' not in csv_header and hasattr(oneConcept,'parent') and (tmp := oneConcept.parent):
                         csv_header.append('parent')
                         if tmp.code:
                             csv_line.append(tmp.code)
                         else:
                             csv_line.append('')
-                    if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                    if 'parentSystem' not in csv_header and hasattr(oneConcept,'parent') and (tmp := oneConcept.parent):
                         csv_header.append('parentSystem')
                         if tmp.system:
                             csv_line.append(tmp.system)
                         else:
                             csv_line.append('')
-                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                    while hasattr(oneConcept,'designation') and (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
                         csv_header.append('designation')
                         csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
-                    while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
+                    while hasattr(oneConcept,'filter') and (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
                         csv_header.append('filter')
                         csv_line.append(conceptFilter[headerFilterIterator])
                         headerFilterIterator += 1
@@ -776,13 +776,14 @@ class PropCsvAndMaster():
                         csv_header.append('extension')
                         csv_line.append(conceptExtension[headerExtensionIterator])
                         headerExtensionIterator += 1
-                    if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
+
+                    if 'abstract' not in csv_header and hasattr(oneConcept,'abstract') and (tmp := oneConcept.abstract):
                         csv_header.append('abstract')
                         csv_line.append(tmp)
-                    if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
+                    if 'inactive' not in csv_header and hasattr(oneConcept,'inactive') and (tmp := oneConcept.inactive):
                         csv_header.append('inactive')
                         csv_line.append(tmp)
-                    if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
+                    if 'exclude' not in csv_header and hasattr(oneConcept,'exclude') and (tmp := oneConcept.exclude):
                         csv_header.append('exclude')
                         csv_line.append(tmp)
 
