@@ -476,8 +476,10 @@ class Fsh1(pcam.PropCsvAndMaster):
             # if there is a conceptSuppl, print them first
             if hasattr(self,"conceptSuppl") and self.conceptSuppl:
                 tempList = self.conceptSuppl
-            else:
-                tempList = self.buildConceptDictWithAttr('code', 'system').values()
+            elif self.get_resource() == 'ValueSet':
+                tempList = self.buildConceptDictWithAttr('code', 'system').values() # quickly remove duplicates
+            elif self.get_resource() == 'CodeSystem':
+                tempList = self.get_concept()
 
             # building conceptDict for quickly sorting out duplicates
             for oneConcept in tempList:

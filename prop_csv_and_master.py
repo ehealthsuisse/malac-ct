@@ -698,10 +698,11 @@ class PropCsvAndMaster():
         conceptList = self.get_concept()
         
         # check if there are multiple concepts with the same code and system, so that parentingByConceptOrder is used
-        if len(conceptList) > len(self.buildConceptDictWithAttr('code', 'system')):
-            self.parenting_by = ParentingBy.conceptOrder
-        else:
-            self.parenting_by = ParentingBy.parentAndSystem
+        if self.get_resource() == 'ValueSet':
+            if len(conceptList) > len(self.buildConceptDictWithAttr('code', 'system')):
+                self.parenting_by = ParentingBy.conceptOrder
+            else:
+                self.parenting_by = ParentingBy.parentAndSystem
 
         for oneConcept in conceptList:
             csv_line = []
