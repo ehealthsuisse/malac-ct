@@ -1,5 +1,4 @@
 import prop_csv_and_master as pcam
-import pyodbc
 import math
 import argparse
 
@@ -21,6 +20,9 @@ import argparse
 class BMGICD(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
@@ -142,7 +144,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         conDict = self.buildConceptDictWithAttr("code")
         while row:
             parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023")
             row = cursor.fetchone()
 
         self.sortConceptsExpandStyle(conDict)
@@ -154,6 +156,9 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
 class BMGLKF(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
@@ -274,9 +279,9 @@ Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:
             if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
 
             parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
             parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
 
             self.concept.append(theConcept)
             row = cursor.fetchone()
@@ -323,3 +328,18 @@ def parseParent(dictConceptParents, propertyOfConcept, nameOfParentProperty):
 #https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2022/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2022.html
 # inFile = "C:\\Users\\gralf\\OneDrive\\Desktop\\FH Technikum\\Bachelor\\SYSTEMDATEN2022.mdb"
 # ICDBMG(inFile)
+
+class SystemOid():
+    profile_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-valueset'
+    extension_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid'
+
+    def add_extension(the_element, oid):
+        if not hasattr(the_element, 'extension_list'):
+            the_element.extension_list = []
+
+        the_extension = pcam.Extension()
+        the_extension.url = SystemOid.extension_canonical
+        the_extension.value = 'urn:oid:' + oid
+        the_extension.type = pcam.ExtensionType.oid
+
+        the_element.extension_list.append(the_extension)

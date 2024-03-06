@@ -6,9 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- #11 Add support for [System OID](http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid).
+- #16 Add general support for extensions. However, each extension requires some custom integration in FHIR and FSH.
+- elga-gmbh/malac-ct#31 Fix expansion timestamp for multiple appndProcTermTo CSVs and add argument for conversion timestamp.
+- Add support of using `.2.claml.xml` for ValueSets
+
 ### Fixed
 
+- #35 Ignore publishers with the name `see` as this is a placeholder if no publisher name is available.
+- Fix URLs to fixed FHIR resources, using `CodeSystem/` instead of `CodeSystem-`
 - Fix reading metadata in `.1.svsextelga.xml` and `.2.svsextelga.xml`
+
+## [4.3.1+20231218]
+
+### Fixed
+
+- Fix parsing expansion when inactive concepts exist in FHIR ValueSet.
 
 ## [4.3.0+20231113]
 
