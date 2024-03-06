@@ -456,18 +456,18 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             oneMeta.get_value().strip() != ""):
                         theProperty = pcam.CSConcept.ConceptProperty()
                         if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS") or oneMeta.get_name().startswith("hints"):
-                                if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
-                                    if self.get_resource() == "CodeSystem":
-                                        self.set_statusToRetired(theConcept)
-                                    elif self.get_resource() == "ValueSet":
-                                        theConcept.inactive = True
-                                    retiredAlreadySet = True
-                                if not thereIsAlreadyOneHints and (not oneMeta.get_value().startswith("DEPRECATED") and not oneMeta.get_value().startswith("inaktiv")):
-                                    theProperty.code = "hints"
-                                    theProperty.value = oneMeta.get_value()
-                                    theProperty.type = pcam.PropertyCodeType.string
-                                    thePropertys.append(theProperty)
-                                    thereIsAlreadyOneHints = True
+                            if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
+                                if self.get_resource() == "CodeSystem":
+                                    self.set_statusToRetired(theConcept)
+                                elif self.get_resource() == "ValueSet":
+                                    theConcept.inactive = True
+                                retiredAlreadySet = True
+                            if not thereIsAlreadyOneHints and (not oneMeta.get_value().startswith("DEPRECATED") and not oneMeta.get_value().startswith("inaktiv")):
+                                theProperty.code = "hints"
+                                theProperty.value = oneMeta.get_value()
+                                theProperty.type = pcam.PropertyCodeType.string
+                                thePropertys.append(theProperty)
+                                thereIsAlreadyOneHints = True
                         elif oneMeta.get_name().startswith("TS_ATTRIBUTE_MEANING"):
                             if not thereIsAlreadyOneMeaning and theConcept.display != oneMeta.get_value():
                                 theDesignation = pcam.ConceptDesignation()
@@ -487,6 +487,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                         # setting the parent of theConcept
                                         theConcept.parent = parent
                         elif oneMeta.get_name() == "Type":
+                            if oneMeta.get_value() == "A":
+                                theConcept.abstract = True
                             if not retiredAlreadySet and oneMeta.get_value() == "D":
                                 if self.get_resource() == "CodeSystem":
                                     self.set_statusToRetired(theConcept)
