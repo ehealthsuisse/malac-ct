@@ -186,7 +186,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
                         for oneConDetTele in oneConDet.telecom:
                             if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
-                                if website and oneConDetTele.value and oneConDetTele.value.strip() == website.strip():
+                                if website and oneConDetTele.value and oneConDetTele.value.strip() in website.strip():
                                     website_in_authors = True
                         tempConDetS.append(oneConDet)
                     else:
@@ -397,11 +397,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             tmp += "!ignored Table!"
 
                     if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                        theProp = pcam.CSConcept.ConceptProperty()
-                        theProp.code = "status"
-                        theProp.value = "retired"
-                        theProp.type = pcam.PropertyCodeType.code
-                        thePropertys.append(theProp)
+                        if self.get_resource() == "CodeSystem":
+                            self.set_statusToRetired(theConcept)
+                        elif self.get_resource() == "ValueSet":
+                            theConcept.inactive = True
                         retiredAlreadySet = True
 
                     if oneRubric.get_kind() == "preferredLong":
