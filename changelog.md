@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change fhir xml <-> json convertion by using fhir.resources library, because the new server from terminologit-tergi#4 can't do $convert anymore
+- Use [fhir.resources](https://pypi.org/project/fhir.resources/) library for FHIR XML <-> JSON conversion because there are FHIR servers which do not support the `$convert` operation like the FHIR server in elga-gmbh/terminologit-tergi#4.
 
 ## [4.3.1+20231218]
 

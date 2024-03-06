@@ -173,8 +173,12 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
         else:
             res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
 
-    #print(res.text)
-    if failIfUploadGoesWrong: res.raise_for_status()
+    if failIfUploadGoesWrong:
+        try:
+            res.raise_for_status()
+        except:
+            print("ERROR: " + res.text)
+            res.raise_for_status()
 
 def main() -> None:
     start = time.time()
