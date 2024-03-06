@@ -337,113 +337,112 @@ class PropCsvAndMaster():
         return PropCsvAndMaster(inFilename)
 
     def get_resource(self):
-        return self.resource.value
+        return self.resource.value if hasattr(self,"resource") and hasattr(self.resource,"value") else None
 
     def get_id(self):
-        return self.id
+        return self.id if hasattr(self,"id") else None
 
     def get_profiles(self):
         return self.profiles
 
     def get_url(self):
-        return self.url
+        return self.url if hasattr(self,"url") else None
 
     def get_version(self):
-        return self.version
+        return self.version if hasattr(self,"version") else None
 
-    # TODO build in a recognition if CodeSystem oder ValueSet is already in name
     def get_name(self):
-        return self.name
+        return self.name if hasattr(self,"name") else None
 
     def get_title(self):
-        return self.title
+        return self.title if hasattr(self,"title") else None
 
     def get_status(self):
-        return self.status.value
+        return self.status.value if hasattr(self,"status") and hasattr(self.status,"value") else None
 
     def get_description(self):
-        return self.description
+        return self.description if hasattr(self,"description") else None
 
     def get_content(self):
-        return self.content.value
+        return self.content.value if hasattr(self,"content") and hasattr(self.content,"value") else None
 
     def get_implicitrules(self):
-        return self.implicitrules
+        return self.implicitrules if hasattr(self,"implicitrules") else None
 
     def get_language(self):
-        return self.language
+        return self.language if hasattr(self,"language") else None
 
     def get_text(self):
-        return self.text
+        return self.text if hasattr(self,"text") else None
 
     def get_contained(self):
-        return self.contained
+        return self.contained if hasattr(self,"contained") else None
 
     def get_extension(self):
-        return self.extension
+        return self.extension if hasattr(self,"extension") else None
 
     def get_modifierextension(self):
-        return self.modifierextension
+        return self.modifierextension if hasattr(self,"modifierextension") else None
 
     def get_identifier(self):
-        return self.identifier
+        return self.identifier if hasattr(self,"identifier") else None
 
     def get_experimental(self):
-        return self.experimental
+        return self.experimental if hasattr(self,"experimental") else None
 
     def get_date(self):
-        return self.date
+        return self.date if hasattr(self,"date") else None
 
     def get_publisher(self):
-        return self.publisher
+        return self.publisher if hasattr(self,"publisher") else None
 
     def get_contact(self):
-        return self.contact
+        return self.contact if hasattr(self,"contact") else None
 
     def get_usecontext(self):
-        return self.usecontext
+        return self.usecontext if hasattr(self,"usecontext") else None
 
     def get_jurisdiction(self):
-        return self.jurisdiction
+        return self.jurisdiction if hasattr(self,"jurisdiction") else None
 
     def get_purpose(self):
-        return self.purpose
+        return self.purpose if hasattr(self,"purpose") else None
 
     def get_copyright(self):
-        return self.copyright
+        return self.copyright if hasattr(self,"copyright") else None
 
     def get_immutable(self):
-        return self.immutable
+        return self.immutable if hasattr(self,"immutable") else None
 
     def get_lockeddate(self):
-        return self.lockeddate
+        return self.lockeddate if hasattr(self,"lockeddate") else None
 
     def get_inactive(self):
-        return self.inactive
+        return self.inactive if hasattr(self,"inactive") else None
 
     def get_casesensitive(self):
-        return self.casesensitive
+        return self.casesensitive if hasattr(self,"casesensitive") else None
 
     def get_valueset(self):
-        return self.valueset
+        return self.valueset if hasattr(self,"valueset") else None
 
     def get_hierarchymeaning(self):
-        return self.hierarchymeaning
+        return self.hierarchymeaning if hasattr(self,"hierarchymeaning") else None
 
     def get_compositional(self):
-        return self.compositional
+        return self.compositional if hasattr(self,"compositional") else None
 
     def get_versionneeded(self):
-        return self.versionneeded
+        return self.versionneeded if hasattr(self,"versionneeded") else None
 
     def get_supplements(self):
-        return self.supplements
+        return self.supplements if hasattr(self,"supplements") else None
 
     def get_count(self):
         return len(self.get_concept())
 
     def get_filter(self):
-        return self.filter
+        return self.filter if hasattr(self,"filter") else None
 
     def get_property(self):
         tmp = []
@@ -454,7 +453,7 @@ class PropCsvAndMaster():
         return tmp
 
     def get_concept(self):
-        return self.concept
+        return self.concept if hasattr(self,"concept") else None
 
     def set_statusToRetired(self, theCSConcept):
         theProp = CSConcept.ConceptProperty()
@@ -502,11 +501,14 @@ class PropCsvAndMaster():
 
         # check if any value changed
         if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
-            self.metadata_change_timestamp = tmpTup[-1]
+            timestamp = tmpTup[-1]
         else:
-            self.metadata_change_timestamp = timestamp
             # change the one row or add the row to the dictionary
             mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
+
+        # if metadata_change_timestamp has not yet been set
+        if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
+            self.metadata_change_timestamp = timestamp
 
         # sort the dict
         import collections
@@ -517,6 +519,8 @@ class PropCsvAndMaster():
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
             for line in mydict.values():
                 outfile.write(','.join(line)+'\n')
+
+        return self.metadata_change_timestamp
 
     def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given

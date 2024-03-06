@@ -19,6 +19,9 @@ import pyodbc
 class BMGICD(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
@@ -145,7 +148,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         conDict = self.buildConceptDictWithAttr("code")
         while row:
             parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-lkf-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023")
             row = cursor.fetchone()
 
     # just for calling the outer method
@@ -155,6 +158,9 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
 class BMGLKF(pcam.PropCsvAndMaster):
     def __init__(self, inFile):
         super().__init__()
+
+        import pyodbc
+
         # if you have an ODBC Driver Manager Error here, look into the comments above
         conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=' + inFile + ';')
         # https://github.com/mkleehammer/pyodbc/wiki/Cursor#attributes
@@ -273,9 +279,9 @@ class BMGLKF(pcam.PropCsvAndMaster):
             if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
 
             parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
             parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem-bmg-icd-10-2023")
+                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
 
             self.concept.append(theConcept)
             row = cursor.fetchone()

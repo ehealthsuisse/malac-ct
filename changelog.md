@@ -4,16 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [unreleased]
 
 ### Added
 
 - #11 Add support for [System OID](http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid).
 - #16 Add general support for extensions. However, each extension requires some custom integration in FHIR and FSH.
+- elga-gmbh/malac-ct#31 Fix expansion timestamp for multiple appndProcTermTo CSVs and add argument for conversion timestamp.
+- Add support of using `.2.claml.xml` for ValueSets
+
+### Changed
+
+- Use [fhir.resources](https://pypi.org/project/fhir.resources/) library for FHIR XML <-> JSON conversion because there are FHIR servers which do not support the `$convert` operation like the FHIR server in elga-gmbh/terminologit-tergi#4.
 
 ### Fixed
 
 - #35 Ignore publishers with the name `see` as this is a placeholder if no publisher name is available.
+- Fix URLs to fixed FHIR resources, using `CodeSystem/` instead of `CodeSystem-`
+- Fix reading metadata in `.1.svsextelga.xml` and `.2.svsextelga.xml`
 
 ## [4.3.1+20231218]
 
