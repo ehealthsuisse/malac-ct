@@ -27,6 +27,7 @@ from lxml import etree as etree_
 
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
+import ext_aut
 
 class XMLEscapeSpecialChar:
 
@@ -96,6 +97,23 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_id(self):
         return self.get_name()
 
+    def get_profiles(self):
+        the_profile_list = []
+
+        # make sure that profiles corresponding to activated extension are exported for sure
+        for activated_extension in self.activated_extension_dict:
+            # retrieve python module and class
+            module_class_list = self.activated_extension_dict[activated_extension]
+            # not all extensions have a designated class
+            if module_class_list:
+                # import corresponding module and retrieve the class for the extension
+                extension_module = __import__(module_class_list[0])
+                extension_class = getattr(extension_module, module_class_list[1])
+                # add profile's canonical
+                the_profile_list.append(extension_class.profile_canonical)
+
+        return the_profile_list
+
     def get_url(self):
         if tempUrl := self.globalUrl:
             return tempUrl+self.get_resource()+"/"+self.get_id()
@@ -145,23 +163,23 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         else:
             return pcam.Content.complete.value
 
-    def get_implicitrules(self):
-        return None
+    # def get_implicitrules(self):
+    #     return None
 
-    def get_language(self):
-        return None
+    # def get_language(self):
+    #     return None
 
-    def get_text(self):
-        return None
+    # def get_text(self):
+    #     return None
 
-    def get_contained(self):
-        return None
+    # def get_contained(self):
+    #     return None
 
-    def get_extension(self):
-        return None
+    # def get_extension(self):
+    #     return None
 
-    def get_modifierextension(self):
-        return None
+    # def get_modifierextension(self):
+    #     return None
 
     def get_identifier(self):
         if hasattr(self,"identifier"):
@@ -171,8 +189,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             identifiers.append(tempID)
         return identifiers
 
-    def get_experimental(self):
-        return None
+    # def get_experimental(self):
+    #     return None
 
     def get_date(self):
         return str(self.get_effectiveDate())
@@ -193,41 +211,41 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             tempConDetS.append(oneConDet)
         return tempConDetS
 
-    def get_usecontext(self):
-        return None
+    # def get_usecontext(self):
+    #     return None
 
-    def get_jurisdiction(self):
-        return None
+    # def get_jurisdiction(self):
+    #     return None
 
-    def get_purpose(self):
-        return None
+    # def get_purpose(self):
+    #     return None
 
-    def get_copyright(self):
-        return None
+    # def get_copyright(self):
+    #     return None
 
-    def get_immutable(self):
-        return None
+    # def get_immutable(self):
+    #     return None
 
-    def get_lockeddate(self):
-        return None
+    # def get_lockeddate(self):
+    #     return None
 
-    def get_inactive(self):
-        return None
+    # def get_inactive(self):
+    #     return None
 
-    def get_casesensitive(self):
-        return None
+    # def get_casesensitive(self):
+    #     return None
 
-    def get_valueset(self):
-        return None
+    # def get_valueset(self):
+    #     return None
 
-    def get_hierarchymeaning(self):
-        return None
+    # def get_hierarchymeaning(self):
+    #     return None
 
-    def get_compositional(self):
-        return None
+    # def get_compositional(self):
+    #     return None
 
-    def get_versionneeded(self):
-        return None
+    # def get_versionneeded(self):
+    #     return None
 
     def get_supplements(self):
         tmpSupplUrl = ""
@@ -240,8 +258,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_count(self):
         return len(self.get_concept())
 
-    def get_filter(self):
-        return None
+    # def get_filter(self):
+    #     return None
 
     def get_concept(self):
         if hasattr(self, "concept") and self.concept:
@@ -265,11 +283,14 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         if tmp.startswith('http://') or tmp.startswith('https://'):
                             theConcept.system = tmp
                         else:
-                            theConcept.system = self.globalUrl+"CodeSystem-"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
+                            theConcept.system = self.globalUrl+"CodeSystem/"+ (re.sub(r'[^A-Za-z0-9\-]+', '', oneCon.get_parentCodeSystemName().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
                     elif tmp:= oneCon.get_codeSystem():
                         theConcept.system = self.gainCanonicalFromOid(tmp)
                     else:
                         sys.exit('Neither OID nor name of the parent CodeSytem is present. Cannot process ValueSet.')
+
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                        ext_aut.SystemOid.add_extension(theConcept, self.gainOidFromCanonical(theConcept.system))
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
@@ -286,32 +307,32 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_concept_beschreibung()) and tmp.strip() != "" and tmp != oneCon.get_displayName() and tmp != tmpDeutsch and tmp != tmpDisAlt:
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^concept_beschreibung^concept_beschreibung^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_relationships()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^relationships^relationships^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^relationships^relationships^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmpDisAlt := oneCon.get_displayNameAlt()) and tmpDisAlt.strip() != "" and tmpDisAlt != oneCon.get_displayName() and tmpDisAlt != tmpDeutsch:
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^alt^alt^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^alt^alt^")
                         theDesig.value = tmpDisAlt
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_codiert()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_codiert^einheit_codiert^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^einheit_codiert^einheit_codiert^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_einheit_print()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^einheit_print^einheit_print^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^einheit_print^einheit_print^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
                     if (tmp := oneCon.get_hinweise()) and tmp.strip() != "":
                         theDesig = pcam.ConceptDesignation()
-                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^hinweise^hinweise^")
+                        theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^hinweise^hinweise^")
                         theDesig.value = tmp
                         theConcept.designation.append(theDesig)
 
@@ -339,7 +360,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                                 for one_xml_escape_special_char in xml_escape_special_char:
                                     code = code.replace(one_xml_escape_special_char.escape, one_xml_escape_special_char.xml)
 
-                                theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem-"+"austrian-designation-use^^"+code+"^"+code)
+                                theDesig.use = pcam.Coding(self.globalUrl+"CodeSystem/"+"austrian-designation-use^^"+code+"^"+code)
                                 theDesig.value = oneCon.get_anyAttributes_()[oneAttrKey]
                                 theConcept.designation.append(theDesig)
 

@@ -69,6 +69,33 @@ def get_Meta_with_name(self,meta_name):
         if oneMeta.get_name() == meta_name:
             return oneMeta.get_value()
 
+def get_meta_list_with_name(self, meta_name):
+    meta_list = []
+
+    for one_meta in self.get_Meta():
+        if one_meta.get_name() == meta_name:
+            meta_list.append(one_meta.get_value())
+
+    return meta_list
+
+def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_class, pcam_source):
+    """Write all extensions from the pcam_source to claml.
+
+    claml_metas -- list of metas that will contain meta-information about extension
+
+    claml_class -- claml class that will contain the value of the extension
+
+    pcam_source -- the object whose extension according to the extension_url will be written to claml.
+    """
+    if hasattr(pcam_source, 'extension_list'):
+        for one_extension in pcam_source.extension_list:
+            if one_extension.url not in extensions_written_to_metas:
+                extensions_written_to_metas.add(one_extension.url)
+                claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
+
+            if value := one_extension.value:
+                claml_class.add_Meta(MetaSub(one_extension.url, value))
+
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
 #        return get_Meta_with_name(self,'Sortierreihenfolge')
@@ -92,6 +119,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return tmp_id
         else:
             return self.get_name()
+
+    def get_profiles(self):
+        return get_meta_list_with_name(self, 'profile')
 
     # todo create get url for other classifications
     def get_url(self):
@@ -156,7 +186,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                     if tempValueOf.count("^") % 5 == 0 and (oneConDet := pcam.ContactDetail.from_string((oneAuthor.get_name() or "")+"|"+tempValueOf)):
                         for oneConDetTele in oneConDet.telecom:
                             if oneConDetTele.system == pcam.ContactDetail.ContactPoint.ContactPointSystem.url:
-                                if website and oneConDetTele.value and oneConDetTele.value.strip() == website.strip():
+                                if website and oneConDetTele.value and oneConDetTele.value.strip() in website.strip():
                                     website_in_authors = True
                         tempConDetS.append(oneConDet)
                     else:
@@ -311,7 +341,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'contained')
 
     def get_extension(self):
-        return get_Meta_with_name(self,'extension')
+        # Currently, no extensions are supported on this level
+        return None
 
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
@@ -321,9 +352,21 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if hasattr(self, "concept") and self.concept:
             return self.concept
         else:
+            # retrieve meta information about extensions
+            extension_list = get_meta_list_with_name(self, 'extension')
+            extension_datatype_dict = {}
+            for extension in extension_list:
+                extension_split = extension.split('|')
+                extension_datatype_dict[extension_split[0]] = extension_split[1]
+
             retArr = []
+            theMemberParent = [None]*9
             for oneClass in self.get_Class():
-                theConcept = pcam.CSConcept()
+                if self.get_resource() == "CodeSystem":
+                    theConcept = pcam.CSConcept()
+                elif self.get_resource() == "ValueSet":
+                    theConcept = pcam.VSConcept()
+
                 theConcept.code = oneClass.get_code()
 
                 thePropertys = []
@@ -332,7 +375,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 thereIsAlreadyOneMeaning = False
 
                 if tempKind := oneClass.get_kind():
-                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty = pcam.CSConcept.ConceptProperty()
                     theProperty.code = "kind"
                     theProperty.value = tempKind
                     theProperty.type = pcam.PropertyCodeType.string
@@ -354,11 +397,10 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             tmp += "!ignored Table!"
 
                     if (tmp.lower().endswith("[veraltet]") or tmp.lower().startswith("deprecated")) and not retiredAlreadySet:
-                        theProp = pcam.CSConcept.ConceptProperty()
-                        theProp.code = "status"
-                        theProp.value = "retired"
-                        theProp.type = pcam.PropertyCodeType.code
-                        thePropertys.append(theProp)
+                        if self.get_resource() == "CodeSystem":
+                            self.set_statusToRetired(theConcept)
+                        elif self.get_resource() == "ValueSet":
+                            theConcept.inactive = True
                         retiredAlreadySet = True
 
                     if oneRubric.get_kind() == "preferredLong":
@@ -385,7 +427,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         theDesignation.value = tmp
                         theConcept.designation.append(theDesignation)
                     elif not oneRubric.get_kind() == "hints" or (oneRubric.get_kind() == "hints" and not thereIsAlreadyOneHints):
-                        theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                        theProperty = pcam.CSConcept.ConceptProperty()
                         theProperty.code = oneRubric.get_kind()
                         theProperty.value = tmp
                         theProperty.type = pcam.PropertyCodeType.string
@@ -394,33 +436,32 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             thereIsAlreadyOneHints = True
 
                 for oneSuperClass in oneClass.get_SuperClass():
-                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty = pcam.CSConcept.ConceptProperty()
                     theProperty.code = "parent"
                     theProperty.value = oneSuperClass.get_code()
                     theProperty.type = pcam.PropertyCodeType.code
                     thePropertys.append(theProperty)
 
                 for oneSubClass in oneClass.get_SubClass():
-                    theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                    theProperty = pcam.CSConcept.ConceptProperty()
                     theProperty.code = "child"
                     theProperty.value = oneSubClass.get_code()
                     theProperty.type = pcam.PropertyCodeType.code
                     thePropertys.append(theProperty)
 
                 for oneMeta in oneClass.get_Meta():
-                    # skip the old TS_ATTRIBUTE_* and Level properties, only let TS_ATTRIBUTE_HINTS through
+                    # skip the old TS_ATTRIBUTE_* properties, only let TS_ATTRIBUTE_HINTS or TS_ATTRIBUTE_MEANING through
                     if ((not oneMeta.get_name().startswith("TS_ATTRIBUTE_") or oneMeta.get_name() == "TS_ATTRIBUTE_HINTS" or oneMeta.get_name() == "TS_ATTRIBUTE_MEANING") and
-                            not oneMeta.get_name() == "Level" and oneMeta.get_value().strip() != ""):
-                        theProperty = pcam.CSConcept.ConceptProperty.__new__(pcam.CSConcept.ConceptProperty)
+                            oneMeta.get_value().strip() != ""):
+                        theProperty = pcam.CSConcept.ConceptProperty()
                         if oneMeta.get_name().startswith("TS_ATTRIBUTE_HINTS") or oneMeta.get_name().startswith("hints"):
                             if not retiredAlreadySet and (oneMeta.get_value().startswith("DEPRECATED") or oneMeta.get_value().startswith("inaktiv")):
-                                theProp = pcam.CSConcept.ConceptProperty()
-                                theProp.code = "status"
-                                theProp.value = "retired"
-                                theProp.type = pcam.PropertyCodeType.code
-                                thePropertys.append(theProp)
+                                if self.get_resource() == "CodeSystem":
+                                    self.set_statusToRetired(theConcept)
+                                elif self.get_resource() == "ValueSet":
+                                    theConcept.inactive = True
                                 retiredAlreadySet = True
-                            if not thereIsAlreadyOneHints and (oneMeta.get_value() != "DEPRECATED" or oneMeta.get_value() != "inaktiv"):
+                            if not thereIsAlreadyOneHints and (not oneMeta.get_value().startswith("DEPRECATED") and not oneMeta.get_value().startswith("inaktiv")):
                                 theProperty.code = "hints"
                                 theProperty.value = oneMeta.get_value()
                                 theProperty.type = pcam.PropertyCodeType.string
@@ -433,13 +474,25 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                                 theDesignation.value = oneMeta.get_value()
                                 theConcept.designation.append(theDesignation)
                                 thereIsAlreadyOneMeaning = True
+                        elif oneMeta.get_name() == "Level":
+                            if self.get_resource() == "ValueSet":
+                                if 0 <= (tmpLevel := int(oneMeta.get_value().strip())):
+                                    theConcept.level = tmpLevel
+                                    theMemberParent[tmpLevel] = theConcept
+                                    if tmpLevel > 0:
+                                        parent = theMemberParent[tmpLevel-1]
+                                        # setting theConcept as child of the parent
+                                        parent.member.append(theConcept)
+                                        # setting the parent of theConcept
+                                        theConcept.parent = parent
                         elif oneMeta.get_name() == "Type":
+                            if oneMeta.get_value() == "A":
+                                theConcept.abstract = True
                             if not retiredAlreadySet and oneMeta.get_value() == "D":
-                                theProp = pcam.CSConcept.ConceptProperty()
-                                theProp.code = "status"
-                                theProp.value = "retired"
-                                theProp.type = pcam.PropertyCodeType.code
-                                thePropertys.append(theProp)
+                                if self.get_resource() == "CodeSystem":
+                                    self.set_statusToRetired(theConcept)
+                                elif self.get_resource() == "ValueSet":
+                                    theConcept.inactive = True
                                 retiredAlreadySet = True
                         elif oneMeta.get_name() == "status":
                             # separately check if retiredAlreadySet is false, otherwise the
@@ -461,14 +514,27 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.boolean
                             thePropertys.append(theProperty)
+                        elif oneMeta.get_name() == "codeSystem":
+                            theConcept.system = oneMeta.get_value()
+                        elif oneMeta.get_name() == "codeSystemVersion":
+                            theConcept.version = oneMeta.get_value()
+                        elif oneMeta.get_name() in extension_datatype_dict:
+                            the_extension = pcam.Extension()
+                            the_extension.url = oneMeta.get_name()
+                            the_extension.type = pcam.ExtensionType(extension_datatype_dict[oneMeta.get_name()])
+                            if the_extension.type != pcam.ExtensionType.coding:
+                                the_extension.value = oneMeta.get_value()
+                            else:
+                                the_extension.value = pcam.Coding(oneMeta.get_value())
+                            theConcept.extension_list.append(the_extension)
                         else:
                             theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
                             theProperty.value = oneMeta.get_value()
                             theProperty.type = pcam.PropertyCodeType.string
                             thePropertys.append(theProperty)
 
-                if len(thePropertys) > 0:
-                    theConcept.property = thePropertys
+                if len(thePropertys) > 0 and self.get_resource() == "CodeSystem":
+                    theConcept.property += thePropertys
 
                 retArr.append(theConcept)
                 self.concept = retArr
@@ -491,6 +557,11 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('id', self.get_id()))
+
+        if one_profile_list := self.get_profiles():
+            for one_profile in one_profile_list:
+                metas.append(MetaSub('profile', one_profile))
+
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":
@@ -557,7 +628,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             website += " & " + oneConTele.value
             # explicitly don't add the author information as website-meta, like it once was in the austrian termpub, can't deliver name and telecom in one meta
             metas.append(MetaSub("website",website))
-            
+
         if tmp := self.get_usecontext():
             for oneUseContext in tmp:
                 metas.append(MetaSub('usecontext',oneUseContext))
@@ -592,10 +663,17 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 concept_dict = self.buildConceptDictWithAttr('code')
             elif self.get_resource() == "ValueSet":
                 concept_dict = self.buildConceptDictWithAttr('code', 'system')
+
+            # keep track of extensions that have already been documented in metas
+            extensions_written_to_metas = set()
+
             for oneConcept in tmp:
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
+
+                # export extensions
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
@@ -656,6 +734,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                         type_ = "A"
                     elif oneConcept.inactive:
                         type_ = "D"
+                        theClass.add_Meta(MetaSub("inactive", "true"))
                     elif oneConcept.member != []:
                         type_ = "S"
 
