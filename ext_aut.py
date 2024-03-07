@@ -331,12 +331,15 @@ class SystemOid():
     extension_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid'
 
     def add_extension(the_element, oid):
-        if not hasattr(the_element, 'extension'):
-            the_element.extension = []
+        import re
+        pattern = re.compile("^[0-2](\.(0|[1-9][0-9]*))+$")
+        if pattern.match(oid):
+            if not hasattr(the_element, 'extension'):
+                the_element.extension = []
 
-        the_extension = pcam.Extension()
-        the_extension.url = SystemOid.extension_canonical
-        the_extension.value = 'urn:oid:' + oid
-        the_extension.type = pcam.ExtensionType.oid
+            the_extension = pcam.Extension()
+            the_extension.url = SystemOid.extension_canonical
+            the_extension.value = 'urn:oid:' + oid
+            the_extension.type = pcam.ExtensionType.oid
 
-        the_element.extension.append(the_extension)
+            the_element.extension.append(the_extension)

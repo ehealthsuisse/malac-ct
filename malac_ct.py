@@ -252,6 +252,7 @@ def main() -> None:
 
         # read activated extensions
         input.activated_extension_dict = {}
+        input.applied_extension_list = []
         if args.extension:
             for extension in args.extension:
                 if extension in extensions_dict:

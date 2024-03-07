@@ -495,6 +495,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 valueset.set_expansion(the_expansion)
 
+        # export profiles this late because it may depend on the actual application of an extension if a profile may be added or not
+        f4csvs.exporto_profiles(self, globals(), valueset)
+
         # export the FHIR ValueSet resource to the outfile
         valueset.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
 
@@ -577,10 +580,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 the_system_dict[system_key] = the_include
                 # export SystemOid extension
                 if not f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
-                    # add the extension if it has been explicitly activated and if an oid could be determined
-                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict and (oid := self.resolveTerminologyMapping('canonical', the_system, 'oid')):
-                        ext_aut.SystemOid.add_extension(one_concept, oid)
-                        f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical)
+                    # add the extension if it has been explicitly activated
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                        ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
+                        if f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
+                            self.applied_extension_list.append(ext_aut.SystemOid.extension_canonical)
             else:
                 the_include = the_system_dict[system_key]
 
@@ -651,10 +655,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # export SystemOid extension
                     if not f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
-                        # add the extension if it has been explicitly activated and if an oid could be determined
-                        if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict and (oid := self.resolveTerminologyMapping('canonical', one_system, 'oid')):
-                            ext_aut.SystemOid.add_extension(one_concept, oid)
-                            f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical)
+                        # add the extension if it has been explicitly activated
+                        if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                            ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(one_system))
+                            if f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
+                                self.applied_extension_list.append(ext_aut.SystemOid.extension_canonical)
                     # export conceptOrder extension
                     f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical)
 

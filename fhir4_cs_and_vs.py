@@ -362,28 +362,7 @@ def exporto(self, globals, fhir_resource):
         fhir_resource.set_id(globals.get('idSub')(value=tmp))
 
     # NOT SUPPORTED CodeSystem.meta or ValueSet.meta in general
-    # CodeSystem.meta.profile or ValueSet.meta.profile
-    one_profile_list = []
-    the_profile_list = []
-    if one_profile_list := self.get_profiles():
-        for one_profile in one_profile_list:
-            the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
-    # make sure that profiles corresponding to activated extension are exported for sure
-    for activated_extension in self.activated_extension_dict:
-        # retrieve python module and class
-        module_class_list = self.activated_extension_dict[activated_extension]
-        # not all extensions have a designated class
-        if module_class_list:
-            # import corresponding module and retrieve the class for the extension
-            extension_module = __import__(module_class_list[0])
-            extension_class = getattr(extension_module, module_class_list[1])
-            # export profile's canonical if it has not yet been exported
-            if hasattr(extension_class, "profile_canonical") and extension_class.profile_canonical not in one_profile_list:
-                the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
-
-    # add the profiles if any
-    if the_profile_list:
-        fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
+    # but a part is supported by exporto_profiles()
 
     if tmp := self.get_implicitrules():
         fhir_resource.set_implicitRules(globals.get('uriSub')(value=tmp))
@@ -503,6 +482,31 @@ def exporto(self, globals, fhir_resource):
 
     if tmp := self.get_copyright():
         fhir_resource.set_copyright(globals.get('markdownSub')(value=tmp))
+
+def exporto_profiles(self, globals, fhir_resource):
+    # CodeSystem.meta.profile or ValueSet.meta.profile
+    one_profile_list = []
+    the_profile_list = []
+    if one_profile_list := self.get_profiles():
+        for one_profile in one_profile_list:
+            the_profile_list.append(globals.get('canonicalSub')(value=one_profile))
+    # make sure that profiles corresponding to activated and used extension are exported for sure
+    for activated_extension in self.activated_extension_dict:
+        if activated_extension in self.applied_extension_list:
+            # retrieve python module and class
+            module_class_list = self.activated_extension_dict[activated_extension]
+            # not all extensions have a designated class
+            if module_class_list:
+                # import corresponding module and retrieve the class for the extension
+                extension_module = __import__(module_class_list[0])
+                extension_class = getattr(extension_module, module_class_list[1])
+                # export profile's canonical if it has not yet been exported
+                if hasattr(extension_class, "profile_canonical") and extension_class.profile_canonical not in one_profile_list:
+                    the_profile_list.append(globals.get('canonicalSub')(value=extension_class.profile_canonical))
+
+    # add the profiles if any
+    if the_profile_list:
+        fhir_resource.set_meta(globals.get('MetaSub')(profile=the_profile_list))
 
 def exporto_concept_designation(globals, designation_class, designation_list):
     """Transform list of pcam.ConceptDesignations to list of CodeSystem_Designations or ValueSet_Designations depending on designation_class.
