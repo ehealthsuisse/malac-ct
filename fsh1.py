@@ -745,6 +745,9 @@ def exporto_extension(outfile, fsh_target, pcam_source, *extension_url_list):
                     outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), str(value).replace('"','\\"')))
 
             count_extension += 1
+    if not "expansion" in fsh_target and hasattr(pcam_source, "same_code_and_same_system"):
+        for same_cons in pcam_source.same_code_and_same_system:
+            exporto_extension(outfile, fsh_target, same_cons, *extension_url_list)
 
 class Filter(pcam.Filter):
     def __init__(self, idInFsh):

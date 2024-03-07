@@ -574,7 +574,16 @@ class PropCsvAndMaster():
                 for part in stringAttrAsKey.split("."):
                     tmpPointer = getattr(tmp_pointer,part)
                 key += tmpPointer
-            tmpDict[key] = oneCon
+            # check if key is already in the dict and if, add it as a reference inside the object
+            if key in tmpDict:
+                # create list, if non existent, name will be generated, i.e. _same_code_same_system
+                if not hasattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):
+                    setattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys),[])
+                # check if same object is already in list and add it if not
+                if not oneCon in getattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):
+                    (getattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys))).append(oneCon)
+            else:
+                tmpDict[key] = oneCon
         return tmpDict
 
     def build_property_dict_on_code_with_value_as_key(self, concept, propCode):

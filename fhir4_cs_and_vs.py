@@ -595,7 +595,7 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
 
                 pcam_target.extension.append(the_extension)
 
-def exporto_extension(globals, fhir_target, pcam_source, extension_url):
+def exporto_extension(globals, fhir_target, pcam_source, extension_url, is_expansion=False):
     """Write the extension with the given extenstion_url from the pcam_source to the fhir_target.
 
     fhir_target -- the element from the FHIR resource where the extension will be written to.
@@ -603,6 +603,8 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url):
     pcam_source -- the object whose extension according to the extension_url will be written to the fhir_target.
 
     extension_url -- identification of the extension to be written.
+
+    is_expansion -- default false -- if the export of the extension is used for an expansion
     """
     if hasattr(pcam_source, 'extension'):
         for one_extension in pcam_source.extension:
@@ -634,6 +636,9 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url):
                             getattr(the_extension, setter_name)(globals.get(value_type_class_name)(value=value))
 
                 fhir_target.add_extension(the_extension)
+                if not is_expansion and hasattr(pcam_source, "same_code_and_same_system"):
+                    for same_cons in pcam_source.same_code_and_same_system:
+                        exporto_extension(globals, fhir_target, same_cons, extension_url)
                 # return true and break the loop once the extension has been written to the fhir_target
                 return True
         # return false in case the extension with the given extension_url was not written to the fhir_target

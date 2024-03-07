@@ -661,7 +661,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                             if f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
                                 self.applied_extension_list.append(ext_aut.SystemOid.extension_canonical)
                     # export conceptOrder extension
-                    f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical)
+                    f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical, is_expansion=True)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))
