@@ -663,8 +663,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_concept():
             if self.get_resource() == "CodeSystem":
                 concept_dict = self.buildConceptDictWithAttr('code')
-            elif self.get_resource() == "ValueSet":
-                concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
             # keep track of extensions that have already been documented in metas
             extensions_written_to_metas = set()
