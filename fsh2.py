@@ -172,9 +172,17 @@ class Fsh2(Fsh1):
                 if hasattr(oneConcept,"member") and oneConcept.member != []:
                     vsMemberAnywhere = True
 
+            # if there is a conceptSuppl, print them first
+            if hasattr(self,"conceptSuppl") and self.conceptSuppl:
+                tempList = self.conceptSuppl
+            elif self.get_resource() == 'ValueSet':
+                tempList = self.buildConceptDictWithAttr('code', 'system').values() # quickly remove duplicates
+            elif self.get_resource() == 'CodeSystem':
+                tempList = self.get_concept()
+
             j = -1
             k = -1
-            for oneConcept in self.buildConceptDictWithAttr('code', 'system').values():
+            for oneConcept in tempList:
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
                     if hasattr(oneConcept, 'display') and oneConcept.display:
