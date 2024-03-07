@@ -174,7 +174,7 @@ class Fsh2(Fsh1):
 
             j = -1
             k = -1
-            for oneConcept in conceptList:
+            for oneConcept in self.buildConceptDictWithAttr('code', 'system').values():
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
                     if hasattr(oneConcept, 'display') and oneConcept.display:

@@ -872,9 +872,9 @@ class PropCsvAndMaster():
                     csv_line.append(conceptDesig[headerDesignationIterator])
                     headerDesignationIterator += 1
                 
-                if self.parenting_by == ParentingBy.conceptOrder and 'conceptOrder' not in csv_header and (tmp := oneConcept):
+                if self.parenting_by == ParentingBy.conceptOrder and 'conceptOrder' not in csv_header and oneConcept:
                     csv_header.append('conceptOrder')
-                    for one_ext in tmp.extension:
+                    for one_ext in oneConcept.extension:
                         if one_ext.url == ext.ConceptOrder.extension_canonical:  
                             if one_ext.value:
                                 csv_line.append(one_ext.value)

@@ -571,9 +571,7 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
             if one_url := one_extension.get_url():
                 
                 if delete_extensions_in_target_with_same_urls:
-                    items_to_remove = [] # do not try to remove/pop or whatever directly on the extension list, because hell will break loose (for real, never alter a list while iterating)
-                    [items_to_remove.append(item) for item in pcam_target.extension if item.url == one_url]
-                    [pcam_target.extension.remove(item) for item in items_to_remove]
+                    pcam_target.extension = [item for item in pcam_target.extension if item.url != one_url]
 
                 the_extension = pcam.Extension()
                 the_extension.url = one_url
