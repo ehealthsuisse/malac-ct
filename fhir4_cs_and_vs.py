@@ -574,20 +574,22 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
                 the_extension = pcam.Extension()
                 the_extension.url = one_url
 
-                if (one_value := one_extension.get_valueOid()) or\
-                (one_value := one_extension.get_valueInteger()): #TODO support of further types
+                if one_value := one_extension.get_valueOid(): #TODO support of further types
                     the_extension.value = one_value.get_value()
                     the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
-                elif tmp_prop := one_extension.get_valueCoding():
+                elif one_value := one_extension.get_valueInteger():
+                    the_extension.value = int(one_value.get_value())
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                elif one_value := one_extension.get_valueCoding():
                     the_coding = pcam.Coding()
-                    if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
-                    if tmp := tmp_prop.get_version(): the_coding.version = tmp.get_value()
-                    if tmp := tmp_prop.get_code(): the_coding.code= tmp.get_value()
-                    if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
-                    if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
+                    if tmp := one_value.get_system(): the_coding.codesystem = tmp.get_value()
+                    if tmp := one_value.get_version(): the_coding.version = tmp.get_value()
+                    if tmp := one_value.get_code(): the_coding.code= tmp.get_value()
+                    if tmp := one_value.get_display(): the_coding.display = tmp.get_value()
+                    if tmp := one_value.get_userSelected(): the_coding.userSelected = tmp.get_value()
                     the_extension.value = the_coding
                     # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                    the_extension.type = pcam.ExtensionType(tmp_prop.original_tagname_.replace('value',''))
+                    the_extension.type = pcam.ExtensionType(one_value.original_tagname_.replace('value',''))
 
                 pcam_target.extension.append(the_extension)
 

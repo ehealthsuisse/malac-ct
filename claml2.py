@@ -522,10 +522,12 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             the_extension = pcam.Extension()
                             the_extension.url = oneMeta.get_name()
                             the_extension.type = pcam.ExtensionType(extension_datatype_dict[oneMeta.get_name()])
-                            if the_extension.type != pcam.ExtensionType.coding:
-                                the_extension.value = oneMeta.get_value()
-                            else:
+                            if the_extension.type == pcam.ExtensionType.coding:
                                 the_extension.value = pcam.Coding(oneMeta.get_value())
+                            elif the_extension.type == pcam.ExtensionType.integer:
+                                the_extension.value = int(oneMeta.get_value())
+                            else:
+                                the_extension.value = oneMeta.get_value()
                             theConcept.extension.append(the_extension)
                         else:
                             theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
