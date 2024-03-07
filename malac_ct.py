@@ -7,7 +7,8 @@ import time
 listOClasses = {
     ".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
-    ".data.1.spreadct.csv": ["prop_csv_and_master", "SpreadCT"], # additionally a special check is beeing made, if the mandatory .meta.1.spreadct.csv file does exist
+    # management decision: no spreadct csvs
+    #".data.1.spreadct.csv": ["prop_csv_and_master", "SpreadCT"], # additionally a special check is beeing made, if the mandatory .meta.1.spreadct.csv file does exist
     ".1.spreadct.xlsx": ["prop_csv_and_master", "SpreadCTasXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
@@ -218,11 +219,12 @@ def main() -> None:
     # look at the name of the input file and load the classification,
     iClassValue,iClass = detectClassByEnding(args.input)
 
+    # management decision: no spreadct csvs
     # special handling of .data.1.spreadct.csv, check if *.meta.1.spreadct.csv exists
-    if iClass == ".data.1.spreadct.csv":
-        import os
-        if not os.path.exists(args.input.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")):
-            sys.exit("The spreadCT format requires beside the *.data.1.spreadct.csv a mandatory *.meta.1.spreadct.csv in the same folder! \n %s" % descriptionText)
+    #if iClass == ".data.1.spreadct.csv":
+    #    import os
+    #    if not os.path.exists(args.input.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")):
+    #        sys.exit("The spreadCT format requires beside the *.data.1.spreadct.csv a mandatory *.meta.1.spreadct.csv in the same folder! \n %s" % descriptionText)
 
 
     # if it is a fhir input and the output is also fhir, skip the real malac-ct converting

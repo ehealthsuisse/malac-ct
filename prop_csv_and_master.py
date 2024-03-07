@@ -1052,7 +1052,12 @@ class SpreadCTasXLSX():
         
         read_meta.to_csv(inFilename.replace('.1.spreadct.xlsx', '.meta.1.spreadct.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='utf-8')
         read_data.to_csv(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='utf-8')
-        return SpreadCT.parse(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'))
+        ret = SpreadCT.parse(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'))
+        # management decision: no spreadct csvs
+        import os
+        os.remove(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'))
+        os.remove(inFilename.replace('.1.spreadct.xlsx', '.meta.1.spreadct.csv'))
+        return ret
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
         SpreadCT.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS)
