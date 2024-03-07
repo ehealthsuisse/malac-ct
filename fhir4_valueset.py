@@ -408,12 +408,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 key = tmp_code.get_value() + tmp_system.get_value()
                 # retrieve the concept from the dictionary
                 if key in concept_code_dict.keys() and (the_concept := concept_code_dict[key]):
-                    
+
                     # check if already in list (like for cases of parentingByConceptOrder)
                     if the_concept in the_from_expand_sorted_list:
                         import copy
                         the_concept = copy.deepcopy(the_concept)
-                    
+
                     # set the concept's level
                     the_concept.level = level
 
@@ -436,7 +436,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # read extension, if that url is already in the concept, delete all extensions with that same url
                     f4csvs.parse_extension(the_concept, one_contains, delete_extensions_in_target_with_same_urls=True)
-                        
+
                     the_from_expand_sorted_list.append(the_concept)
                     # if one_contains contains a list of contains go into recursion
                     if tmp := one_contains.get_contains():
@@ -577,9 +577,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 the_system_dict[system_key] = the_include
                 # export SystemOid extension
                 if not f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
-                    # add the extension if it has been explicitly activated
-                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
-                        ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
+                    # add the extension if it has been explicitly activated and if an oid could be determined
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict and (oid := self.resolveTerminologyMapping('canonical', the_system, 'oid')):
+                        ext_aut.SystemOid.add_extension(one_concept, oid)
                         f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical)
             else:
                 the_include = the_system_dict[system_key]
@@ -651,9 +651,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # export SystemOid extension
                     if not f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
-                        # add the extension if it has been explicitly activated
-                        if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
-                            ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(one_system))
+                        # add the extension if it has been explicitly activated and if an oid could be determined
+                        if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict and (oid := self.resolveTerminologyMapping('canonical', one_system, 'oid')):
+                            ext_aut.SystemOid.add_extension(one_concept, oid)
                             f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical)
                     # export conceptOrder extension
                     f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical)
