@@ -267,10 +267,9 @@ class PropCsvAndMaster():
                                         concept_dict_with_order_as_key[one_ext.value] = one_concept
                                         break
                                 else:
-                                    # if parentByConceptOrder is used once, than every concept has to have a explicitly given conceptOrder
+                                    # if parentByConceptOrder is used once, then every concept has to have a explicitly given conceptOrder
                                     import sys
-                                    sys.exit('If parentByConceptOrder is used, than every concept needs a conceptOrder extension. See concept with code: ' + one_concept.code)
-                                        
+                                    sys.exit('If parentByConceptOrder is used, then every concept needs a conceptOrder extension. See concept with code: ' + one_concept.code)
                             # now link all the parents using the dict
                             for one_concept in self.concept:
                                 if hasattr(one_concept,"parentByConceptOrder"):
@@ -719,7 +718,7 @@ class PropCsvAndMaster():
             csv_line = []
             #for CodeSystems
             if self.get_resource() == 'CodeSystem':
-                #adding values to already existing columns, if value empty than a empty string is added
+                #adding values to already existing columns, if value empty then an empty string is added
                 headerDesignationIterator = 0
                 headerPropertyIterator = 0
                 headerExtensionIterator = 0
@@ -776,7 +775,7 @@ class PropCsvAndMaster():
 
             #for ValueSets
             elif self.get_resource() == 'ValueSet':
-                # adding values to already existing columns, if value empty than a empty string is added
+                # adding values to already existing columns, if value empty then an empty string is added
                 headerDesignationIterator = 0
                 headerFilterIterator = 0
                 headerExtensionIterator = 0
