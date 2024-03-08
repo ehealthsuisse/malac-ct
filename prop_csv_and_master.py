@@ -343,6 +343,8 @@ class PropCsvAndMaster():
         return self.id if hasattr(self,"id") else None
 
     def get_profiles(self):
+        if not hasattr(self, 'profiles'):
+            self.profiles = []
         return self.profiles
 
     def get_url(self):
