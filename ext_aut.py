@@ -330,6 +330,9 @@ class SystemOid():
     profile_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-valueset'
     extension_canonical = 'http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid'
 
+    # specify, if this extension may be exported more than once in the same place
+    allow_export_multiple = False
+
     def add_extension(the_element, oid):
         import re
         pattern = re.compile("^[0-2](\.(0|[1-9][0-9]*))+$")

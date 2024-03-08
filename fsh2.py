@@ -222,13 +222,13 @@ class Fsh2(Fsh1):
                             i += 1
 
                     # export extension
-                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, ext.ReplacedBy.extension_canonical)
+                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, 0, ext.ReplacedBy.extension_canonical)
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1
                         k = -1
                         tempConcept = oneConcept
-                        exporto_extension(outfile, '* compose.include[%s].' % (j), oneConcept, ext_aut.SystemOid.extension_canonical)
+                        exporto_extension(outfile, '* compose.include[%s].' % (j), oneConcept, 0, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -262,7 +262,7 @@ class Fsh2(Fsh1):
                                 if tmp := oneDesignation.use.userSelected:
                                     outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
-                    exporto_extension(outfile, '* compose.include[%s].concept[%s].' % (j, k), oneConcept, ext.ConceptOrder.extension_canonical)
+                    exporto_extension(outfile, '* compose.include[%s].concept[%s].' % (j, k), oneConcept, 0, ext.ConceptOrder.extension_canonical)
                     if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
                         for oneFilter in oneConcept.filter:

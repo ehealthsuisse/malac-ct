@@ -1,4 +1,5 @@
 import sys
+from malac_ct import extensions_dict
 import prop_csv_and_master as pcam
 import fhir4_codesystem as f4cs
 import fhir4_valueset as f4vs
@@ -637,8 +638,14 @@ def exporto_extension(globals, fhir_target, pcam_source, extension_url, is_expan
 
                 fhir_target.add_extension(the_extension)
                 if not is_expansion and hasattr(pcam_source, "same_code_and_same_system"):
-                    for same_cons in pcam_source.same_code_and_same_system:
-                        exporto_extension(globals, fhir_target, same_cons, extension_url)
+                    for same_concept in pcam_source.same_code_and_same_system:
+                        for extension in same_concept.extension:
+                            if extension.url == extension_url:
+                                extensionValueModule, extensionValueClass = extensions_dict[extension.url]
+                                extModule = __import__(extensionValueModule)
+                                extClass = getattr(extModule, extensionValueClass)
+                                if extClass.allow_export_multiple:
+                                    exporto_extension(globals, fhir_target, same_concept, extension_url)
                 # return true and break the loop once the extension has been written to the fhir_target
                 return True
         # return false in case the extension with the given extension_url was not written to the fhir_target
