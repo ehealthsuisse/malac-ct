@@ -237,20 +237,6 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
-        input.globalUrl = args.fhirIgUrl
-        input.filename = args.input
-        # sort the input
-        if 'CodeSystem-' in input.filename:
-            input.sortConceptsExpandStyle()
-        elif 'ValueSet-' in input.filename:
-            input.sort_VS_concepts_by_conceptOrder()
-
-        # append to all processedTerminology lists
-        if args.appendProcessedTerminologyTo:
-            input.processedTerminologies = args.appendProcessedTerminologyTo[0]
-            timestamp = args.conversionTimestamp if args.conversionTimestamp else datetime.now().strftime("%Y-%m-%dT%X.0000Z")
-            for csv2AppendTo in args.appendProcessedTerminologyTo:
-                timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
         # read activated extensions
         input.activated_extension_dict = {}
@@ -259,6 +245,21 @@ def main() -> None:
             for extension in args.extension:
                 if extension in extensions_dict:
                     input.activated_extension_dict[extension] = extensions_dict[extension]
+
+        # append to all processedTerminology lists
+        if args.appendProcessedTerminologyTo:
+            input.processedTerminologies = args.appendProcessedTerminologyTo[0]
+            timestamp = args.conversionTimestamp if args.conversionTimestamp else datetime.now().strftime("%Y-%m-%dT%X.0000Z")
+            for csv2AppendTo in args.appendProcessedTerminologyTo:
+                timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
+
+        input.globalUrl = args.fhirIgUrl
+        input.filename = args.input
+        # sort the input
+        if 'CodeSystem-' in input.filename:
+            input.sortConceptsExpandStyle()
+        elif 'ValueSet-' in input.filename:
+            input.sort_VS_concepts_by_conceptOrder()
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:
