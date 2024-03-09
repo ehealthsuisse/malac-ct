@@ -1,9 +1,10 @@
 from pickletools import string4
+from malac_ct import extensions_dict
 import prop_csv_and_master as pcam
 import re
 import copy
+import ext
 import ext_aut
-from ext_codesystem_replacedby import ReplacedBy
 
 tempindex = None
 
@@ -92,7 +93,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if oneContactPoint.idInFsh == splittedLine[0].split('.')[1].split(']')[0]:
                             theContactPoint = oneContactPoint
                     # if none is found in the list, make one
-                    if theContactPoint is None:
+                    if theContactPoint is None and splittedLine[0].count(".")>=2: # added to skip if only contact.name is stated
                         theContactPoint = ContactPoint(splittedLine[0].split('.')[1].split(']')[0])
                         theContactDetail.telecom.append(theContactPoint)
 
@@ -476,8 +477,10 @@ class Fsh1(pcam.PropCsvAndMaster):
             # if there is a conceptSuppl, print them first
             if hasattr(self,"conceptSuppl") and self.conceptSuppl:
                 tempList = self.conceptSuppl
-            else:
-                tempList = conceptList
+            elif self.get_resource() == 'ValueSet':
+                tempList = self.buildConceptDictWithAttr('code', 'system').values() # quickly remove duplicates
+            elif self.get_resource() == 'CodeSystem':
+                tempList = self.get_concept()
 
             for oneConcept in tempList:
                 cntCSConcept += 1
@@ -520,7 +523,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                             i += 1
 
                     # export extension
-                    exporto_extension(outfile, '* concept[%s].' % (cntCSConcept), oneConcept, ReplacedBy.extension_canonical)
+                    exporto_extension(outfile, '* concept[%s].' % (cntCSConcept), oneConcept, 0, ext.ReplacedBy.extension_canonical)
                 # for ValueSets
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system or tempConcept.exclude != oneConcept.exclude:
@@ -532,7 +535,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         else:
                             incOrExclude = "include"
                         # add the extension to the include/exclude
-                        exporto_extension(outfile, '* compose.%s[%s].' % (incOrExclude, cntIncAndExclude), oneConcept, ext_aut.SystemOid.extension_canonical)
+                        exporto_extension(outfile, '* compose.%s[%s].' % (incOrExclude, cntIncAndExclude), oneConcept, 0, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.%s[%s].system = "%s"\n' % (incOrExclude, cntIncAndExclude, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -571,6 +574,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                         if hasattr(oneConcept.filter, 'property'): outfile.write('* compose.%s[%s].filter[%s].property = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.property))
                         if hasattr(oneConcept.filter, 'op'): outfile.write('* compose.%s[%s].filter[%s].op = #%s \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.op))
                         if hasattr(oneConcept.filter, 'value'): outfile.write('* compose.%s[%s].filter[%s].value = "%s" \n' % (incOrExclude, cntIncAndExclude, cntVSConcept, oneConcept.filter.value))
+                    exporto_extension(outfile, '* compose.%s[%s].concept[%s].' % (incOrExclude, cntIncAndExclude, cntVSConcept), oneConcept, 0, ext.ConceptOrder.extension_canonical)
 
             # look if a member definition in the valueset is used (* compose.include.extension.extension.url & valueCode) and the args param is set
             if vsMemberAnywhere and self.get_resource() == 'ValueSet' and incHierarchyExt4VS:
@@ -655,7 +659,6 @@ class Fsh1(pcam.PropCsvAndMaster):
 
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1
-    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, ext_aut.SystemOid.extension_canonical)
     outfile.write('* expansion%s.system = "%s"\n' % (strContainsAsLevels(oneConcept.level,containCnt),oneConcept.system))
 
     # write the system version if existent
@@ -704,7 +707,7 @@ def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
                 outfile.write('* expansion%s.designation[%s].use = %s \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, tmpCoding))
             if hasattr(oneProperty, 'value') and oneProperty.value: outfile.write('* expansion%s.designation[%s].value = "%s" \n' % (strContainsAsLevels(oneConcept.level,containCnt), dCnt, oneProperty.value.replace('"','\\"')))
             dCnt += 1
-
+    exporto_extension(outfile, '* expansion%s.' % (strContainsAsLevels(oneConcept.level,containCnt)), oneConcept, 0, ext_aut.SystemOid.extension_canonical, ext.ConceptOrder.extension_canonical)
     if hasattr(oneConcept,"member") and oneConcept.member != []:
         containCnt+=[-1]
         for oneMember in oneConcept.member:
@@ -717,17 +720,19 @@ def strContainsAsLevels (level, containCnt):
         ret += ".contains["+ str(containCnt[x]) +"]"
     return ret
 
-def exporto_extension(outfile, fsh_target, pcam_source, *extension_url_list):
+def exporto_extension(outfile, fsh_target, pcam_source, count_extension, *extension_url_list):
     """Write the extension with the given extenstion_url from the pcam_source to the fsh_target.
 
     fsh_target -- the element the extension will be written to
 
     pcam_source -- the object whose extension according to the extension_url will be written to the fhir_target.
 
+    count_extension -- start value for the extension counter
+
     extension_url -- identification of the extension to be written.
     """
-    count_extension = 0
-    for one_extension in pcam_source.extension_list:
+
+    for one_extension in pcam_source.extension:
         if one_extension.url in extension_url_list:
             prefix = '%sextension[%s]' % (fsh_target, count_extension)
             outfile.write('%s.url = "%s"\n' % (prefix, one_extension.url))
@@ -740,9 +745,18 @@ def exporto_extension(outfile, fsh_target, pcam_source, *extension_url_list):
                     if hasattr(value, 'display') and value.display: outfile.write('%s.valueCoding.display = "%s" \n' % (prefix, str(value.display).replace('"','\\"')))
                     if hasattr(value, 'userSelected') and value.userSelected: outfile.write('%s.valueCoding.userSelected = %s \n' % (prefix, str(value.userSelected).replace('"','\\"')))
                 else:
-                    outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), value.replace('"','\\"')))
+                    outfile.write('%s.value%s = "%s"\n' % (prefix, pcam.first_char_to_upper(value_type.value), str(value).replace('"','\\"')))
 
             count_extension += 1
+    if not "expansion" in fsh_target and hasattr(pcam_source, "same_code_and_same_system"):
+        for same_concept in pcam_source.same_code_and_same_system:
+            for extension in same_concept.extension:
+                if extension.url in extension_url_list:
+                    extensionValueModule, extensionValueClass = extensions_dict[extension.url]
+                    extModule = __import__(extensionValueModule)
+                    extClass = getattr(extModule, extensionValueClass)
+                    if extClass.allow_export_multiple:
+                        exporto_extension(outfile, fsh_target, same_concept, count_extension, extension.url)
 
 class Filter(pcam.Filter):
     def __init__(self, idInFsh):

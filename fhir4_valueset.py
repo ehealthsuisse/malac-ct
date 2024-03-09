@@ -26,6 +26,7 @@ from lxml import etree as etree_
 import fhir4_valueset_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
+import ext
 import ext_aut
 
 def parsexml_(infile, parser=None, **kwargs):
@@ -325,6 +326,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # read extensions
                     f4csvs.parse_extension(the_concept, one_include)
+                    f4csvs.parse_extension(the_concept, one_concept)
 
                     the_concept.system = the_include_system
                     the_concept.version = the_include_version
@@ -406,6 +408,12 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 key = tmp_code.get_value() + tmp_system.get_value()
                 # retrieve the concept from the dictionary
                 if key in concept_code_dict.keys() and (the_concept := concept_code_dict[key]):
+
+                    # check if already in list (like for cases of parentingByConceptOrder)
+                    if the_concept in the_from_expand_sorted_list:
+                        import copy
+                        the_concept = copy.deepcopy(the_concept)
+
                     # set the concept's level
                     the_concept.level = level
 
@@ -425,6 +433,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         parent.member.append(the_concept)
                         # setting the parent of one_concept
                         the_concept.parent = parent
+
+                    # read extension, if that url is already in the concept, delete all extensions with that same url
+                    f4csvs.parse_extension(the_concept, one_contains, delete_extensions_in_target_with_same_urls=True)
 
                     the_from_expand_sorted_list.append(the_concept)
                     # if one_contains contains a list of contains go into recursion
@@ -484,6 +495,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 valueset.set_expansion(the_expansion)
 
+        # export profiles this late because it may depend on the actual application of an extension if a profile may be added or not
+        f4csvs.exporto_profiles(self, globals(), valueset)
+
         # export the FHIR ValueSet resource to the outfile
         valueset.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
 
@@ -515,7 +529,8 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         # dummy system + version if a VSConcept has got neither system nor version
         no_system_no_version = 'NO_SYSTEM_NO_VERSION'
 
-        for one_concept in concept_list:
+        # building conceptDict for quickly sorting out duplicates
+        for one_concept in self.buildConceptDictWithAttr('code', 'system').values():
             exclude = one_concept.exclude
 
             # check if exclude is a valid value
@@ -558,17 +573,18 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # with the current system + version will be created
             if system_key not in the_system_dict:
                 the_include = ValueSet_IncludeSub()
-                # export SystemOid extension
-                if not f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
-                    # add the extension if it has been explicitly activated
-                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
-                        ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
-                        f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical)
                 if the_system:
                     the_include.set_system(uriSub(value=the_system))
                 if the_version:
                     the_include.set_version(stringSub(value=the_version))
                 the_system_dict[system_key] = the_include
+                # export SystemOid extension
+                if not f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
+                    # add the extension if it has been explicitly activated
+                    if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
+                        ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(the_system))
+                        if f4csvs.exporto_extension(globals(), the_include, one_concept, ext_aut.SystemOid.extension_canonical):
+                            self.applied_extension_list.append(ext_aut.SystemOid.extension_canonical)
             else:
                 the_include = the_system_dict[system_key]
 
@@ -590,6 +606,9 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 if tmp := one_concept.designation:
                     the_concept.set_designation(f4csvs.exporto_concept_designation(globals(), ValueSet_DesignationSub, tmp))
+
+                # export conceptOrder extension
+                f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical)
 
                 the_include.add_concept(the_concept)
             # if one_concept has got filters they will be transformed into ValueSet_Filter (i.e. ValueSet.compose.include.filter or ValueSet.compose.exclude.filter)
@@ -639,7 +658,10 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                         # add the extension if it has been explicitly activated
                         if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
                             ext_aut.SystemOid.add_extension(one_concept, self.gainOidFromCanonical(one_system))
-                            f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical)
+                            if f4csvs.exporto_extension(globals(), the_concept, one_concept, ext_aut.SystemOid.extension_canonical):
+                                self.applied_extension_list.append(ext_aut.SystemOid.extension_canonical)
+                    # export conceptOrder extension
+                    f4csvs.exporto_extension(globals(), the_concept, one_concept, ext.ConceptOrder.extension_canonical, is_expansion=True)
 
                 if tmp := one_concept.abstract:
                     the_concept.set_abstract(booleanSub(value=tmp))

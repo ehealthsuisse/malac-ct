@@ -1,8 +1,8 @@
 from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
 import sys
 import prop_csv_and_master as pcam
+import ext
 import ext_aut
-from ext_codesystem_replacedby import ReplacedBy
 
 class Fsh2(Fsh1):
 
@@ -172,9 +172,17 @@ class Fsh2(Fsh1):
                 if hasattr(oneConcept,"member") and oneConcept.member != []:
                     vsMemberAnywhere = True
 
+            # if there is a conceptSuppl, print them first
+            if hasattr(self,"conceptSuppl") and self.conceptSuppl:
+                tempList = self.conceptSuppl
+            elif self.get_resource() == 'ValueSet':
+                tempList = self.buildConceptDictWithAttr('code', 'system').values() # quickly remove duplicates
+            elif self.get_resource() == 'CodeSystem':
+                tempList = self.get_concept()
+
             j = -1
             k = -1
-            for oneConcept in conceptList:
+            for oneConcept in tempList:
                 #for CodeSystems
                 if self.get_resource() == 'CodeSystem':
                     if hasattr(oneConcept, 'display') and oneConcept.display:
@@ -214,13 +222,13 @@ class Fsh2(Fsh1):
                             i += 1
 
                     # export extension
-                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, ReplacedBy.extension_canonical)
+                    exporto_extension(outfile, '* #%s ^' % (oneConcept.code), oneConcept, 0, ext.ReplacedBy.extension_canonical)
                 elif self.get_resource() == 'ValueSet': # e.g. ->* compose.include.concept[5].designation[4].language
                     if tempConcept == None or tempConcept.system != oneConcept.system:
                         j += 1
                         k = -1
                         tempConcept = oneConcept
-                        exporto_extension(outfile, '* compose.include[%s].' % (j), oneConcept, ext_aut.SystemOid.extension_canonical)
+                        exporto_extension(outfile, '* compose.include[%s].' % (j), oneConcept, 0, ext_aut.SystemOid.extension_canonical)
                         outfile.write('* compose.include[%s].system = "%s"\n' % (j, oneConcept.system))
                         # write the system version if existent
                         if hasattr(oneConcept, 'version') and oneConcept.version:
@@ -254,13 +262,13 @@ class Fsh2(Fsh1):
                                 if tmp := oneDesignation.use.userSelected:
                                     outfile.write('* compose.include[%s].concept[%s].designation[%s].use.userSelected = %s \n' % (j, k, i, tmp))
                             if hasattr(oneDesignation, 'value') and oneDesignation.value: outfile.write('* compose.include[%s].concept[%s].designation[%s].value = "%s" \n' % (j, k, i, oneDesignation.value))
+                    exporto_extension(outfile, '* compose.include[%s].concept[%s].' % (j, k), oneConcept, 0, ext.ConceptOrder.extension_canonical)
                     if hasattr(oneConcept, 'filter') and oneConcept.filter:
                         k += 1
                         for oneFilter in oneConcept.filter:
                             if hasattr(oneFilter, 'property') and oneFilter.property: outfile.write('* compose.include[%s].filter[%s].property = #%s \n' % (j, k, oneConcept.filter.property))
                             if hasattr(oneFilter, 'op') and oneFilter.op: outfile.write('* compose.include[%s].filter[%s].op = #%s \n' % (j, k, oneConcept.filter.op))
                             if hasattr(oneFilter, 'value') and oneFilter.value: outfile.write('* compose.include[%s].filter[%s].value = "%s" \n' % (j, k, oneConcept.filter.value))
-
                     # ToDo: implement exclude similar to include
                     # ToDo: implement simple Hierarchie for Children with the member extension
 

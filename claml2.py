@@ -87,8 +87,8 @@ def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_c
 
     pcam_source -- the object whose extension according to the extension_url will be written to claml.
     """
-    if hasattr(pcam_source, 'extension_list'):
-        for one_extension in pcam_source.extension_list:
+    if hasattr(pcam_source, 'extension'):
+        for one_extension in pcam_source.extension:
             if one_extension.url not in extensions_written_to_metas:
                 extensions_written_to_metas.add(one_extension.url)
                 claml_metas.append(MetaSub('extension', one_extension.url + '|' + one_extension.type.value if one_extension.type else ''))
@@ -353,9 +353,9 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
             return self.concept
         else:
             # retrieve meta information about extensions
-            extension_list = get_meta_list_with_name(self, 'extension')
+            extension = get_meta_list_with_name(self, 'extension')
             extension_datatype_dict = {}
-            for extension in extension_list:
+            for extension in extension:
                 extension_split = extension.split('|')
                 extension_datatype_dict[extension_split[0]] = extension_split[1]
 
@@ -522,11 +522,13 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                             the_extension = pcam.Extension()
                             the_extension.url = oneMeta.get_name()
                             the_extension.type = pcam.ExtensionType(extension_datatype_dict[oneMeta.get_name()])
-                            if the_extension.type != pcam.ExtensionType.coding:
-                                the_extension.value = oneMeta.get_value()
-                            else:
+                            if the_extension.type == pcam.ExtensionType.coding:
                                 the_extension.value = pcam.Coding(oneMeta.get_value())
-                            theConcept.extension_list.append(the_extension)
+                            elif the_extension.type == pcam.ExtensionType.integer:
+                                the_extension.value = int(oneMeta.get_value())
+                            else:
+                                the_extension.value = oneMeta.get_value()
+                            theConcept.extension.append(the_extension)
                         else:
                             theProperty.code = oneMeta.get_name()#[0].lower()+oneMeta.get_name()[1:]
                             theProperty.value = oneMeta.get_value()
@@ -661,8 +663,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         if tmp := self.get_concept():
             if self.get_resource() == "CodeSystem":
                 concept_dict = self.buildConceptDictWithAttr('code')
-            elif self.get_resource() == "ValueSet":
-                concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
             # keep track of extensions that have already been documented in metas
             extensions_written_to_metas = set()
@@ -671,9 +671,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 theClass = None
                 theClass = ClassSub()
                 theClass.set_code(oneConcept.code)
-
-                # export extensions
-                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 if self.get_resource() == "ValueSet":
                     # write the system if existent
@@ -742,12 +739,14 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if self.get_resource() == "CodeSystem":
                     theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_CS_concept(concept_dict,oneConcept)))
                 if self.get_resource() == "ValueSet":
-                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(concept_dict,oneConcept)))
+                    theClass.add_Meta(MetaSub("Level", self.retrieve_level_of_VS_concept(oneConcept)))
                 theClass.add_Meta(MetaSub("Type", type_))
 
                 # if there was no kind given, create one with "noKind"
                 if temp := theClass.get_kind():
                     theClass.set_kind("noKind")
+
+                exporto_extension_to_class(metas, extensions_written_to_metas, theClass, oneConcept)
 
                 classes.append(theClass)
 

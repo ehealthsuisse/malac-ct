@@ -25,7 +25,7 @@ from lxml import etree as etree_
 import fhir4_codesystem_super as supermod
 import prop_csv_and_master as pcam
 import fhir4_cs_and_vs as f4csvs
-from ext_codesystem_replacedby import ReplacedBy
+from ext import ReplacedBy
 
 def parsexml_(infile, parser=None, **kwargs):
     if parser is None:
@@ -441,6 +441,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         if tmp := self.get_concept():
             codesystem.set_concept(CodeSystemSub.exporto_concept(tmp))
+
+        # export profiles this late because it may depend on the actual application of an extension if a profile may be added or not
+        f4csvs.exporto_profiles(self, globals(), codesystem)
 
         # export the FHIR CodeSystem resource to the outfile
         codesystem.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')

@@ -1026,7 +1026,7 @@ class SVSextELGA2(GeneratedsSuper):
         self.displayName = _cast(None, displayName)
         self.displayName_nsprefix_ = None
         if isinstance(effectiveDate, BaseStrType_):
-            initvalue_ = datetime_.datetime.strptime(effectiveDate, '%Y-%m-%d').date()
+            initvalue_ = datetime_.datetime.strptime(effectiveDate[:10], '%Y-%m-%d').date()
         else:
             initvalue_ = effectiveDate
         self.effectiveDate = initvalue_
@@ -1035,7 +1035,7 @@ class SVSextELGA2(GeneratedsSuper):
         self.id = _cast(None, id)
         self.id_nsprefix_ = None
         if isinstance(last_change_date, BaseStrType_):
-            initvalue_ = datetime_.datetime.strptime(last_change_date, '%Y-%m-%d').date()
+            initvalue_ = datetime_.datetime.strptime(last_change_date[:10], '%Y-%m-%d').date()
         else:
             initvalue_ = last_change_date
         self.last_change_date = initvalue_
@@ -1044,7 +1044,7 @@ class SVSextELGA2(GeneratedsSuper):
         self.statusCode = _cast(int, statusCode)
         self.statusCode_nsprefix_ = None
         if isinstance(status_date, BaseStrType_):
-            initvalue_ = datetime_.datetime.strptime(status_date, '%Y-%m-%d').date()
+            initvalue_ = datetime_.datetime.strptime(status_date[:10], '%Y-%m-%d').date()
         else:
             initvalue_ = status_date
         self.status_date = initvalue_
@@ -1406,7 +1406,7 @@ class concept(GeneratedsSuper):
         self.conceptStatus = _cast(int, conceptStatus)
         self.conceptStatus_nsprefix_ = None
         if isinstance(conceptStatusDate, BaseStrType_):
-            initvalue_ = datetime_.datetime.strptime(conceptStatusDate, '%Y-%m-%d').date()
+            initvalue_ = datetime_.datetime.strptime(conceptStatusDate[:10], '%Y-%m-%d').date()
         else:
             initvalue_ = conceptStatusDate
         self.conceptStatusDate = initvalue_

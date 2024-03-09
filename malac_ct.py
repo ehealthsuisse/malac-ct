@@ -7,6 +7,9 @@ import time
 listOClasses = {
     ".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
+    # management decision: no spreadct csvs
+    #".data.1.spreadct.csv": ["prop_csv_and_master", "SpreadCT"], # additionally a special check is beeing made, if the mandatory .meta.1.spreadct.csv file does exist
+    ".1.spreadct.xlsx": ["prop_csv_and_master", "SpreadCTasXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
@@ -26,7 +29,8 @@ listIClasses = listOClasses | {
 # dictionary of extensions that may be activated by using the "-ext" parameter and specifying the corresponding canonical URL
 extensions_dict = {
     "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid":["ext_aut", "SystemOid"],
-    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":None
+    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":["ext","ReplacedBy"], #TODO specific FHIR version?
+    "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":["ext","ConceptOrder"]
     }
 
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
@@ -215,6 +219,14 @@ def main() -> None:
     # look at the name of the input file and load the classification,
     iClassValue,iClass = detectClassByEnding(args.input)
 
+    # management decision: no spreadct csvs
+    # special handling of .data.1.spreadct.csv, check if *.meta.1.spreadct.csv exists
+    #if iClass == ".data.1.spreadct.csv":
+    #    import os
+    #    if not os.path.exists(args.input.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")):
+    #        sys.exit("The spreadCT format requires beside the *.data.1.spreadct.csv a mandatory *.meta.1.spreadct.csv in the same folder! \n %s" % descriptionText)
+
+
     # if it is a fhir input and the output is also fhir, skip the real malac-ct converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
         # does the same as 'from [modulename/iClass[0]] import [classname/iClass[1]] as inputClass]'
@@ -225,11 +237,14 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
-        input.globalUrl = args.fhirIgUrl
-        input.filename = args.input
-        # sort the input (implemented for CS and VS, active only for CS till the manually given expansionOrder is implemented)
-        if 'CodeSystem-' in input.filename:
-            input.sortConceptsExpandStyle()
+
+        # read activated extensions
+        input.activated_extension_dict = {}
+        input.applied_extension_list = []
+        if args.extension:
+            for extension in args.extension:
+                if extension in extensions_dict:
+                    input.activated_extension_dict[extension] = extensions_dict[extension]
 
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
@@ -238,12 +253,13 @@ def main() -> None:
             for csv2AppendTo in args.appendProcessedTerminologyTo:
                 timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
-        # read activated extensions
-        input.activated_extension_dict = {}
-        if args.extension:
-            for extension in args.extension:
-                if extension in extensions_dict:
-                    input.activated_extension_dict[extension] = extensions_dict[extension]
+        input.globalUrl = args.fhirIgUrl
+        input.filename = args.input
+        # sort the input
+        if 'CodeSystem-' in input.filename:
+            input.sortConceptsExpandStyle()
+        elif 'ValueSet-' in input.filename:
+            input.sort_VS_concepts_by_conceptOrder()
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:

@@ -97,23 +97,6 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def get_id(self):
         return self.get_name()
 
-    def get_profiles(self):
-        the_profile_list = []
-
-        # make sure that profiles corresponding to activated extension are exported for sure
-        for activated_extension in self.activated_extension_dict:
-            # retrieve python module and class
-            module_class_list = self.activated_extension_dict[activated_extension]
-            # not all extensions have a designated class
-            if module_class_list:
-                # import corresponding module and retrieve the class for the extension
-                extension_module = __import__(module_class_list[0])
-                extension_class = getattr(extension_module, module_class_list[1])
-                # add profile's canonical
-                the_profile_list.append(extension_class.profile_canonical)
-
-        return the_profile_list
-
     def get_url(self):
         if tempUrl := self.globalUrl:
             return tempUrl+self.get_resource()+"/"+self.get_id()
@@ -291,6 +274,8 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
 
                     if ext_aut.SystemOid.extension_canonical in self.activated_extension_dict:
                         ext_aut.SystemOid.add_extension(theConcept, self.gainOidFromCanonical(theConcept.system))
+                        if ext_aut.SystemOid.profile_canonical not in self.get_profiles():
+                            self.get_profiles().append(ext_aut.SystemOid.profile_canonical)
 
                     theConcept.code = oneCon.get_code()
                     theConcept.display = oneCon.get_displayName()
