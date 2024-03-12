@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - #35 Ignore publishers with the name `see` as this is a placeholder if no publisher name is available.
 - Fix URLs to fixed FHIR resources, using `CodeSystem/` instead of `CodeSystem-`
 - Fix reading metadata in `.1.svsextelga.xml` and `.2.svsextelga.xml`
+- Fix handling of misformatted dates in Excel.
 
 ## [4.3.1+20231218]
 
