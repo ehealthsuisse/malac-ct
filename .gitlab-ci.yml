@@ -17,6 +17,11 @@ display_variables:
     # TERMGIT_PIPELINE_PROJECT_BRANCH specifies the branch of the corresponding project to
     #                                 be used for the integration test
     - echo "TERMGIT_PIPELINE_PROJECT_BRANCH=$TERMGIT_PIPELINE_PROJECT_BRANCH"
+    # RUNNER_TAG_FOR_IG_RUN specifies which Runner should be used when executing the IG
+    #                       publisher
+    - echo "RUNNER_TAG_FOR_IG_RUN=$RUNNER_TAG_FOR_IG_RUN"
+    # JAVA_OPTS contols e.g. Xmx/Xms for the execution of the IG publisher
+    - echo "JAVA_OPTS=$JAVA_OPTS"
 
     # CS_INPUT_FORMAT specifies the file format for CodeSystems that will be used as
     #                 input format for MaLaC-CT
