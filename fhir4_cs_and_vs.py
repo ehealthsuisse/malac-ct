@@ -22,20 +22,8 @@ def get_id(self):
     return None
 
 # NOT SUPPORTED:
-#   CodeSystem.meta or ValueSet.meta in general
+#   CodeSystem.meta or ValueSet.meta
 # def get_meta(resource):
-def get_profiles(self):
-    """Return CodeSytem.meta.profile or ValueSet.meta.profile.
-    """
-    the_profile_list = []
-
-    if meta := self.get_meta():
-        if profiles := meta.get_profile():
-            for one_profile in profiles:
-                if tmp := one_profile.get_value():
-                    the_profile_list.append(tmp)
-
-    return the_profile_list
 
 def get_implicitrules(self):
     """Return CodeSytem.implicitRules or ValueSet.implicitRules.
@@ -191,7 +179,7 @@ def get_date(self):
 def get_publisher(self):
     """Return CodeSystem.publisher or ValueSet.publisher.
     """
-    if (tmp := self.get_publisher()) and tmp.get_value() != 'see':
+    if tmp := self.get_publisher():
         return tmp.get_value()
     return None
 
@@ -570,7 +558,7 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
     if extension := fhir_source.get_extension():
         for one_extension in extension:
             if one_url := one_extension.get_url():
-                
+
                 if delete_extensions_in_target_with_same_urls:
                     pcam_target.extension = [item for item in pcam_target.extension if item.url != one_url]
 

@@ -27,7 +27,6 @@ from lxml import etree as etree_
 
 import svsextelga2super as supermod
 import prop_csv_and_master as pcam
-import ext_aut
 
 class XMLEscapeSpecialChar:
 

@@ -25,7 +25,6 @@ class PropCsvAndMaster():
     def __init__(self, inFile = None, encoding='cp1252', file_style=FileStyle.propCSV):
         self.resource = Resource
         self.id = None
-        self.profiles = []
         self.url = None
         self.version = None
         self.name = None
@@ -98,7 +97,6 @@ class PropCsvAndMaster():
 
                         if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
                         if 'id' == metaObj: self.id = metaList[1][i]
-                        if metaObj.startswith('profile'): self.profiles.append(metaList[1][i])
                         if 'url' == metaObj: self.url = metaList[1][i]
                         if 'version' == metaObj: self.version = metaList[1][i]
                         if 'name' == metaObj: self.name = metaList[1][i]
@@ -657,9 +655,6 @@ class PropCsvAndMaster():
         csv_meta.append(("name",self.get_name()))
         csv_meta.append(("title",self.get_title()))
         csv_meta.append(("status",self.get_status()))
-        if tmp := self.get_profiles():
-            for one_profile in tmp:
-                csv_meta.append(("profile", one_profile))
         if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
         if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
@@ -1110,12 +1105,6 @@ class PropertyCodeType(enum.Enum):
     datetime = "dateTime"
     decimal = "decimal"
 
-class ExtensionType(enum.Enum):
-    oid = "oid"
-    coding = "Coding"
-    integer = "integer"
-    # TODO more to be defined
-
 class ContactDetail():
     def __init__(self, name=None, telecom=None):
         self.name = name
@@ -1366,7 +1355,7 @@ class Coding():
         buildStr += "^"
         if self.display: buildStr += self.display
         buildStr += "^"
-        if self.userSelected: buildStr += str(self.userSelected)
+        if self.userSelected: buildStr += self.userSelected
         return buildStr
 
 class Extension():

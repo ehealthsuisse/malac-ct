@@ -1,4 +1,4 @@
-from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
+from fsh1 import Fsh1, writeSelfAndRecrCallMembers
 import sys
 import prop_csv_and_master as pcam
 import ext

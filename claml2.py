@@ -120,9 +120,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         else:
             return self.get_name()
 
-    def get_profiles(self):
-        return get_meta_list_with_name(self, 'profile')
-
     # todo create get url for other classifications
     def get_url(self):
         if tempUrl := get_Meta_with_name(self,'url'):
@@ -341,8 +338,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         return get_Meta_with_name(self,'contained')
 
     def get_extension(self):
-        # Currently, no extensions are supported on this level
-        return None
+        return get_Meta_with_name(self,'extension')
 
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
@@ -559,11 +555,6 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         # madatory FHIR R4 fields
         metas.append(MetaSub('resource',self.get_resource()))
         metas.append(MetaSub('id', self.get_id()))
-
-        if one_profile_list := self.get_profiles():
-            for one_profile in one_profile_list:
-                metas.append(MetaSub('profile', one_profile))
-
         metas.append(MetaSub('url',self.get_url()))
         # if the status is draft or active, a prelim attribute is created
         if self.get_status() == "draft":

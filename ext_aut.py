@@ -44,13 +44,13 @@ class BMGICD(pcam.PropCsvAndMaster):
         self.version = "1.0.1+20240205"
         self.identifier.append("1.2.40.0.34.5.222")
         self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
-        self.description = """Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
-Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. 
+        self.description = """Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen.
+Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich.
 Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.<br/>
 In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen.<br/>
 In die seit dem 1.1.2014 verwendete ICD-10 BMG 2014 wurden zusätzlich die im Herbst 2012 publizierten Aktualisierungen der WHO eingearbeitet.
 Die seit 1.1.2017 verwendete ICD-10 BMGF 2017 beinhaltet alle Aktualisierungen der WHO 2016, gefolgt von der seit 1.1.2020 geltenden ICD-10 BMASGK 2020 mit allen Aktualisierungen der WHO 2019.<br/>
-Die aktuelle, ab 1.1.2024 geltende Version ICD-10 BMSGPK 2024 beinhaltet alle von der WHO zur Verfügung gestellten Updates sowie einzelne 5-stellige Codes, die aus der vom Bundesinstitut für Arzneimittel und Medizinprodukte (BfArM) in Deutschland herausgegebenen ICD-10-GM übernommen wurden. 
+Die aktuelle, ab 1.1.2024 geltende Version ICD-10 BMSGPK 2024 beinhaltet alle von der WHO zur Verfügung gestellten Updates sowie einzelne 5-stellige Codes, die aus der vom Bundesinstitut für Arzneimittel und Medizinprodukte (BfArM) in Deutschland herausgegebenen ICD-10-GM übernommen wurden.
 Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit der Diagnosencodierung und der Datenqualitätssicherung befasst sind und durch ihr Zutun und ihr Engagement die Erstellung der Diagnosen- und Leistungsberichte ermöglichen, sowie all jenen, die zur Weiterentwicklung der Dokumentationsgrundlagen beitragen."""
 
         self.parseConcepts(cursor)
