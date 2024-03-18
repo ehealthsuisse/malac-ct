@@ -75,6 +75,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def get_id(self):
         return f4csvs.get_id(super())
 
+    def get_profiles(self):
+        return f4csvs.get_profiles(super())
+
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
@@ -302,6 +305,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
                 the_concept = pcam.CSConcept()
 
+                # read extensions
+                f4csvs.parse_extension(the_concept, one_concept)
+
                 if tmp := one_concept.get_code():
                     the_concept.code = tmp.get_value()
 
@@ -451,6 +457,9 @@ class CodeSystemSub(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         for one_concept in concept_list:
             the_concept = CodeSystem_ConceptSub()
+
+            # add replaceBy extension
+            f4csvs.exporto_extension(globals(), the_concept, one_concept, ReplacedBy.extension_canonical)
 
             if tmp := one_concept.code:
                 the_concept.set_code(codeSub(value=tmp))
