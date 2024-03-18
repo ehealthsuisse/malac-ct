@@ -7,6 +7,9 @@ import time
 listOClasses = {
     ".1.propcsv.csv": ["prop_csv_and_master", "PropCsvAndMaster"],
     ".1.propcsv.xlsx": ["prop_csv_and_master", "PropCsvAsXLSX"],
+    # management decision: no spreadct csvs
+    #".data.1.spreadct.csv": ["prop_csv_and_master", "SpreadCT"], # additionally a special check is beeing made, if the mandatory .meta.1.spreadct.csv file does exist
+    ".1.spreadct.xlsx": ["prop_csv_and_master", "SpreadCTasXLSX"],
     ".1.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv1"],
     ".2.outdatedcsv.csv": ["outdated_csv", "OutdatedCsv2"],
     ".2.claml.xml":["claml2", "ClaML2Sub"],
@@ -22,8 +25,16 @@ listIClasses = listOClasses | {
     ".icd.mdb":["ext_aut", "BMGICD"],
     ".lkf.mdb":["ext_aut", "BMGLKF"]
     }
+
+# dictionary of extensions that may be activated by using the "-ext" parameter and specifying the corresponding canonical URL
+extensions_dict = {
+    "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureDefinition/at-core-ext-valueset-systemoid":["ext_aut", "SystemOid"],
+    "http://hl7.org/fhir/StructureDefinition/codesystem-replacedby":["ext","ReplacedBy"], #TODO specific FHIR version?
+    "http://hl7.org/fhir/StructureDefinition/valueset-conceptOrder":["ext","ConceptOrder"]
+    }
+
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.3.1+20231218"
+versionNumber = "4.4.0+20240318"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
@@ -68,6 +79,12 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-turnOffVerif", "--turnOffVerification", action="store_false", help='Do not use this argument, if you dont know what it does! Only for private networks! Turns of the verification of the certificate. There will also be ssl-warnings from urllib3.', required=False
     )
+    parser.add_argument(
+        "-convTs", "--conversionTimestamp", help="Specify the conversion timestamp which is also used as expansion timestamp in case of value set resources.", required=False
+    )
+    parser.add_argument(
+        '-ext', '--extension', action='append', help='Specify the canonical URL of the FHIR extension that shall be activated.', required=False
+    )
     return parser
 
 def detectClassByEnding(filename):
@@ -76,7 +93,32 @@ def detectClassByEnding(filename):
             return listIClasses[iclass],iclass
     sys.exit("The classification could not be detected from the file name. \n %s" % descriptionText)
 
-def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, verification, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
+def convert_fhir_resource(input_filename, input_filename_extension, source_format, target_format):
+    startConvert = time.time()
+    source_filename = input_filename.replace(input_filename_extension, '.4.fhir.' + source_format)
+    target_filename = input_filename.replace(input_filename_extension, '.4.fhir.' + target_format)
+    source = None
+
+    if ("CodeSystem-" in input_filename):
+        from fhir.resources.codesystem import CodeSystem
+        source = CodeSystem.parse_file(source_filename)
+    elif ("ValueSet-" in input_filename):
+        from fhir.resources.valueset import ValueSet
+        source = ValueSet.parse_file(source_filename)
+    else:
+        sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
+
+    with open(target_filename, 'w', newline='', encoding='utf-8') as target_file:
+        if target_format == 'json':
+            target_file.write(source.json(indent=2))
+            print("*.4.fhir.json (in "+str(round(time.time()-startConvert,3))+" seconds)")
+        elif target_format == 'xml':
+            target_file.write(source.xml(pretty_print=True))
+            print("*.4.fhir.xml (in "+str(round(time.time()-startConvert,3))+" seconds)")
+        else:
+            sys.exit('Target format ' + target_format + ' not supported. Either xml or json.')
+
+def convert_fhir_resource_with_fhir_server(input_filename, input_filename_extension, source_format, target_format, fhir_server_url, verification, fhir_server_user=None, fhir_server_password=None, tergi_tunnel_token=None):
     startConvert = time.time()
 
     import os
@@ -148,8 +190,12 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
         else:
             res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
 
-    print(res.text)
-    if failIfUploadGoesWrong: res.raise_for_status()
+    if failIfUploadGoesWrong:
+        try:
+            res.raise_for_status()
+        except:
+            print("ERROR: " + res.text)
+            res.raise_for_status()
 
 def main() -> None:
     start = time.time()
@@ -167,11 +213,19 @@ def main() -> None:
     do_fhir_server_conversion = True
     if '.4.fhir.json' in args.input:
         do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
     iClassValue,iClass = detectClassByEnding(args.input)
+
+    # management decision: no spreadct csvs
+    # special handling of .data.1.spreadct.csv, check if *.meta.1.spreadct.csv exists
+    #if iClass == ".data.1.spreadct.csv":
+    #    import os
+    #    if not os.path.exists(args.input.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")):
+    #        sys.exit("The spreadCT format requires beside the *.data.1.spreadct.csv a mandatory *.meta.1.spreadct.csv in the same folder! \n %s" % descriptionText)
+
 
     # if it is a fhir input and the output is also fhir, skip the real malac-ct converting
     if not(".4.fhir." in args.input and args.output != None and ".4.fhir." in args.output):
@@ -183,18 +237,29 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
-        input.globalUrl = args.fhirIgUrl
-        input.filename = args.input
-        # sort the input (implemented for CS and VS, active only for CS till the manually given expansionOrder is implemented)
-        if 'CodeSystem-' in input.filename:
-            input.sortConceptsExpandStyle()
+
+        # read activated extensions
+        input.activated_extension_dict = {}
+        input.applied_extension_list = []
+        if args.extension:
+            for extension in args.extension:
+                if extension in extensions_dict:
+                    input.activated_extension_dict[extension] = extensions_dict[extension]
 
         # append to all processedTerminology lists
         if args.appendProcessedTerminologyTo:
             input.processedTerminologies = args.appendProcessedTerminologyTo[0]
-            timestamp = datetime.now().strftime("%Y-%m-%dT%X.0000Z")
+            timestamp = args.conversionTimestamp if args.conversionTimestamp else datetime.now().strftime("%Y-%m-%dT%X.0000Z")
             for csv2AppendTo in args.appendProcessedTerminologyTo:
-                input.appendMetaDataTo(csv2AppendTo, timestamp)
+                timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
+
+        input.globalUrl = args.fhirIgUrl
+        input.filename = args.input
+        # sort the input
+        if 'CodeSystem-' in input.filename:
+            input.sortConceptsExpandStyle()
+        elif 'ValueSet-' in input.filename:
+            input.sort_VS_concepts_by_conceptOrder()
 
         # do the converting for every class known, or if fixed in output, once and break out the loop
         for oClass in listOClasses:
@@ -218,7 +283,7 @@ def main() -> None:
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
     if args.convertFHIRServer:
         if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+            convert_fhir_resource(args.input, iClass, 'xml', 'json')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
 
         if args.uploadToConvertFHIRServer:
             startUpload = time.time()

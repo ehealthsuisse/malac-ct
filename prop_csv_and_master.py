@@ -1,10 +1,31 @@
 import enum
 from unittest import skip
+from malac_ct import extensions_dict
+import ext
+
+class FileStyle(enum.Enum):
+    propCSV = "propCSV"
+    spreadCT = "spreadCT"
+
+class ParentingBy(enum.Enum):
+    conceptOrder = "conceptOrder"
+    parentAndSystem = "parentAndSystem"
+
+    def set_unchangeable_parenting_by(finalVariable, newValue):
+        if finalVariable and finalVariable != newValue:
+            import sys
+            sys.exit('It is only allowed to use parentByConceptOrder or parent and parentSystem, not both, at the same time.')
+        else:
+            return newValue
 
 class PropCsvAndMaster():
-    def __init__(self, inFile = None, encoding='cp1252'):
+    # following are use only in malac-ct
+    parenting_by = None
+
+    def __init__(self, inFile = None, encoding='cp1252', file_style=FileStyle.propCSV):
         self.resource = Resource
         self.id = None
+        self.profiles = []
         self.url = None
         self.version = None
         self.name = None
@@ -43,21 +64,29 @@ class PropCsvAndMaster():
         self.filter = []
         self.property = []
 
-
         if inFile is not None:
             try:
+                import csv
+                if file_style is FileStyle.spreadCT:
+                    inFile = inFile.replace(".data.1.spreadct.csv",".meta.1.spreadct.csv")
+                    encoding = "utf-8"
+
                 # usally open file with special encoding because of Excel compatibility,
                 # see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
                 with open(inFile, 'r', encoding=encoding) as csvfile:
-                    import csv
                     # creating dictreader object
                     file = csv.reader(csvfile, quotechar='"', delimiter=';')
-                    # iterating over first two rows and append values to empty list
-                    metaList = [file.__next__()]+[file.__next__()]
-                    # iterating over a empty row
-                    file.__next__()
-                    # iterating over the next row with headings for concepts
-                    headingList = file.__next__()
+
+                    if file_style is FileStyle.propCSV:
+                        # iterating over first two rows and append values to empty list
+                        metaList = [file.__next__()]+[file.__next__()]
+                        # iterating over a empty row
+                        file.__next__()
+                    elif file_style is FileStyle.spreadCT:
+                        metaList = []
+                        for metaLine in file:
+                            metaList.append(metaLine)
+                        metaList = list(zip(*metaList)) #transpose the list
 
                     #initializing the header/metadata
                     i = -1
@@ -69,6 +98,7 @@ class PropCsvAndMaster():
 
                         if 'resource' == metaObj: self.resource = Resource(metaList[1][i])
                         if 'id' == metaObj: self.id = metaList[1][i]
+                        if metaObj.startswith('profile'): self.profiles.append(metaList[1][i])
                         if 'url' == metaObj: self.url = metaList[1][i]
                         if 'version' == metaObj: self.version = metaList[1][i]
                         if 'name' == metaObj: self.name = metaList[1][i]
@@ -83,7 +113,9 @@ class PropCsvAndMaster():
                         if 'extension' == metaObj: self.extension = metaList[1][i]
                         if 'modifierExtension' == metaObj: self.modifierextension = metaList[1][i]
                         if metaObj.startswith('identifier'): self.identifier.append(metaList[1][i])
-                        if 'date' == metaObj: self.date = metaList[1][i]
+                        if 'date' == metaObj:
+                            import datetime
+                            self.date = datetime.datetime.strptime(metaList[1][i][:10], '%Y-%m-%d').strftime('%Y-%m-%d')
                         if 'experimental' == metaObj: self.experimental = metaList[1][i]
                         if 'publisher' == metaObj: self.publisher = metaList[1][i]
                         if metaObj.startswith('contact'):
@@ -120,6 +152,14 @@ class PropCsvAndMaster():
                             tempProperty.type = PropertyCodeType[propElements[3].lower()]
                             self.property.append(tempProperty)
 
+                    if file_style is FileStyle.spreadCT:
+                        csvfile.close()
+                        csvfile = open(inFile.replace(".meta.1.spreadct.csv",".data.1.spreadct.csv"), 'r', encoding=encoding)
+                        file = csv.reader(csvfile, quotechar='"', delimiter=';')
+
+                    # iterating over the next row with headings for concepts
+                    headingList = file.__next__()
+
                     #initializing the body/content
                     for row in file:
 
@@ -135,42 +175,80 @@ class PropCsvAndMaster():
 
                                 if self.resource == self.resource.CodeSystem:
                                     if 'code' == headingList[i]: tempConcept.code = row[i]
-                                    if 'display' == headingList[i]: tempConcept.display = row[i]
-                                    if 'definition' == headingList[i]: tempConcept.definition = row[i]
-                                    if 'designation' == headingList[i]:
+                                    elif 'display' == headingList[i]: tempConcept.display = row[i]
+                                    elif 'definition' == headingList[i]: tempConcept.definition = row[i]
+                                    elif 'designation' == headingList[i]:
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
-                                    if 'property' == headingList[i]:
+                                    elif 'property' == headingList[i]:
                                         tempConcept.property.append(CSConcept.ConceptProperty(row[i]))
+                                    elif 'extension' == headingList[i]:
+                                        tempConcept.extension.append(Extension(row[i]))
+                                    else: # everything else should be a known extension or unknown property (aka easyProperties & easyExtensions)
+                                        foundOneExt = False
+                                        for extensionValueModule, extensionValueClass in extensions_dict.values():
+                                            if extensionValueClass.lower() == headingList[i].lower():
+                                                extModule = __import__(extensionValueModule)
+                                                extClass = getattr(extModule, extensionValueClass)
+                                                extClass.add_extension(tempConcept, row[i])
+                                                #tempConcept.extension.append(Extension(row[i]))
+                                                foundOneExt = True
+                                                break
+                                        if not foundOneExt:
+                                            tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|string"))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
-                                    if 'version' == headingList[i]: tempConcept.version = row[i]
-                                    if 'code' == headingList[i]: tempConcept.code = row[i]
-                                    if 'display' == headingList[i]: tempConcept.display = row[i]
-                                    if 'parent' == headingList[i]: tempConcept.parent = row[i]
-                                    if 'parentSystem' == headingList[i]: tempConcept.parentSystem = row[i]
-                                    if 'designation' == headingList[i]:
+                                    elif 'version' == headingList[i]: tempConcept.version = row[i]
+                                    elif 'code' == headingList[i]: tempConcept.code = row[i]
+                                    elif 'display' == headingList[i]: tempConcept.display = row[i]
+                                    elif 'parent' == headingList[i]:
+                                        tempConcept.parent = row[i]
+                                        self.parenting_by = ParentingBy.set_unchangeable_parenting_by(self.parenting_by, ParentingBy.parentAndSystem)
+                                    elif 'parentSystem' == headingList[i]:
+                                        tempConcept.parentSystem = row[i]
+                                        self.parenting_by = ParentingBy.set_unchangeable_parenting_by(self.parenting_by, ParentingBy.parentAndSystem)
+                                    elif 'designation' == headingList[i]:
                                         tempConcept.designation.append(ConceptDesignation(row[i]))
-                                    if 'filter' == headingList[i]:
+                                    elif 'filter' == headingList[i]:
                                         filterElements = row[i].split('|')
                                         tempFilter = VSConcept.VSConceptFilter()
                                         tempFilter.property = filterElements[0]
                                         tempFilter.op = filterElements[1]
                                         tempFilter.value = filterElements[2]
                                         tempConcept.filter = tempFilter # this is not a list!
-                                    if 'abstract' == headingList[i]:
+                                    elif 'abstract' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.abstract = True
-                                    if 'inactive' == headingList[i]:
+                                    elif 'inactive' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.inactive = True
                                             self.inactive = True
-                                    if 'exclude' == headingList[i]:
+                                    elif 'exclude' == headingList[i]:
                                         if row[i].lower() == "true" or "yes" or "1":
                                             tempConcept.exclude = True
+                                    elif 'extension' == headingList[i]:
+                                        tempConcept.extension.append(Extension(row[i]))
+                                    elif 'parentByConceptOrder' == headingList[i]: # special handling of malac-ct addition if conceptOrder is used
+                                        tempConcept.parentByConceptOrder = int(row[i])
+                                        self.parenting_by = ParentingBy.set_unchangeable_parenting_by(self.parenting_by, ParentingBy.conceptOrder)
+                                    else: # Everything else should be a known extension or unknown designation (aka easyDesignation & easyExtensions),
+                                        # with a designation use inside https://termgit.elga.gv.at/CodeSystem/austrian-designation-use.
+                                        # The valueset author should be aware that the CodeSystem should have that designations
+                                        foundOneExt = False
+                                        for extensionValueModule, extensionValueClass in extensions_dict.values():
+                                            if extensionValueClass.lower() == headingList[i].lower():
+                                                extModule = __import__(extensionValueModule)
+                                                extClass = getattr(extModule, extensionValueClass)
+                                                extClass.add_extension(tempConcept, row[i])
+                                                #tempConcept.extension.append(Extension(row[i]))
+                                                foundOneExt = True
+                                                break
+                                        if not foundOneExt:
+                                            tempConcept.designation.append(ConceptDesignation("|https://termgit.elga.gv.at/CodeSystem/austrian-designation-use^^"+headingList[i]+"^"+headingList[i]+"^|"+row[i]))
 
-                        # check for some invalid combinations
+
+                        # check for some invalid combinations on a concept level
                         if self.resource == self.resource.ValueSet:
-                            # both, the parent and the parentSystem, have to exist together or do not, aditionally for parentSystem the attr has to be existent
+                            # both, the parent and the parentSystem, have to exist together or do not
                             if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
                                 import sys
                                 sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
@@ -178,19 +256,45 @@ class PropCsvAndMaster():
 
                     # fill members of parents
                     if self.resource == self.resource.ValueSet:
-                        concept_dict = self.buildConceptDictWithAttr('code', 'system')
 
-                        for one_concept in self.concept:
-                            if one_concept.parent and one_concept.parentSystem:
-                                parent = concept_dict[one_concept.parent+one_concept.parentSystem]
-                                # setting one_concept as child of the parent
-                                parent.member.append(one_concept)
-                                # setting the parent of one_concept
-                                one_concept.parent = parent
+                        if self.parenting_by == ParentingBy.conceptOrder:
+                            # create a dict with the conceptOrder as key
+                            # beware, some concept may do not have a conceptOrder, these can only be childs!
+                            # beware, if a conceptOrder is using a already given value, only the last concept with the same conceptOrder can be a parent
+                            # beware, if there are multiple conceptOrder extensions, only the first will be used
+                            concept_dict_with_order_as_key = {}
+                            for one_concept in self.concept:
+                                for one_ext in one_concept.extension:
+                                    if one_ext.url == ext.ConceptOrder.extension_canonical:
+                                        concept_dict_with_order_as_key[one_ext.value] = one_concept
+                                        break
+                                else:
+                                    # if parentByConceptOrder is used once, then every concept has to have a explicitly given conceptOrder
+                                    import sys
+                                    sys.exit('If parentByConceptOrder is used, then every concept needs a conceptOrder extension. See concept with code: ' + one_concept.code)
+                            # now link all the parents using the dict
+                            for one_concept in self.concept:
+                                if hasattr(one_concept,"parentByConceptOrder"):
+                                    parent = concept_dict_with_order_as_key[one_concept.parentByConceptOrder]
+                                    # setting one_concept as child of the parent
+                                    parent.member.append(one_concept)
+                                    # setting the parent of one_concept
+                                    one_concept.parent = parent
+
+                        else: # fallback to parent + parentSystem
+                            concept_dict = self.buildConceptDictWithAttr('code', 'system')
+                            for one_concept in self.concept:
+                                if one_concept.parent and one_concept.parentSystem:
+                                    parent = concept_dict[one_concept.parent+one_concept.parentSystem]
+                                    # setting one_concept as child of the parent
+                                    parent.member.append(one_concept)
+                                    # setting the parent of one_concept
+                                    one_concept.parent = parent
+
                         # do level retrieving after definition, else if you have a child listed before a parent, that is also having a parent, there will be errors
                         for one_concept in self.concept:
                             # setting the hierarchy level
-                            one_concept.level = self.retrieve_level_of_VS_concept(concept_dict, one_concept)
+                            one_concept.level = self.retrieve_level_of_VS_concept(one_concept)
                     elif self.resource == self.resource.CodeSystem:
                         concept_dict = self.buildConceptDictWithAttr('code')
 
@@ -201,9 +305,9 @@ class PropCsvAndMaster():
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
 
-    def retrieve_level_of_VS_concept(self, concept_dict, concept):
+    def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:
-            level = self.retrieve_level_of_VS_concept(concept_dict, concept_dict[tmp_parent.code + tmp_parent.system])
+            level = self.retrieve_level_of_VS_concept(tmp_parent)
             return level + 1
         else:
             return 0
@@ -234,110 +338,114 @@ class PropCsvAndMaster():
         return PropCsvAndMaster(inFilename)
 
     def get_resource(self):
-        return self.resource.value
+        return self.resource.value if hasattr(self,"resource") and hasattr(self.resource,"value") else None
 
     def get_id(self):
-        return self.id
+        return self.id if hasattr(self,"id") else None
+
+    def get_profiles(self):
+        if not hasattr(self, 'profiles'):
+            self.profiles = []
+        return self.profiles
 
     def get_url(self):
-        return self.url
+        return self.url if hasattr(self,"url") else None
 
     def get_version(self):
-        return self.version
+        return self.version if hasattr(self,"version") else None
 
-    # TODO build in a recognition if CodeSystem oder ValueSet is already in name
     def get_name(self):
-        return self.name
+        return self.name if hasattr(self,"name") else None
 
     def get_title(self):
-        return self.title
+        return self.title if hasattr(self,"title") else None
 
     def get_status(self):
-        return self.status.value
+        return self.status.value if hasattr(self,"status") and hasattr(self.status,"value") else None
 
     def get_description(self):
-        return self.description
+        return self.description if hasattr(self,"description") else None
 
     def get_content(self):
-        return self.content.value
+        return self.content.value if hasattr(self,"content") and hasattr(self.content,"value") else None
 
     def get_implicitrules(self):
-        return self.implicitrules
+        return self.implicitrules if hasattr(self,"implicitrules") else None
 
     def get_language(self):
-        return self.language
+        return self.language if hasattr(self,"language") else None
 
     def get_text(self):
-        return self.text
+        return self.text if hasattr(self,"text") else None
 
     def get_contained(self):
-        return self.contained
+        return self.contained if hasattr(self,"contained") else None
 
     def get_extension(self):
-        return self.extension
+        return self.extension if hasattr(self,"extension") else None
 
     def get_modifierextension(self):
-        return self.modifierextension
+        return self.modifierextension if hasattr(self,"modifierextension") else None
 
     def get_identifier(self):
-        return self.identifier
+        return self.identifier if hasattr(self,"identifier") else None
 
     def get_experimental(self):
-        return self.experimental
+        return self.experimental if hasattr(self,"experimental") else None
 
     def get_date(self):
-        return self.date
+        return self.date if hasattr(self,"date") else None
 
     def get_publisher(self):
-        return self.publisher
+        return self.publisher if hasattr(self,"publisher") else None
 
     def get_contact(self):
-        return self.contact
+        return self.contact if hasattr(self,"contact") else None
 
     def get_usecontext(self):
-        return self.usecontext
+        return self.usecontext if hasattr(self,"usecontext") else None
 
     def get_jurisdiction(self):
-        return self.jurisdiction
+        return self.jurisdiction if hasattr(self,"jurisdiction") else None
 
     def get_purpose(self):
-        return self.purpose
+        return self.purpose if hasattr(self,"purpose") else None
 
     def get_copyright(self):
-        return self.copyright
+        return self.copyright if hasattr(self,"copyright") else None
 
     def get_immutable(self):
-        return self.immutable
+        return self.immutable if hasattr(self,"immutable") else None
 
     def get_lockeddate(self):
-        return self.lockeddate
+        return self.lockeddate if hasattr(self,"lockeddate") else None
 
     def get_inactive(self):
-        return self.inactive
+        return self.inactive if hasattr(self,"inactive") else None
 
     def get_casesensitive(self):
-        return self.casesensitive
+        return self.casesensitive if hasattr(self,"casesensitive") else None
 
     def get_valueset(self):
-        return self.valueset
+        return self.valueset if hasattr(self,"valueset") else None
 
     def get_hierarchymeaning(self):
-        return self.hierarchymeaning
+        return self.hierarchymeaning if hasattr(self,"hierarchymeaning") else None
 
     def get_compositional(self):
-        return self.compositional
+        return self.compositional if hasattr(self,"compositional") else None
 
     def get_versionneeded(self):
-        return self.versionneeded
+        return self.versionneeded if hasattr(self,"versionneeded") else None
 
     def get_supplements(self):
-        return self.supplements
+        return self.supplements if hasattr(self,"supplements") else None
 
     def get_count(self):
         return len(self.get_concept())
 
     def get_filter(self):
-        return self.filter
+        return self.filter if hasattr(self,"filter") else None
 
     def get_property(self):
         tmp = []
@@ -348,7 +456,7 @@ class PropCsvAndMaster():
         return tmp
 
     def get_concept(self):
-        return self.concept
+        return self.concept if hasattr(self,"concept") else None
 
     def set_statusToRetired(self, theCSConcept):
         theProp = CSConcept.ConceptProperty()
@@ -396,11 +504,14 @@ class PropCsvAndMaster():
 
         # check if any value changed
         if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
-            self.metadata_change_timestamp = tmpTup[-1]
+            timestamp = tmpTup[-1]
         else:
-            self.metadata_change_timestamp = timestamp
             # change the one row or add the row to the dictionary
             mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
+
+        # if metadata_change_timestamp has not yet been set
+        if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
+            self.metadata_change_timestamp = timestamp
 
         # sort the dict
         import collections
@@ -411,6 +522,8 @@ class PropCsvAndMaster():
         with open(csvFilename, 'w', newline='', encoding='utf-8') as outfile:
             for line in mydict.values():
                 outfile.write(','.join(line)+'\n')
+
+        return self.metadata_change_timestamp
 
     def resolveTerminologyMapping(self, search_column, search_value, target_column, error_message=None, error_value=None):
         # check if the needed argument is given
@@ -464,7 +577,16 @@ class PropCsvAndMaster():
                 for part in stringAttrAsKey.split("."):
                     tmpPointer = getattr(tmp_pointer,part)
                 key += tmpPointer
-            tmpDict[key] = oneCon
+            # check if key is already in the dict and if, add it as a reference inside the object
+            if key in tmpDict:
+                # create list, if non existent, name will be generated, i.e. _same_code_same_system
+                if not hasattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):
+                    setattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys),[])
+                # check if same object is already in list and add it if not
+                if not oneCon in getattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):
+                    (getattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys))).append(oneCon)
+            else:
+                tmpDict[key] = oneCon
         return tmpDict
 
     def build_property_dict_on_code_with_value_as_key(self, concept, propCode):
@@ -509,6 +631,9 @@ class PropCsvAndMaster():
         # overwrite the concept list with the just sorted one
         self.concept = sortedConcepts
 
+    def sort_VS_concepts_by_conceptOrder(self):
+        return self.get_concept().sort(key=VSConcept.get_value_of_conceptOrder)
+
     def storeSelfAndRecrCallChildren(self, oneCon, conDict, sortedCons):
         sortedCons.append(oneCon)
         if self.get_resource() == "CodeSystem":
@@ -522,7 +647,7 @@ class PropCsvAndMaster():
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
 
 
-    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, file_style=FileStyle.propCSV):
         csv_meta = []
         # start list of metaelements
         csv_meta.append(("resource",self.get_resource()))
@@ -532,6 +657,9 @@ class PropCsvAndMaster():
         csv_meta.append(("name",self.get_name()))
         csv_meta.append(("title",self.get_title()))
         csv_meta.append(("status",self.get_status()))
+        if tmp := self.get_profiles():
+            for one_profile in tmp:
+                csv_meta.append(("profile", one_profile))
         if tmp := self.get_description(): csv_meta.append(("description", tmp))
 
         if self.get_resource() == "CodeSystem": csv_meta.append(("content",self.get_content()))
@@ -578,121 +706,134 @@ class PropCsvAndMaster():
         # end list of metaelements
 
         csv_header = []
-
-        #csv_header_designation_count = 0
         csv_list = []
-
         conceptList = self.get_concept()
-        if len(conceptList) > 0:
-            for oneConcept in conceptList:
 
-                csv_line = []
+        # check if there are multiple concepts with the same code and system, so that parentingByConceptOrder is used
+        if self.get_resource() == 'ValueSet':
+            if len(conceptList) > len(self.buildConceptDictWithAttr('code', 'system')):
+                self.parenting_by = ParentingBy.conceptOrder
+            else:
+                self.parenting_by = ParentingBy.parentAndSystem
 
-                #for CodeSystems
-                if self.get_resource() == 'CodeSystem':
-                    #adding values to already existing columns, if value empty than a empty string is added
-                    headerDesignationIterator = 0
-                    headerPropertyIterator = 0
-                    for csv_header_element in csv_header:
+        for oneConcept in conceptList:
+            csv_line = []
+            #for CodeSystems
+            if self.get_resource() == 'CodeSystem':
+                #adding values to already existing columns, if value empty then an empty string is added
+                headerDesignationIterator = 0
+                headerPropertyIterator = 0
+                headerExtensionIterator = 0
+                for csv_header_element in csv_header:
 
-                        if csv_header_element == "designation":
-                            if headerDesignationIterator < len(oneConcept.designation):
-                                csv_line.append(oneConcept.designation[headerDesignationIterator])
-                            else:
-                                csv_line.append('')
-                            headerDesignationIterator += 1
-
-                        elif csv_header_element == "property":
-                            if headerPropertyIterator < len(oneConcept.property):
-                                csv_line.append(oneConcept.property[headerPropertyIterator])
-                            else:
-                                csv_line.append('')
-                            headerPropertyIterator += 1
-                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                    if csv_header_element == "designation":
+                        if headerDesignationIterator < len(oneConcept.designation):
+                            csv_line.append(oneConcept.designation[headerDesignationIterator])
                         else:
                             csv_line.append('')
-
-                    #adding not existing columns because we just got some values
-                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
-                        csv_header.append('code')
-                        csv_line.append(tmp)
-                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
-                        csv_header.append('display')
-                        csv_line.append(tmp)
-                    if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
-                        csv_header.append('definition')
-                        csv_line.append(tmp)
-                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
-                        csv_header.append('designation')
-                        csv_line.append(conceptDesig[headerDesignationIterator])
                         headerDesignationIterator += 1
-                    while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
-                        csv_header.append('property')
-                        csv_line.append(conceptProps[headerPropertyIterator])
+
+                    elif csv_header_element == "extension":
+                        if headerExtensionIterator < len(oneConcept.extension):
+                            csv_line.append(oneConcept.extension[headerExtensionIterator])
+                        else:
+                            csv_line.append('')
+                        headerExtensionIterator += 1
+
+                    elif csv_header_element == "property":
+                        if headerPropertyIterator < len(oneConcept.property):
+                            csv_line.append(oneConcept.property[headerPropertyIterator])
+                        else:
+                            csv_line.append('')
                         headerPropertyIterator += 1
 
-                #for ValueSets
-                elif self.get_resource() == 'ValueSet':
-                    #adding values to already existing columns, if value empty than a empty string is added
-                    headerDesignationIterator = 0
-                    headerFilterIterator = 0
-                    for csv_header_element in csv_header:
+                    elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                        csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                    else:
+                        csv_line.append('')
 
-                        if csv_header_element == "designation":
-                            if headerDesignationIterator < len(oneConcept.designation):
-                                csv_line.append(oneConcept.designation[headerDesignationIterator])
-                            else:
-                                csv_line.append('')
-                            headerDesignationIterator += 1
+                #adding not existing columns because we just got some values
+                if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                    csv_header.append('code')
+                    csv_line.append(tmp)
+                if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                    csv_header.append('display')
+                    csv_line.append(tmp)
+                if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
+                    csv_header.append('definition')
+                    csv_line.append(tmp)
+                while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                    csv_header.append('designation')
+                    csv_line.append(conceptDesig[headerDesignationIterator])
+                    headerDesignationIterator += 1
+                while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension):
+                    csv_header.append('extension')
+                    csv_line.append(conceptExtension[headerExtensionIterator])
+                    headerExtensionIterator += 1
+                while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
+                    csv_header.append('property')
+                    csv_line.append(conceptProps[headerPropertyIterator])
+                    headerPropertyIterator += 1
 
-                        elif csv_header_element == "filter":
-                            if headerFilterIterator < len(oneConcept.filter):
-                                csv_line.append(oneConcept.filter[headerFilterIterator])
-                            else:
-                                csv_line.append('')
-                            headerFilterIterator += 1
+            #for ValueSets
+            elif self.get_resource() == 'ValueSet':
+                # adding values to already existing columns, if value empty then an empty string is added
+                headerDesignationIterator = 0
+                headerFilterIterator = 0
+                headerExtensionIterator = 0
+                for csv_header_element in csv_header:
 
-                        elif csv_header_element == 'parent':
-                            if oneConcept.parent and (tmp := oneConcept.parent.code):
-                                csv_line.append(tmp)
-                            else:
-                                csv_line.append('')
+                    if csv_header_element == "designation":
+                        if headerDesignationIterator < len(oneConcept.designation):
+                            csv_line.append(oneConcept.designation[headerDesignationIterator])
+                        else:
+                            csv_line.append('')
+                        headerDesignationIterator += 1
 
-                        elif csv_header_element == 'parentSystem':
-                            if oneConcept.parent and (tmp := oneConcept.parent.system):
-                                csv_line.append(tmp)
-                            else:
-                                csv_line.append('')
+                    elif csv_header_element == "filter":
+                        if headerFilterIterator < len(oneConcept.filter):
+                            csv_line.append(oneConcept.filter[headerFilterIterator])
+                        else:
+                            csv_line.append('')
+                        headerFilterIterator += 1
 
-                        elif csv_header_element == 'version':
-                            # write the system version if existent
-                            if  tmp := oneConcept.version:
-                                csv_line.append(tmp)
-                            else:
-                                # retrieve version from metadata
+                    elif csv_header_element == "extension":
+                        if headerExtensionIterator < len(oneConcept.extension):
+                            csv_line.append(oneConcept.extension[headerExtensionIterator])
+                        else:
+                            csv_line.append('')
+                        headerExtensionIterator += 1
 
-                                # theoretically one_concept.system could be either canonical or OID in
-                                # most cases, however, it would be the canonical
-                                if tmp := self.gainVersionFromCanonical(oneConcept.system):
-                                    csv_line.append(tmp)
-                                elif tmp := self.gainVersionFromOid(oneConcept.system):
-                                    csv_line.append(tmp)
-                                else: # in case no version for the codesystem is available
+                    elif self.parenting_by == ParentingBy.conceptOrder and csv_header_element == 'conceptOrder' and (tmp := oneConcept):
+                        for one_ext in tmp.extension:
+                            if one_ext.url == ext.ConceptOrder.extension_canonical:
+                                if one_ext.value:
+                                    csv_line.append(one_ext.value)
+                                break
+                        else:
+                            # Use index of current concept when generating conceptOrder from scratch.
+                            # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                            csv_line.append(conceptList.index(oneConcept) + 1)
+                    elif self.parenting_by == ParentingBy.conceptOrder and csv_header_element == 'parentByConceptOrder' and (tmp := oneConcept.parent):
+                        for one_ext in tmp.extension:
+                            if one_ext.url == ext.ConceptOrder.extension_canonical:
+                                if one_ext.value:
+                                    csv_line.append(one_ext.value)
+                                else:
                                     csv_line.append('')
-
-                        elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                            csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                                break
+                    elif self.parenting_by == ParentingBy.parentAndSystem and csv_header_element == 'parent' and (tmp := oneConcept.parent):
+                        if tmp.code:
+                            csv_line.append(tmp.code)
+                        else:
+                            csv_line.append('')
+                    elif self.parenting_by == ParentingBy.parentAndSystem and csv_header_element == 'parentSystem' and (tmp := oneConcept.parent):
+                        if tmp.system:
+                            csv_line.append(tmp.system)
                         else:
                             csv_line.append('')
 
-                    #adding not existing columns because we just got some values
-                    if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
-                        csv_header.append('system')
-                        csv_line.append(tmp)
-                    if 'version' not in csv_header:
-                        # create 'version' header in any case
-                        csv_header.append('version')
+                    elif csv_header_element == 'version':
                         # write the system version if existent
                         if  tmp := oneConcept.version:
                             csv_line.append(tmp)
@@ -707,84 +848,162 @@ class PropCsvAndMaster():
                                 csv_line.append(tmp)
                             else: # in case no version for the codesystem is available
                                 csv_line.append('')
-                    if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
-                        csv_header.append('code')
-                        csv_line.append(tmp)
-                    if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
-                        csv_header.append('display')
-                        csv_line.append(tmp)
-                    if 'parent' not in csv_header and (tmp := oneConcept.parent):
-                        csv_header.append('parent')
-                        if tmp.code:
-                            csv_line.append(tmp.code)
-                        else:
-                            csv_line.append('')
-                    if 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
-                        csv_header.append('parentSystem')
-                        if tmp.system:
-                            csv_line.append(tmp.system)
-                        else:
-                            csv_line.append('')
-                    while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
-                        csv_header.append('designation')
-                        csv_line.append(conceptDesig[headerDesignationIterator])
-                        headerDesignationIterator += 1
-                    while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
-                        csv_header.append('filter')
-                        csv_line.append(conceptFilter[headerFilterIterator])
-                        headerFilterIterator += 1
-                    if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
-                        csv_header.append('abstract')
-                        csv_line.append(tmp)
-                    if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
-                        csv_header.append('inactive')
-                        csv_line.append(tmp)
-                    if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
-                        csv_header.append('exclude')
-                        csv_line.append(tmp)
 
-                csv_list.append(csv_line)
+                    elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
+                        csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                    else:
+                        csv_line.append('')
+
+                #adding not existing columns because we just got some values
+                if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
+                    csv_header.append('system')
+                    csv_line.append(tmp)
+                if 'version' not in csv_header:
+                    # create 'version' header in any case
+                    csv_header.append('version')
+                    # write the system version if existent
+                    if  tmp := oneConcept.version:
+                        csv_line.append(tmp)
+                    else:
+                        # retrieve version from metadata
+
+                        # theoretically one_concept.system could be either canonical or OID in
+                        # most cases, however, it would be the canonical
+                        if tmp := self.gainVersionFromCanonical(oneConcept.system):
+                            csv_line.append(tmp)
+                        elif tmp := self.gainVersionFromOid(oneConcept.system):
+                            csv_line.append(tmp)
+                        else: # in case no version for the codesystem is available
+                            csv_line.append('')
+                if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                    csv_header.append('code')
+                    csv_line.append(tmp)
+                if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                    csv_header.append('display')
+                    csv_line.append(tmp)
+                while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                    csv_header.append('designation')
+                    csv_line.append(conceptDesig[headerDesignationIterator])
+                    headerDesignationIterator += 1
+
+                if self.parenting_by == ParentingBy.conceptOrder and 'conceptOrder' not in csv_header and oneConcept:
+                    csv_header.append('conceptOrder')
+                    for one_ext in oneConcept.extension:
+                        if one_ext.url == ext.ConceptOrder.extension_canonical:
+                            if one_ext.value:
+                                csv_line.append(one_ext.value)
+                            break
+                    else:
+                        # Use index of current concept when generating conceptOrder from scratch.
+                        # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                        csv_line.append(conceptList.index(oneConcept) + 1)
+                if self.parenting_by == ParentingBy.conceptOrder and 'parentByConceptOrder' not in csv_header and (tmp := oneConcept.parent):
+                    csv_header.append('parentByConceptOrder')
+                    for one_ext in tmp.extension:
+                        if one_ext.url == ext.ConceptOrder.extension_canonical:
+                            if one_ext.value:
+                                csv_line.append(one_ext.value)
+                            else:
+                                csv_line.append('')
+                            break
+                if self.parenting_by == ParentingBy.parentAndSystem and 'parent' not in csv_header and (tmp := oneConcept.parent):
+                    csv_header.append('parent')
+                    if tmp.code:
+                        csv_line.append(tmp.code)
+                    else:
+                        csv_line.append('')
+                if self.parenting_by == ParentingBy.parentAndSystem and 'parentSystem' not in csv_header and (tmp := oneConcept.parent):
+                    csv_header.append('parentSystem')
+                    if tmp.system:
+                        csv_line.append(tmp.system)
+                    else:
+                        csv_line.append('')
+
+                while (conceptFilter := oneConcept.filter) and headerFilterIterator < len(conceptFilter):
+                    csv_header.append('filter')
+                    csv_line.append(conceptFilter[headerFilterIterator])
+                    headerFilterIterator += 1
+                while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension):
+                    # skip conceptOrder if in extensions and parentingByConceptOrder is actived, because of possible redundancy
+                    if not conceptExtension[headerExtensionIterator].url == ext.ConceptOrder.extension_canonical:
+                        csv_header.append('extension')
+                        csv_line.append(conceptExtension[headerExtensionIterator])
+                    headerExtensionIterator += 1
+                if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
+                    csv_header.append('abstract')
+                    csv_line.append(tmp)
+                if 'inactive' not in csv_header and (tmp := oneConcept.inactive):
+                    csv_header.append('inactive')
+                    csv_line.append(tmp)
+                if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
+                    csv_header.append('exclude')
+                    csv_line.append(tmp)
+
+
+            csv_list.append(csv_line)
 
         csv_list.insert(0,csv_header)
 
-        if outfile.name.endswith('.1.propcsv.csv'):
+        if outfile.name.endswith('.csv'):
             # special encoding because of Excel compatibility, see https://stackoverflow.com/questions/6588068/which-encoding-opens-csv-files-correctly-with-excel-on-both-mac-and-windows
             try:
-                writeCSV(outfile, csv_meta, csv_list, encoding="cp1252")
+                writeCSV(outfile, csv_meta, csv_list, file_style=file_style)
             except UnicodeEncodeError:
                 print(" (because of some EncodeError, this terminologys *.1.propcsv.csv will be written in utf-8 instead of cp1252)")
                 writeCSV(outfile, csv_meta, csv_list, encoding="utf-8")
 
-        elif outfile.name.endswith('.1.propcsv.xlsx'):
-            writeXLSX(outfile, csv_meta, csv_list)
+        elif outfile.name.endswith('.xlsx'):
+            writeXLSX(outfile, csv_meta, csv_list, file_style=file_style)
 
-def writeCSV(outfile, csv_meta, csv_list, encoding):
-    with open(outfile.name, 'wb') as outfile:
-        for csvline in zip(*csv_meta): #transpose the list
-            newline = True
-            for csvelement in csvline:
-                # write and change all ',' to ';'
-                #outfile.write(("," if not newline else "") + "\'" + str(csvelement).replace("'",'""') + "\'")
-                outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
-                newline = False
+def writeCSV(outfile, csv_meta, csv_list, encoding="cp1252", file_style=FileStyle.propCSV):
+    outfile_path = outfile.name
+    if file_style is FileStyle.spreadCT:
+        outfile_path = outfile_path.replace(".data.1.spreadct.csv", ".meta.1.spreadct.csv")
+        encoding = "utf-8"
+
+    with open(outfile_path, 'wb') as outfile:
+        first_line_of_file = True
+
+        if file_style is FileStyle.propCSV:
+            csv_meta = list(zip(*csv_meta)) #transpose the list
+        for csvline in csv_meta:
+            first_line_of_file = write_csv_line(outfile, encoding, first_line_of_file, csvline)
+
+        if file_style is FileStyle.propCSV:
             outfile.write(("\n").encode(encoding))
-
+        elif file_style is FileStyle.spreadCT:
+            outfile.close() # closing and opening with the same name, so that the with is still active, see https://www.geeksforgeeks.org/with-statement-in-python/
+            outfile = open(outfile_path.replace(".meta.1.spreadct.csv",".data.1.spreadct.csv"), 'wb')
+            first_line_of_file = True
         for csvline in csv_list:
-            outfile.write(("\n").encode(encoding))
-            newline = True
-            for csvelement in csvline:
-                outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
-                newline = False
+            first_line_of_file = write_csv_line(outfile, encoding, first_line_of_file, csvline)
 
-def writeXLSX(outfile, csv_meta, csv_list):
+def write_csv_line(outfile, encoding, first_line_of_file, csvline):
+    if first_line_of_file:
+        first_line_of_file = False
+    else:
+        outfile.write(("\n").encode(encoding))
+    newline = True
+    for csvelement in csvline:
+        outfile.write(((";" if not newline else "") + "\"" + str(csvelement).replace("\"",'""') + "\"").encode(encoding))
+        newline = False
+    return first_line_of_file
+
+def writeXLSX(outfile, csv_meta, csv_list, file_style=FileStyle.propCSV):
     import xlsxwriter
     # Create an new Excel file and add a worksheet.
     workbook = xlsxwriter.Workbook(outfile.name)
-    worksheet = workbook.add_worksheet()
+    if file_style is FileStyle.propCSV:
+        worksheet = workbook.add_worksheet()
+        csv_meta = list(zip(*csv_meta))
+    elif file_style is FileStyle.spreadCT:
+        worksheet_data = workbook.add_worksheet(name="data")
+        worksheet_meta = workbook.add_worksheet(name="meta")
+        worksheet = worksheet_meta
 
     # fill with meta
     x = -1
-    for csvline in zip(*csv_meta): #transpose the list
+    for csvline in csv_meta: #transpose the list
         x += 1
         y = -1
         for csvelement in csvline:
@@ -794,10 +1013,14 @@ def writeXLSX(outfile, csv_meta, csv_list):
             all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
             of \r
             """
-            worksheet.write(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
+            worksheet.write_string(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
 
     # for the empty row between meta and data
     x += 1
+
+    if file_style is FileStyle.spreadCT:
+        worksheet = worksheet_data
+        x = -1 #start from first row
 
     # fill with data
     for csvline in csv_list:
@@ -810,7 +1033,7 @@ def writeXLSX(outfile, csv_meta, csv_list):
             all ocurrences of \r\n will be replaced with a single \n in order to guarantee that reading from xlsx does not produce _x000D_ instead
             of \r
             """
-            worksheet.write(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
+            worksheet.write_string(x,y,str(csvelement).replace('\r\n', '\n'))#.encode(encoding).decode(encoding))
 
     workbook.close()
 
@@ -818,16 +1041,42 @@ class PropCsvAsXLSX():
     def parse(inFilename):
         import pandas as pd
 
-        read_file = pd.read_excel(inFilename, keep_default_na=False)
+        read_file = pd.read_excel(inFilename, keep_default_na=False, header=None, names=None)
         try:
-            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='cp1252')
+            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='cp1252')
             return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'))
         except UnicodeEncodeError:
-            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=True, sep=';', quotechar='"', encoding='utf-8')
+            read_file.to_csv(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='utf-8')
             return PropCsvAndMaster(inFilename.replace('.1.propcsv.xlsx', '.1.propcsv.csv'), encoding='utf-8')
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
-        PropCsvAndMaster.exporto(self,outfile,outputClass,argsLang,incHierarchyExt4VS)
+        PropCsvAndMaster.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS)
+
+class SpreadCT(PropCsvAndMaster):
+    def parse(inFilename):
+        return PropCsvAndMaster(inFilename, encoding='utf-8', file_style=FileStyle.spreadCT)
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        PropCsvAndMaster.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS, file_style=FileStyle.spreadCT)
+
+class SpreadCTasXLSX():
+    def parse(inFilename):
+        import pandas as pd
+
+        read_meta = pd.read_excel(inFilename, keep_default_na=False, sheet_name="meta", header=None, names=None)
+        read_data = pd.read_excel(inFilename, keep_default_na=False, sheet_name="data", header=None, names=None)
+
+        read_meta.to_csv(inFilename.replace('.1.spreadct.xlsx', '.meta.1.spreadct.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='utf-8')
+        read_data.to_csv(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'), index = None, header=False, sep=';', quoting=1, quotechar='"', encoding='utf-8')
+        ret = SpreadCT.parse(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'))
+        # management decision: no spreadct csvs
+        import os
+        os.remove(inFilename.replace('.1.spreadct.xlsx', '.data.1.spreadct.csv'))
+        os.remove(inFilename.replace('.1.spreadct.xlsx', '.meta.1.spreadct.csv'))
+        return ret
+
+    def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False):
+        SpreadCT.exporto(self, outfile, outputClass, argsLang, incHierarchyExt4VS)
 
 class Resource(enum.Enum):
     ValueSet = 'ValueSet'
@@ -860,6 +1109,12 @@ class PropertyCodeType(enum.Enum):
     boolean = "boolean"
     datetime = "dateTime"
     decimal = "decimal"
+
+class ExtensionType(enum.Enum):
+    oid = "oid"
+    coding = "Coding"
+    integer = "integer"
+    # TODO more to be defined
 
 class ContactDetail():
     def __init__(self, name=None, telecom=None):
@@ -977,6 +1232,7 @@ class CSConcept():
         self.definition = None
         self.designation = []
         self.property = []
+        self.extension = []
 
     class ConceptProperty():
         def __init__(self, str=None):
@@ -1027,6 +1283,7 @@ class VSConcept():
                        # For concepts in hierarchies this value would have to be set explicitly.
         self.abstract = False
         self.inactive = False
+        self.extension = []
 
     # created only for sorting, shouldn't be used for anything else
     def get_system(self):
@@ -1035,6 +1292,13 @@ class VSConcept():
     # created only for sorting, shouldn't be used for anything else
     def get_code(self):
         return self.code
+
+    # created only for sorting, shouldn't be used for anything else
+    def get_value_of_conceptOrder(self):
+        for one_ext in self.extension:
+            if one_ext.url == ext.ConceptOrder.extension_canonical:
+                return one_ext.value
+        else: return 0
 
     class VSConceptFilter():
         def __init__(self):
@@ -1102,8 +1366,28 @@ class Coding():
         buildStr += "^"
         if self.display: buildStr += self.display
         buildStr += "^"
-        if self.userSelected: buildStr += self.userSelected
+        if self.userSelected: buildStr += str(self.userSelected)
         return buildStr
+
+class Extension():
+    def __init__(self, str=None):
+        if not str:
+            self.url = None
+            self.value = None
+            self.type = ExtensionType
+        else:
+            extension_elements = str.split('|')
+            self.url = extension_elements[0]
+            self.type = ExtensionType(extension_elements[2])
+            if self.type == ExtensionType.coding:
+                self.value = Coding(extension_elements[1])
+            elif self.type == ExtensionType.integer:
+                self.value = int(extension_elements[1])
+            else:
+                self.value = extension_elements[1]
+
+    def __str__(self) -> str:
+        return self.url + "|" + (str(self.value) if self.value else "") + "|" + self.type.value
 
 # upper case first character: https://stackoverflow.com/questions/3840843/how-to-downcase-the-first-character-of-a-string
 first_char_to_upper = lambda s: s[:1].upper() + s[1:] if s else ''
