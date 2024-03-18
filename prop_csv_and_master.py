@@ -811,7 +811,9 @@ class PropCsvAndMaster():
                                     csv_line.append(one_ext.value)
                                 break
                         else:
-                            csv_line.append(conceptList.index(oneConcept))
+                            # Use index of current concept when generating conceptOrder from scratch.
+                            # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                            csv_line.append(conceptList.index(oneConcept) + 1)
                     elif self.parenting_by == ParentingBy.conceptOrder and csv_header_element == 'parentByConceptOrder' and (tmp := oneConcept.parent):
                         for one_ext in tmp.extension:
                             if one_ext.url == ext.ConceptOrder.extension_canonical:
@@ -892,7 +894,9 @@ class PropCsvAndMaster():
                                 csv_line.append(one_ext.value)
                             break
                     else:
-                        csv_line.append(conceptList.index(oneConcept))
+                        # Use index of current concept when generating conceptOrder from scratch.
+                        # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                        csv_line.append(conceptList.index(oneConcept) + 1)
                 if self.parenting_by == ParentingBy.conceptOrder and 'parentByConceptOrder' not in csv_header and (tmp := oneConcept.parent):
                     csv_header.append('parentByConceptOrder')
                     for one_ext in tmp.extension:
