@@ -819,9 +819,15 @@ class PropCsvAndMaster():
                             if one_ext.url == ext.ConceptOrder.extension_canonical:
                                 if one_ext.value:
                                     csv_line.append(one_ext.value)
+                                    break
                                 else:
-                                    csv_line.append('')
-                                break
+                                    # if parentByConceptOrder is used and the parent concept has got the extension a proper value is required
+                                    import sys
+                                    sys.exit('If parentByConceptOrder is used and the parent concept uses the extension a proper value is required. See concept with code: ' + tmp.code)
+                        else:
+                            # Use index of current concept when generating conceptOrder from scratch.
+                            # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                            csv_line.append(conceptList.index(tmp) + 1)
                     elif self.parenting_by == ParentingBy.parentAndSystem and csv_header_element == 'parent' and (tmp := oneConcept.parent):
                         if tmp.code:
                             csv_line.append(tmp.code)
@@ -903,9 +909,15 @@ class PropCsvAndMaster():
                         if one_ext.url == ext.ConceptOrder.extension_canonical:
                             if one_ext.value:
                                 csv_line.append(one_ext.value)
+                                break
                             else:
-                                csv_line.append('')
-                            break
+                                # if parentByConceptOrder is used and the parent concept has got the extension a proper value is required
+                                import sys
+                                sys.exit('If parentByConceptOrder is used and the parent concept uses the extension a proper value is required. See concept with code: ' + tmp.code)
+                    else:
+                        # Use index of current concept when generating conceptOrder from scratch.
+                        # Add +1 in order to prevent conceptOrder of value '0' as this will be interpreted as 'False' in if-statements
+                        csv_line.append(conceptList.index(tmp) + 1)
                 if self.parenting_by == ParentingBy.parentAndSystem and 'parent' not in csv_header and (tmp := oneConcept.parent):
                     csv_header.append('parent')
                     if tmp.code:
