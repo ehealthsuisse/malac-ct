@@ -798,11 +798,16 @@ class PropCsvAndMaster():
                         headerFilterIterator += 1
 
                     elif csv_header_element == "extension":
-                        if headerExtensionIterator < len(oneConcept.extension):
-                            csv_line.append(oneConcept.extension[headerExtensionIterator])
-                        else:
+                        extension_found = False
+                        while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension) and not extension_found:
+                            # skip conceptOrder if in extensions
+                            if not conceptExtension[headerExtensionIterator].url == ext.ConceptOrder.extension_canonical:
+                                csv_line.append(conceptExtension[headerExtensionIterator])
+                                extension_found = True
+                            headerExtensionIterator += 1
+
+                        if not extension_found:
                             csv_line.append('')
-                        headerExtensionIterator += 1
 
                     elif self.parenting_by == ParentingBy.conceptOrder and csv_header_element == 'conceptOrder' and (tmp := oneConcept):
                         for one_ext in tmp.extension:
