@@ -677,10 +677,13 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
                         and oneDesig.use.code != "einheit_print" and oneDesig.use.code != "einheit_codiert"
                         and oneDesig.use.code != "alt" and oneDesig.language != "de-AT" # TODO: andere Sprachen wie de-DE?
                         and oneDesig.use.code != "concept_beschreibung"):
-                            code = oneDesig.use.code
-                            for one_xml_escape_special_char in xml_escape_special_char:
-                                code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
-                            anyAttrDict.update({code: oneDesig.value})
+                            if language := oneDesig.language:
+                                anyAttrDict.update({'language_' + language: oneDesig.value})
+                            else:
+                                code = oneDesig.use.code
+                                for one_xml_escape_special_char in xml_escape_special_char:
+                                    code = code.replace(one_xml_escape_special_char.xml, one_xml_escape_special_char.escape)
+                                anyAttrDict.update({code: oneDesig.value})
                 concepts[-1].set_anyAttributes_(anyAttrDict)
 
         conceptList = conceptListSub(concepts)
