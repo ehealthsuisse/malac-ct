@@ -413,7 +413,10 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                         if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
                                 oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
                                 oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
-                            append_additional_value(csv_list, conceptRow, oneDesig.use.code, oneDesig.value)
+                            if language := oneDesig.language:
+                                append_additional_value(csv_list, conceptRow, 'language_' + language, oneDesig.value)
+                            else:
+                                append_additional_value(csv_list, conceptRow, oneDesig.use.code, oneDesig.value)
 
             # add conceptRow to csv list
             csv_list.append(conceptRow)
