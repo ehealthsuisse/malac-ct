@@ -272,7 +272,7 @@ def main() -> None:
                 outputClass = getattr(oModule, oClassValue[1])
 
                 # open a new file and export to output file
-                with open(args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
+                with open(args.output if args.output else args.input.replace(iClass,oClass), 'w', newline='', encoding='utf-8') as outfile:
                     startFormat = time.time()
                     outputClass.exporto(input, outfile, outputClass, args.argumentLanguage, args.includeHierarchyExtension4ValueSet)
                     print("*"+oClass+" (in "+str(round(time.time()-startFormat,3))+" seconds)")
