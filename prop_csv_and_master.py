@@ -484,7 +484,7 @@ class PropCsvAndMaster():
         return retArr
 
     def appendMetaDataTo(self, csvFilename, timestamp):
-        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp']
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp', 'description']
 
         # if file is new, add headers
         try:
@@ -494,7 +494,7 @@ class PropCsvAndMaster():
             with open(csvFilename, 'a', encoding="utf8") as csvfile:
                 csvfile.write(','.join(terminology_metadata_csv_columns)+'\n')
 
-        # file is existent open and read into a dict with the first column as key
+        # file is existent, open and read into a dict with the second column as key
         import csv
         reader = csv.reader(open(csvFilename))
         mydict = {rows[1]:rows for rows in reader}
@@ -503,11 +503,11 @@ class PropCsvAndMaster():
         mydict["canonical"] = terminology_metadata_csv_columns
 
         # check if any value changed
-        if (tmpTup := mydict.get(self.get_url())) and tmpTup[:-1] == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource()]:
-            timestamp = tmpTup[-1]
+        if (tmpTup := mydict.get(self.get_url())) and tmpTup == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), tmpTup[6], self.get_description()]:
+            timestamp = tmpTup[6]
         else:
             # change the one row or add the row to the dictionary
-            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp]
+            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp, self.get_description()]
 
         # if metadata_change_timestamp has not yet been set
         if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
