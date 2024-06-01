@@ -497,7 +497,11 @@ class PropCsvAndMaster():
         # file is existent, open and read into a dict with the second column as key
         import csv
         reader = csv.reader(open(csvFilename))
-        mydict = {rows[1]:rows for rows in reader}
+        for rows in reader:
+            # for debugging purposes
+            print(rows)
+            mydict[rows[1]] = rows
+        #mydict = {rows[1]:rows for rows in reader}
 
         # overwrite the first row with the now valid columns stated here
         mydict["canonical"] = terminology_metadata_csv_columns
