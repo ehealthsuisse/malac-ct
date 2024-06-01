@@ -507,7 +507,7 @@ class PropCsvAndMaster():
             timestamp = tmpTup[6]
         else:
             # change the one row or add the row to the dictionary
-            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), timestamp, self.get_description()]
+            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url() or "", (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version() or "", self.get_id() or "", self.get_resource() or "", timestamp, self.get_description() or ""]
 
         # if metadata_change_timestamp has not yet been set
         if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
