@@ -497,6 +497,7 @@ class PropCsvAndMaster():
         # file is existent, open and read into a dict with the second column as key
         import csv
         reader = csv.reader(open(csvFilename))
+        mydict = {}
         for rows in reader:
             # for debugging purposes
             print(rows)
