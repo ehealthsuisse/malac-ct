@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix output param, beeing ignored previously for its path
+- elga-gmbh/malac-ct#37 Parameter `convertFHIRServer` is now optional. Without providing it the [fhir.resources](https://pypi.org/project/fhir.resources/) library for FHIR XML <-> JSON conversion of FHIR XML and JSON files will be used.
 
 ## [4.4.3+20240410]
 
