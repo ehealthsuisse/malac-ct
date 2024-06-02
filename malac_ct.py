@@ -285,7 +285,7 @@ def main() -> None:
         if args.convertFHIRServer:
             convert_fhir_resource_with_fhir_server(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
         else:
-            convert_fhir_resource(args.input, '.4.fhir.xml', 'xml', 'json')
+            convert_fhir_resource(args.input, iClass, 'xml', 'json')
 
     if args.uploadToConvertFHIRServer and args.convertFHIRServer:
         startUpload = time.time()
