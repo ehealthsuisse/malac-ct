@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [4.4.4+20240603]
 
 ### Fixed
 
-- Fix output param, beeing ignored previously for its path
+- Fix identification of terminology type when providing a `.1.svsextelga.xml` or `.2.svsextelga.xml`.
+- Path to output file - if provided - is being taken into account.
 
 ## [4.4.3+20240410]
 
