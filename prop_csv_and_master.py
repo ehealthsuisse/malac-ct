@@ -484,7 +484,7 @@ class PropCsvAndMaster():
         return retArr
 
     def appendMetaDataTo(self, csvFilename, timestamp):
-        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp', 'description', 'title']
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp', 'description', 'title', 'status']
 
         # if file is new, add headers
         try:
@@ -503,11 +503,11 @@ class PropCsvAndMaster():
         mydict["canonical"] = terminology_metadata_csv_columns
 
         # check if any value changed
-        if (tmpTup := mydict.get(self.get_url())) and tmpTup == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), tmpTup[6], (self.get_description() or "").replace('\n', '<br/>'), (self.get_title() or "")]:
+        if (tmpTup := mydict.get(self.get_url())) and tmpTup == [self.get_resource() + "-" + self.get_id(), self.get_url(), (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version(), self.get_id(), self.get_resource(), tmpTup[6], (self.get_description() or "").replace('\n', '<br/>'), (self.get_title() or ""), (self.get_status() or "")]:
             timestamp = tmpTup[6]
         else:
             # change the one row or add the row to the dictionary
-            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url() or "", (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version() or "", self.get_id() or "", self.get_resource() or "", timestamp, (self.get_description() or "").replace('\n', '<br/>'), (self.get_title() or "")]
+            mydict[self.get_url()] = [self.get_resource() + "-" + self.get_id(), self.get_url() or "", (tmp[0] if (tmp := self.get_identifier()) else ""), self.get_version() or "", self.get_id() or "", self.get_resource() or "", timestamp, (self.get_description() or "").replace('\n', '<br/>'), (self.get_title() or ""), (self.get_status() or "")]
 
         # if metadata_change_timestamp has not yet been set
         if not hasattr(self, 'metadata_change_timestamp') or not self.metadata_change_timestamp:
