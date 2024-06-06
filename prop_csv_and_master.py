@@ -484,7 +484,7 @@ class PropCsvAndMaster():
         return retArr
 
     def appendMetaDataTo(self, csvFilename, timestamp):
-        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp', 'description', 'title', 'status']
+        terminology_metadata_csv_columns = ['name', 'canonical', 'oid', 'version', 'id', 'type', 'metadata-change-timestamp', '"description"', 'title', 'status']
 
         # if file is new, add headers
         try:
@@ -496,7 +496,7 @@ class PropCsvAndMaster():
 
         # file is existent, open and read into a dict with the second column as key
         import csv
-        reader = csv.reader(open(csvFilename))
+        reader = csv.reader(open(csvFilename), quoting=csv.QUOTE_NONE)
         mydict = {row[1]:row for row in reader}
 
         # overwrite the first row with the now valid columns stated here
