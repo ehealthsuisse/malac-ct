@@ -710,8 +710,9 @@ class PropCsvAndMaster():
         conceptList = self.get_concept()
 
         # check if there are multiple concepts with the same code and system, so that parentingByConceptOrder is used
+        # OR is the conceptOrder explicitly in use
         if self.get_resource() == 'ValueSet':
-            if len(conceptList) > len(self.buildConceptDictWithAttr('code', 'system')):
+            if len(conceptList) > len(self.buildConceptDictWithAttr('code', 'system')) or next((concept for concept in conceptList if concept.has_extension(ext.ConceptOrder.extension_canonical)), False):
                 self.parenting_by = ParentingBy.conceptOrder
             else:
                 self.parenting_by = ParentingBy.parentAndSystem
@@ -1316,6 +1317,9 @@ class VSConcept():
             if one_ext.url == ext.ConceptOrder.extension_canonical:
                 return one_ext.value
         else: return 0
+
+    def has_extension(self, extension_canonical):
+        return True if next((extension_item for extension_item in self.extension if extension_item.url == extension_canonical), False) else False
 
     class VSConceptFilter():
         def __init__(self):
