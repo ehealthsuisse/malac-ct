@@ -34,7 +34,7 @@ extensions_dict = {
     }
 
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.4.3+20240410"
+versionNumber = "4.4.4+20240603"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
@@ -237,6 +237,8 @@ def main() -> None:
         inputClass.globalUrl = args.fhirIgUrl
         # serialize the input file
         input = inputClass.parse(args.input)
+        input.globalUrl = args.fhirIgUrl
+        input.filename = args.input
 
         # read activated extensions
         input.activated_extension_dict = {}
@@ -253,8 +255,6 @@ def main() -> None:
             for csv2AppendTo in args.appendProcessedTerminologyTo:
                 timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
-        input.globalUrl = args.fhirIgUrl
-        input.filename = args.input
         # sort the input
         if 'CodeSystem-' in input.filename:
             input.sortConceptsExpandStyle()
