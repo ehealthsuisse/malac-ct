@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0+20240723]
+
+### Added
+
+- Allow explicit use of `conceptOrder`.
+
+### Changed
+
+- elga-gmbh/malac-ct#20 Add extraction of more metadata from terminologies to the terminologiesMetadata.csv, initially for elga-gmbh/termgit-dev#38
+
+### Fixed
+
+- Fix output param, beeing ignored previously for its path
+- elga-gmbh/malac-ct#37 Parameter `convertFHIRServer` is now optional. Without providing it the [fhir.resources](https://pypi.org/project/fhir.resources/) library for FHIR XML <-> JSON conversion of FHIR XML and JSON files will be used.
+
 ## [4.4.4+20240603]
 
 ### Fixed

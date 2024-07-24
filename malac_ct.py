@@ -34,7 +34,7 @@ extensions_dict = {
     }
 
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "4.4.4+20240603"
+versionNumber = "4.5.0+20240723"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
@@ -206,14 +206,14 @@ def main() -> None:
 
     print("converted "+args.input+" to")
 
-    # if input is a FHIR JSON file a FHIR server has to be specified in all cases
-    if '.4.fhir.json' in args.input and not args.convertFHIRServer:
-        sys.exit("A FHIR JSON file as input requires a FHIR server with $convert capabilities. \n %s" % descriptionText)
-
-    do_fhir_server_conversion = True
+    do_fhir_xml_to_json_conversion = True
     if '.4.fhir.json' in args.input:
-        do_fhir_server_conversion = False
-        convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        do_fhir_xml_to_json_conversion = False
+        if args.convertFHIRServer:
+            convert_fhir_resource_with_fhir_server(args.input, '.4.fhir.json', 'json', 'xml', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        else:
+            convert_fhir_resource(args.input, '.4.fhir.json', 'json', 'xml')
+
         args.input = args.input.replace('.4.fhir.json', '.4.fhir.xml')
 
     # look at the name of the input file and load the classification,
@@ -281,14 +281,16 @@ def main() -> None:
                     break
 
     # run converter for only main file, create from xml the json, it doesn't convert the supplement!
-    if args.convertFHIRServer:
-        if do_fhir_server_conversion:
-            convert_fhir_resource(args.input, iClass, 'xml', 'json')#, args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+    if do_fhir_xml_to_json_conversion:
+        if args.convertFHIRServer:
+            convert_fhir_resource_with_fhir_server(args.input, iClass, 'xml', 'json', args.convertFHIRServer, args.turnOffVerification, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken)
+        else:
+            convert_fhir_resource(args.input, iClass, 'xml', 'json')
 
-        if args.uploadToConvertFHIRServer:
-            startUpload = time.time()
-            upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, args.turnOffVerification, failIfUploadGoesWrong=True)
-            print("uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
+    if args.uploadToConvertFHIRServer and args.convertFHIRServer:
+        startUpload = time.time()
+        upload_to_fhir_server(args.input, iClass, args.convertFHIRServer, args.convertFHIRServerUser, args.convertFHIRServerUserPassword, args.convertFHIRServerTergiTunnelToken, args.turnOffVerification, failIfUploadGoesWrong=True)
+        print("uploaded to given convert FHIR Server named "+ args.convertFHIRServer+" (in "+str(round(time.time()-startUpload,3))+" seconds)")
 
     if args.uploadToAdditionalFHIRServer:
         for addlServer in args.uploadToAdditionalFHIRServer:
