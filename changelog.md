@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.5.0+20240723]
 
+### Fixed
+
+- Now not every easyProperty is beeing interpreted as string, because the type can be determined from the metadata
+
+## [4.5.0+20240723]
+
 ### Added
 
 - Allow explicit use of `conceptOrder`.

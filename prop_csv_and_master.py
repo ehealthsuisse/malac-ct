@@ -194,7 +194,12 @@ class PropCsvAndMaster():
                                                 foundOneExt = True
                                                 break
                                         if not foundOneExt:
-                                            tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|string"))
+                                            prop_type = "string" # default type if none found in meta
+                                            for one_meta in metaList[1]:
+                                                if one_meta.startswith(headingList[i]):
+                                                    prop_type = one_meta.split("|")[3]
+                                                    break
+                                            tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|"+prop_type))
                                 elif self.resource == self.resource.ValueSet:
                                     if 'system' == headingList[i]: tempConcept.system = row[i]
                                     elif 'version' == headingList[i]: tempConcept.version = row[i]
