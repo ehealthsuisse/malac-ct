@@ -196,7 +196,7 @@ class PropCsvAndMaster():
                                         if not foundOneExt:
                                             prop_type = "string" # default type if none found in meta
                                             for one_meta in metaList[1]:
-                                                if one_meta.startswith(headingList[i]):
+                                                if one_meta.split("|")[0] == headingList[i]:
                                                     prop_type = one_meta.split("|")[3]
                                                     break
                                             tempConcept.property.append(CSConcept.ConceptProperty(headingList[i]+"|"+row[i]+"|"+prop_type))
