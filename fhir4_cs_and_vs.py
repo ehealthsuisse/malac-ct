@@ -3,6 +3,15 @@ from malac_ct import extensions_dict
 import prop_csv_and_master as pcam
 import fhir4_codesystem as f4cs
 import fhir4_valueset as f4vs
+import malac_hd_fhir_utils as utils # imported directly, will be a own pypi package in the future
+
+for mod in [f4cs.supermod, f4vs.supermod]:
+    mod.Resource.exportJsonAttributes = utils.exportJsonAttributesResource
+    #mod.ResourceContainer.exportJsonResult = utils.exportJsonResultResourceContainer
+    #mod.Narrative.exportJsonResult = utils.exportJsonResultNarrative
+    mod.Element.exportJsonResult = utils.exportJsonResultElement
+    mod.date.exportJsonAttributes = utils.exportJsonAttributesDateDateTime
+    mod.dateTime.exportJsonAttributes = utils.exportJsonAttributesDateDateTime
 
 ####################################################################################
 #
@@ -692,6 +701,31 @@ class FHIR4CsAndVs:
 
         resource = input.get_resource()
         if resource == 'CodeSystem':
-            f4cs.CodeSystemSub.exporto(input, outfile)
+            f4cs.CodeSystem.exporto(input, outfile)
         elif resource == 'ValueSet':
-            f4vs.ValueSetSub.exporto(input, outfile)
+            f4vs.ValueSet.exporto(input, outfile)
+
+class FHIR4CsAndVsJson():
+    """Class serves as entrypoint for properly parsing and writing
+    FHIR CodeSystem and ValueSet resources as json.
+    """
+    def __init__(self) -> None:
+        pass
+
+    # just for calling the outer method (within )
+    def parse(filename):
+        import json
+        with open(filename,'r') as f:
+            if 'CodeSystem-' in filename:
+                return utils.parse_json(f4cs.supermod, json.load(f))
+            elif 'ValueSet-' in filename:
+                return utils.parse_json(f4vs.supermod, json.load(f))
+            else:
+                sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')
+
+    def exporto(input, outfile, output_class, args_lang=None, include_hierarchy_extension_4_valueset=False):
+        resource = input.get_resource()
+        if resource == 'CodeSystem':
+            f4cs.CodeSystem.exporto(input, outfile, json=True)
+        elif resource == 'ValueSet':
+            f4vs.ValueSet.exporto(input, outfile, json=True)
