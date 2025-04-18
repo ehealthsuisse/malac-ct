@@ -35,16 +35,16 @@ class BMGICD(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2024"
-        self.id = "bmg-icd-10-2024"
-        self.name = "bmg-icd-10-2024"
-        self.title = "ICD-10 BMSGPK 2024"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY"
+        self.id = "bmg-icd-10-YYYY"
+        self.name = "bmg-icd-10-YYYY"
+        self.title = "ICD-10 BMSGPK YYYY"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.1+20240205"
-        self.identifier.append("1.2.40.0.34.5.222")
-        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
-        self.description = """Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
+        self.version = "1.0.0+YYYY"
+        self.identifier.append("1.2.40.0.34.5.###")
+        self.contact.append(pcam.ContactDetail.from_string("TODO Sozialministerium LKF Modell YYYY|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
+        self.description = """TODO Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
 Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. 
 Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.<br/>
 In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen.<br/>
@@ -181,10 +181,10 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2024"
-        self.id = "bmg-lkf-2024"
-        self.name = "bmg-lkf-2024"
-        self.title = "BMG Leistungskatalog Gesamt 2024"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY"
+        self.id = "bmg-lkf-YYYY"
+        self.name = "bmg-lkf-YYYY"
+        self.title = "BMG Leistungskatalog Gesamt YYYY"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
         self.version = "1.0.0+YYYY"
