@@ -110,18 +110,18 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             if row.DKurzbezeichnung != row.DBezeichnung:
                 theConcept.definition = row.DBezeichnung
             # parsing respective properties to one concept
-            parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
-            parseProp(theConcept.property, row.DGruppe, "Gruppe")
-            parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
-            parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
-            parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
-            parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
-            parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
-            parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
-            parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
-            parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
+            if row.DKennzeichen: parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
+            if row.DGruppe: parseProp(theConcept.property, row.DGruppe, "Gruppe")
+            if row.DHDGruppe: parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
+            if row.DZDGruppe: parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
+            if row.DGeschlecht: parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
+            if row.DMindestalter: parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
+            if row.DHöchstalter: parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            if row.DUnwahrscheinlich: parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
+            if row.DHDambulant: parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
+            if row.DHDZTage: parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
+            if row.DMeldepflicht: parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
+            if row.DStationärerworben: parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
             dictParents[row.DDiagnose] = theConcept
             # adding parent-property to the concept
             if unequalD3SAndD:
@@ -146,8 +146,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         row = cursor.fetchone()
         conDict = self.buildConceptDictWithAttr("code")
         while row:
-            parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY")
+            if row.Leistung: parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY")
             row = cursor.fetchone()
 
     # just for calling the outer method
@@ -188,7 +187,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
         self.title = "BMG Leistungskatalog Gesamt YYYY"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.1+YYYY"
+        self.version = "1.0.0+YYYY"
         self.identifier.append("1.2.40.0.34.5.###")
         self.contact.append(pcam.ContactDetail.from_string("TODO Sozialministerium LKF Modell YYYY|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
         self.description = """TODO Der Leistungskatalog BMSGPK 2024 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2024. Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:<br/>
@@ -277,10 +276,8 @@ class BMGLKF(pcam.PropCsvAndMaster):
             if row.BettenführenderFuco: parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
             if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
 
-            parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
-            parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
+            if row.MDDiagnoseVon: parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
+            if row.MDDiagnoseBis: parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
 
             self.concept.append(theConcept)
             row = cursor.fetchone()
