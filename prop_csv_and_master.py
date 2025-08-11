@@ -733,9 +733,9 @@ class PropCsvAndMaster():
                     easy_properties = []
                     other_properties = oneConcept.property
                 elif file_style is FileStyle.spreadCT:
-                    easy_designations = [oneDesig for oneDesig in oneConcept.designation if oneDesig.CodeSystem == 
+                    easy_designations = [oneDesig for oneDesig in oneConcept.designation if oneDesig.use.codesystem == 
                                             "https://termgit.elga.gv.at/CodeSystem/austrian-designation-use"]
-                    other_designations = [oneDesig for oneDesig in oneConcept.designation if oneDesig.CodeSystem != 
+                    other_designations = [oneDesig for oneDesig in oneConcept.designation if oneDesig.use.codesystem != 
                                             "https://termgit.elga.gv.at/CodeSystem/austrian-designation-use"]
                     easy_properties = oneConcept.property
                     other_properties = []
