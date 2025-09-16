@@ -337,8 +337,8 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
                                 (tmp := one_property.get_valueDateTime()):
                             # set the property's value
                             the_property.value = tmp.get_value()
-                            # original_tagname_ e.g. is 'valueCode' or 'valueString'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                            the_property.type = pcam.PropertyCodeType(pcam.first_char_to_lower(tmp.original_tagname_.replace('value','')))
+                            # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                            the_property.type = pcam.PropertyCodeType(pcam.first_char_to_lower(one_tmp if 'Sub' not in (one_tmp := type(tmp).__name__) else one_tmp.replace('Sub', '')))
                         elif tmp_prop := one_property.get_valueCoding():
                             the_coding = pcam.Coding()
                             if tmp := tmp_prop.get_system(): the_coding.codesystem = tmp.get_value()
@@ -347,8 +347,8 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
                             if tmp := tmp_prop.get_display(): the_coding.display = tmp.get_value()
                             if tmp := tmp_prop.get_userSelected(): the_coding.userSelected = tmp.get_value()
                             the_property.value = the_coding
-                            # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                            the_property.type = pcam.PropertyCodeType(tmp_prop.original_tagname_.replace('value',''))
+                            # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                            the_property.type = pcam.PropertyCodeType(one_tmp if 'Sub' not in (one_tmp := type(tmp_prop).__name__) else one_tmp.replace('Sub', ''))
 
                         the_concept.property.append(the_property)
 

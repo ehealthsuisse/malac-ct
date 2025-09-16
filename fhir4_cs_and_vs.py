@@ -579,7 +579,7 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
     if extension := fhir_source.get_extension():
         for one_extension in extension:
             if one_url := one_extension.get_url():
-                
+
                 if delete_extensions_in_target_with_same_urls:
                     pcam_target.extension = [item for item in pcam_target.extension if item.url != one_url]
 
@@ -588,10 +588,12 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
 
                 if one_value := one_extension.get_valueOid(): #TODO support of further types
                     the_extension.value = one_value.get_value()
-                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', '')))
                 elif one_value := one_extension.get_valueInteger():
                     the_extension.value = int(one_value.get_value())
-                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', '')))
                 elif one_value := one_extension.get_valueCoding():
                     the_coding = pcam.Coding()
                     if tmp := one_value.get_system(): the_coding.codesystem = tmp.get_value()
@@ -600,8 +602,8 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
                     if tmp := one_value.get_display(): the_coding.display = tmp.get_value()
                     if tmp := one_value.get_userSelected(): the_coding.userSelected = tmp.get_value()
                     the_extension.value = the_coding
-                    # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                    the_extension.type = pcam.ExtensionType(one_value.original_tagname_.replace('value',''))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', ''))
 
                 pcam_target.extension.append(the_extension)
 
