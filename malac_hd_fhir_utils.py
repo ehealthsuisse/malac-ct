@@ -53,7 +53,7 @@ def _handle_content(elem):
         elif content.category == 3:
             attrs = ""
             if getattr(content.value, "ID", None):
-                attrs += ' id="%s"' % content.value.ID 
+                attrs += ' id="%s"' % content.value.ID
             if content.name == "table":
                 html += "<table%s><thead>" % attrs
                 for tr in content.value.thead.tr:
@@ -249,7 +249,6 @@ def parse_json_primitive(module, val, type_str):
     else:
         return val
 
-# from malac-hd altered parse_json, lines 283, 304 & 308 should be discussed
 def parse_json(module, dct, class_name=None):
     if "resourceType" in dct:
         clazz = getattr(module, dct["resourceType"])
@@ -279,9 +278,7 @@ def parse_json(module, dct, class_name=None):
                         if isinstance(el, dict):
                             lst.append(parse_json(module, el, class_name=type_str))
                         else:
-                            lelem = parse_json_primitive(module, el, type_str)
-                            lelem.original_tagname_ = type_str
-                            lst.append(lelem)
+                            lst.append(parse_json_primitive(module, el, type_str))
                     kwargs[elem] = lst
             elif isinstance(val, dict):
                 if elem.startswith("_"):
@@ -301,11 +298,8 @@ def parse_json(module, dct, class_name=None):
                         kwargs[elem] = parse_json(module, val, class_name=ann[elem])
             else:
                 kwargs[elem] = parse_json_primitive(module, val, ann[elem])
-                kwargs[elem].original_tagname_ = ann[elem]
-
     fhir_res = clazz(**kwargs)
     fhir_res.gds_elementtree_node_ = dct
-    fhir_res.original_tagname_ = fhir_res.__class__.__name__.split("_")[-1].replace("Sub","")
     dct["@node"] = fhir_res
     for val in kwargs.values():
         if isinstance(val, list):
