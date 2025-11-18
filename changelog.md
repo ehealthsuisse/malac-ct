@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Parse/export JSON using the MaLaC-HDs solution with [generateDS](https://gitlab.com/cdehealth/generateds/-/tree/919654b4b5ba0c232dce7a593a18aa42cf512445/) and [utils.py](https://gitlab.com/cdehealth/malac-hd/-/blob/1d1754c26fe99e238bef6cfa9e2a8a59d0771098/malac/models/fhir/utils.py)
+- Remove hierarchy in bm*g*s lkat, originating from HL7 Austria TC Terminology discussions
 
 ### Fixed
 
