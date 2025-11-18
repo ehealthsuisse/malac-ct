@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Now not every easyProperty is beeing interpreted as string, because the type can be determined from the metadata
 - Fix Hierarchy Meaning parenthesis typos
 - Fix bm*g*s icd10 and lkat properties, by not creating empty ones
+- Fix bm*g*s icd10 property name from HDZ_days to HD_>0_days
 
 ## [4.5.0+20240723]
 

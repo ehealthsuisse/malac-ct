@@ -119,7 +119,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             if row.DHöchstalter: parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
             if row.DUnwahrscheinlich: parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
             if row.DHDambulant: parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
-            if row.DHDZTage: parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
+            if row.DHDZTage: parseProp(theConcept.property, row.DHDZTage, "HD_>0_days") # should be named like that, see https://gitlab.com/elga-gmbh/malac-ct/-/issues/55
             if row.DMeldepflicht: parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
             if row.DStationärerworben: parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
             dictParents[row.DDiagnose] = theConcept
