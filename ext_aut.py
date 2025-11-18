@@ -298,7 +298,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
 def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pcam.PropertyCodeType.string, codeSystemOfProp=None):
     if propertyInRow and isinstance(propertyInRow, str):       
         propertyInRow = propertyInRow.strip()
-    if propertyInRow != "":
+    if propertyInRow is not None and propertyInRow != "": # do not "not propertyInRow" as we want false booleans to pass!
         theProperty = pcam.CSConcept.ConceptProperty()
         theProperty.code = nameOfProperty
         if typeOfProperty is pcam.PropertyCodeType.coding:
