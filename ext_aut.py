@@ -60,6 +60,13 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         dictParents = {}
 
         while row:
+            # trim every attribute
+            for attr_name in dir(row):
+                value = getattr(row, attr_name, None)
+                if value and isinstance(value, str):
+                    trimmed_value = value.strip()
+                    setattr(row, attr_name, trimmed_value)
+                    
             theDKCode = row.DKBeschreibung.split("(")[1].replace(")","") #row.DKKapitel
             theDUKCode = row.DUKBeschreibung.split("(")[1].replace(")","") #row.DUKUnterkapitel
 
@@ -202,6 +209,14 @@ class BMGLKF(pcam.PropCsvAndMaster):
         dictParents = {}
 
         while row:
+            # trim every attribute
+            for attr_name in dir(row):
+                value = getattr(row, attr_name, None)
+                if value and isinstance(value, str):
+                    trimmed_value = value.strip()
+                    setattr(row, attr_name, trimmed_value)
+
+
             ### we are working on the lvl 1 parent (unterkapitel) ###
 
             new_mukunterkapitel = False
