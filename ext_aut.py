@@ -59,7 +59,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         row = cursor.fetchone()
         dictParents = {}
 
-        while row:
+        while row:                   
             theDKCode = row.DKBeschreibung.split("(")[1].replace(")","") #row.DKKapitel
             theDUKCode = row.DUKBeschreibung.split("(")[1].replace(")","") #row.DUKUnterkapitel
 
@@ -110,18 +110,18 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             if row.DKurzbezeichnung != row.DBezeichnung:
                 theConcept.definition = row.DBezeichnung
             # parsing respective properties to one concept
-            if row.DKennzeichen: parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
-            if row.DGruppe: parseProp(theConcept.property, row.DGruppe, "Gruppe")
-            if row.DHDGruppe: parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
-            if row.DZDGruppe: parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
-            if row.DGeschlecht: parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
-            if row.DMindestalter: parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
-            if row.DHöchstalter: parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
-            if row.DUnwahrscheinlich: parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
-            if row.DHDambulant: parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
-            if row.DHDZTage: parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
-            if row.DMeldepflicht: parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
-            if row.DStationärerworben: parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
+            parseProp(theConcept.property, row.DKennzeichen, "Kennzeichen")
+            parseProp(theConcept.property, row.DGruppe, "Gruppe")
+            parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
+            parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
+            parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
+            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
+            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
+            parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
+            parseProp(theConcept.property, row.DHDZTage, "HD_>0_days") # should be named like that, see https://gitlab.com/elga-gmbh/malac-ct/-/issues/55
+            parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
+            parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
             dictParents[row.DDiagnose] = theConcept
             # adding parent-property to the concept
             if unequalD3SAndD:
@@ -202,6 +202,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
         dictParents = {}
 
         while row:
+
             ### we are working on the lvl 1 parent (unterkapitel) ###
 
             new_mukunterkapitel = False
@@ -244,40 +245,40 @@ class BMGLKF(pcam.PropCsvAndMaster):
             theProperty.type = pcam.PropertyCodeType.code
             theConcept.property.append(theProperty)
             # parsing respective properties to one concept
-            if row.AnatomieGrob: parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
-            if row.AnatomieFein: parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
-            if row.Leistungsart: parseProp(theConcept.property, row.Leistungsart, "Leistungsart")
-            if row.Zugang: parseProp(theConcept.property, row.Zugang, "Zugang")
-            if row.Leistungseinheit: parseProp(theConcept.property, row.Leistungseinheit, "Leistungseinheit")
-            if row.Gruppe: parseProp(theConcept.property, row.Gruppe, "Gruppe")
-            if row.LGR: parseProp(theConcept.property, row.LGR, "LGR")
-            if row.Geschlecht: parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
-            if row.Mindestalter: parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
-            if row.Höchstalter: parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
-            if row.WarninganzahlAufenthalt: parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
-            if row.ErroranzahlAufenthalt: parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
-            if row.WarninganzahlTag: parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
-            if row.ErroranzahlTag: parseProp(theConcept.property, row.ErroranzahlTag, "ErroranzahlTag")
-            if row.MEL_ambulant: parseProp(theConcept.property, row.MEL_ambulant, "MEL_ambulant")
-            if row.MEL0_Tage: parseProp(theConcept.property, row.MEL0_Tage, "MEL>0_Tage")
-            if row.MEL_TKL: parseProp(theConcept.property, row.MEL_TKL, "MEL_TKL")
-            if row.MEL_OP: parseProp(theConcept.property, row.MEL_OP, "MEL_OP")
-            if row.Langtext: parseProp(theConcept.property, row.Langtext, "Langtext")
-            if row.Codierhinweis: parseProp(theConcept.property, row.Codierhinweis, "Codierhinweis")
-            if row.Nichtinhalt: parseProp(theConcept.property, row.Nichtinhalt, "Nichtinhalt")
-            if row.Quelle: parseProp(theConcept.property, row.Quelle, "Quelle")
-            if row.ErfassungStationär: parseProp(theConcept.property, row.ErfassungStationär, "ErfassungStationär")
-            if row.GruppeAmbulant: parseProp(theConcept.property, row.GruppeAmbulant, "GruppeAmbulant")
-            if row.LGRAmbulant: parseProp(theConcept.property, row.LGRAmbulant, "LGRAmbulant")
-            if row.WarninganzahlAmbulant: parseProp(theConcept.property, row.WarninganzahlAmbulant, "WarninganzahlAmbulant")
-            if row.ErroranzahlAmbulant: parseProp(theConcept.property, row.ErroranzahlAmbulant, "ErroranzahlAmbulant")
-            if row.DiagnoseAmbulant: parseProp(theConcept.property, row.DiagnoseAmbulant, "DiagnoseAmbulant")
-            if row.ErfassungAmbulant: parseProp(theConcept.property, row.ErfassungAmbulant, "ErfassungAmbulant")
-            if row.BettenführenderFuco: parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
-            if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
+            parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
+            parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
+            parseProp(theConcept.property, row.Leistungsart, "Leistungsart")
+            parseProp(theConcept.property, row.Zugang, "Zugang")
+            parseProp(theConcept.property, row.Leistungseinheit, "Leistungseinheit")
+            parseProp(theConcept.property, row.Gruppe, "Gruppe")
+            parseProp(theConcept.property, row.LGR, "LGR")
+            parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
+            parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
+            parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
+            parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
+            parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
+            parseProp(theConcept.property, row.ErroranzahlTag, "ErroranzahlTag")
+            parseProp(theConcept.property, row.MEL_ambulant, "MEL_ambulant")
+            parseProp(theConcept.property, row.MEL0_Tage, "MEL>0_Tage")
+            parseProp(theConcept.property, row.MEL_TKL, "MEL_TKL")
+            parseProp(theConcept.property, row.MEL_OP, "MEL_OP")
+            parseProp(theConcept.property, row.Langtext, "Langtext")
+            parseProp(theConcept.property, row.Codierhinweis, "Codierhinweis")
+            parseProp(theConcept.property, row.Nichtinhalt, "Nichtinhalt")
+            parseProp(theConcept.property, row.Quelle, "Quelle")
+            parseProp(theConcept.property, row.ErfassungStationär, "ErfassungStationär")
+            parseProp(theConcept.property, row.GruppeAmbulant, "GruppeAmbulant")
+            parseProp(theConcept.property, row.LGRAmbulant, "LGRAmbulant")
+            parseProp(theConcept.property, row.WarninganzahlAmbulant, "WarninganzahlAmbulant")
+            parseProp(theConcept.property, row.ErroranzahlAmbulant, "ErroranzahlAmbulant")
+            parseProp(theConcept.property, row.DiagnoseAmbulant, "DiagnoseAmbulant")
+            parseProp(theConcept.property, row.ErfassungAmbulant, "ErfassungAmbulant")
+            parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
+            parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
 
-            if row.MDDiagnoseVon: parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
-            if row.MDDiagnoseBis: parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
+            parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
+            parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
 
             self.concept.append(theConcept)
             row = cursor.fetchone()
@@ -288,7 +289,9 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
 # checks if a certain property is filled and adds to the propertylist accordingly
 def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pcam.PropertyCodeType.string, codeSystemOfProp=None):
-    if propertyInRow != " ":
+    if propertyInRow and isinstance(propertyInRow, str):       
+        propertyInRow = propertyInRow.strip()
+    if propertyInRow != "":
         theProperty = pcam.CSConcept.ConceptProperty()
         theProperty.code = nameOfProperty
         if typeOfProperty is pcam.PropertyCodeType.coding:
@@ -332,7 +335,7 @@ class SystemOid():
 
     def add_extension(the_element, oid):
         import re
-        pattern = re.compile("^[0-2](\.(0|[1-9][0-9]*))+$")
+        pattern = re.compile(r"^[0-2](\.(0|[1-9][0-9]*))+$")
         if pattern.match(oid):
             if not hasattr(the_element, 'extension'):
                 the_element.extension = []
