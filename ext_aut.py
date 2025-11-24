@@ -115,8 +115,8 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
             parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
             parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.DMindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
+            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
             parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
             parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
             parseProp(theConcept.property, row.DHDZTage, "HD_>0_days") # should be named like that, see https://gitlab.com/elga-gmbh/malac-ct/-/issues/55
@@ -260,8 +260,8 @@ class BMGLKF(pcam.PropCsvAndMaster):
             parseProp(theConcept.property, row.Gruppe, "Gruppe")
             parseProp(theConcept.property, row.LGR, "LGR")
             parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.Mindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
+            parseProp(theConcept.property, row.Höchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
             parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
             parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
             parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
