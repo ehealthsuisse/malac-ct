@@ -469,7 +469,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
         gueltigkeitsbereich = "empfohlen"
 
-        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match(r'([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
             id = self.gainOidFromName(self.get_resource()+"-"+self.get_id())

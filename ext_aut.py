@@ -115,8 +115,8 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
             parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
             parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.DMindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
+            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
             parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
             parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
             parseProp(theConcept.property, row.DHDZTage, "HD_>0_days") # should be named like that, see https://gitlab.com/elga-gmbh/malac-ct/-/issues/55
@@ -199,39 +199,39 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
     def parseConcepts(self, cursor):
         row = cursor.fetchone()
-        dictParents = {}
+        #dictParents = {}
 
         while row:
 
             ### we are working on the lvl 1 parent (unterkapitel) ###
 
-            new_mukunterkapitel = False
-            if row.MUKUnterkapitel not in dictParents:
-                new_mukunterkapitel = True
+            #new_mukunterkapitel = False
+            #if row.MUKUnterkapitel not in dictParents:
+            #    new_mukunterkapitel = True
 
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.MUKUnterkapitel
-                theParentConcept.display = row.MUKUnterkapitel
-                dictParents[row.MUKUnterkapitel] = theParentConcept
-                self.concept.append(theParentConcept)
-                # setting the parent upon creation of the concept
-                parseParent(dictParents,row.MUKUnterkapitel,row.MKKapitel)
+            #    theParentConcept = pcam.CSConcept()
+            #    theParentConcept.code = row.MUKUnterkapitel
+            #    theParentConcept.display = row.MUKBeschreibung
+            #    dictParents[row.MUKUnterkapitel] = theParentConcept
+            #    self.concept.append(theParentConcept)
+            #    # setting the parent upon creation of the concept
+            #    parseParent(dictParents,row.MUKUnterkapitel,row.MKKapitel)
 
-            parseChild(dictParents,row.MUKUnterkapitel,row.Leistung)
+            #parseChild(dictParents,row.MUKUnterkapitel,row.Leistung)
 
             ### we are working on the lvl 2 parent (kapitel) ###
 
-            if row.MKKapitel not in dictParents:
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.MKKapitel
-                theParentConcept.display = row.MKBeschreibung
-                dictParents[row.MKKapitel] = theParentConcept
-                self.concept.append(theParentConcept)
+            #if row.MKKapitel not in dictParents:
+            #    theParentConcept = pcam.CSConcept()
+            #    theParentConcept.code = row.MKKapitel
+            #    theParentConcept.display = row.MKBeschreibung
+            #    dictParents[row.MKKapitel] = theParentConcept
+            #    self.concept.append(theParentConcept)
 
             # adding child only if it is a new child
-            if new_mukunterkapitel:
-                parseChild(dictParents,row.MKKapitel,row.MUKUnterkapitel)
-                conceptparent = row.MUKUnterkapitel
+            #if new_mukunterkapitel:
+            #    parseChild(dictParents,row.MKKapitel,row.MUKUnterkapitel)
+            #    conceptparent = row.MUKUnterkapitel
 
             theConcept = pcam.CSConcept()
             theConcept.code = row.Leistung
@@ -239,11 +239,18 @@ class BMGLKF(pcam.PropCsvAndMaster):
             theConcept.definition = row.Beschreibung
 
             # adding parent-property to the concept
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "parent"
-            theProperty.value = conceptparent
-            theProperty.type = pcam.PropertyCodeType.code
-            theConcept.property.append(theProperty)
+            #theProperty = pcam.CSConcept.ConceptProperty()
+            #theProperty.code = "parent"
+            #theProperty.value = conceptparent
+            #theProperty.type = pcam.PropertyCodeType.code
+            #theConcept.property.append(theProperty)
+            
+            # adding chapters and subcapters as property instead of parent structure
+            parseProp(theConcept.property, row.MKKapitel, "KapitelCode")
+            parseProp(theConcept.property, row.MKBeschreibung, "KapitelBeschreibung")
+            parseProp(theConcept.property, row.MUKUnterkapitel, "UnterkapitelCode")
+            parseProp(theConcept.property, row.MUKBeschreibung, "UnterkapitelBeschreibung")
+            
             # parsing respective properties to one concept
             parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
             parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
@@ -253,8 +260,8 @@ class BMGLKF(pcam.PropCsvAndMaster):
             parseProp(theConcept.property, row.Gruppe, "Gruppe")
             parseProp(theConcept.property, row.LGR, "LGR")
             parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.Mindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
+            parseProp(theConcept.property, row.Höchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
             parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
             parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
             parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
@@ -291,7 +298,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
 def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pcam.PropertyCodeType.string, codeSystemOfProp=None):
     if propertyInRow and isinstance(propertyInRow, str):       
         propertyInRow = propertyInRow.strip()
-    if propertyInRow != "":
+    if propertyInRow is not None and propertyInRow != "": # do not "not propertyInRow" as we want false booleans to pass!
         theProperty = pcam.CSConcept.ConceptProperty()
         theProperty.code = nameOfProperty
         if typeOfProperty is pcam.PropertyCodeType.coding:
