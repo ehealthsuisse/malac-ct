@@ -172,7 +172,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
             "FROM ((((((( [MELLIST] AS [M] LEFT JOIN [MELLIST - UNTERKAPITEL] AS [MUK] ON [M].Unterkapitel = [MUK].Unterkapitel)"
             "LEFT JOIN [MELLIST - KAPITEL] AS [MK] ON [M].Kapitel = [MK].Kapitel )"
             "LEFT JOIN [MELLIST - ANATOMIE GROB] AS [MAG] ON [M].AnatomieGrob = [MAG].Anatomie_Grob )"
-            "LEFT JOIN [MELLIST - ANATOMIE FEIN] AS [MAF] ON [M].AnatomieFein = [MAF].AnatomieFein_Code )"
+            "LEFT JOIN [MELLIST - ANATOMIE FEIN] AS [MAF] ON [M].AnatomieFein = [MAF].AnatomieFein_Code AND [M].AnatomieGrob = [MAF].Anatomie_Code)"
             "LEFT JOIN [MELLIST - LEISTUNGSART] AS [MLA] ON [M].Leistungsart = [MLA].Leistungsart_Code )"
             "LEFT JOIN [MELLIST - ZUGANG] AS [MZ] ON [M].Zugang = [MZ].Zugang_Code )"
             "LEFT JOIN [MELLIST - LEISTUNGSEINHEIT] AS [MLE] ON [M].Zugang = [MLE].Leistungseinheit_Code )"
@@ -198,97 +198,78 @@ class BMGLKF(pcam.PropCsvAndMaster):
         self.parseConcepts(cursor)
 
     def parseConcepts(self, cursor):
-        row = cursor.fetchone()
-        #dictParents = {}
+        # Property definitions: (row_attribute, property_name, optional_type)
+        PROPERTIES = [
+            ("MKKapitel", "KapitelCode"),
+            ("MKBeschreibung", "KapitelBeschreibung"),
+            ("MUKUnterkapitel", "UnterkapitelCode"),
+            ("MUKBeschreibung", "UnterkapitelBeschreibung"),
+            ("AnatomieGrob", "AnatomieGrob"),
+            ("AnatomieFein", "AnatomieFein"),
+            ("Leistungsart", "Leistungsart"),
+            ("Zugang", "Zugang"),
+            ("Leistungseinheit", "Leistungseinheit"),
+            ("Gruppe", "Gruppe"),
+            ("LGR", "LGR"),
+            ("Geschlecht", "Geschlecht"),
+            ("Mindestalter", "Mindestalter", pcam.PropertyCodeType.integer),
+            ("Höchstalter", "Höchstalter", pcam.PropertyCodeType.integer),
+            ("WarninganzahlAufenthalt", "WarninganzahlAufenthalt"),
+            ("ErroranzahlAufenthalt", "ErroranzahlAufenthalt"),
+            ("WarninganzahlTag", "WarninganzahlTag"),
+            ("ErroranzahlTag", "ErroranzahlTag"),
+            ("MEL_ambulant", "MEL_ambulant"),
+            ("MEL0_Tage", "MEL>0_Tage"),
+            ("MEL_TKL", "MEL_TKL"),
+            ("MEL_OP", "MEL_OP"),
+            ("Langtext", "Langtext"),
+            ("Codierhinweis", "Codierhinweis"),
+            ("Nichtinhalt", "Nichtinhalt"),
+            ("Quelle", "Quelle"),
+            ("ErfassungStationär", "ErfassungStationär"),
+            ("GruppeAmbulant", "GruppeAmbulant"),
+            ("LGRAmbulant", "LGRAmbulant"),
+            ("WarninganzahlAmbulant", "WarninganzahlAmbulant"),
+            ("ErroranzahlAmbulant", "ErroranzahlAmbulant"),
+            ("DiagnoseAmbulant", "DiagnoseAmbulant"),
+            ("ErfassungAmbulant", "ErfassungAmbulant"),
+            ("BettenführenderFuco", "BettenführenderFuco"),
+            ("PhysischeAnwesenheit", "PhysischeAnwesenheit"),
+        ]
 
-        while row:
+        prev_leistung = None
+        the_concept = None
 
-            ### we are working on the lvl 1 parent (unterkapitel) ###
+        for row in iter(cursor.fetchone, None):
+            diagnose_von_bis = ""
+            if row.MDDiagnoseVon and row.MDDiagnoseBis:
+                diagnose_von_bis = f"{row.MDDiagnoseVon}-{row.MDDiagnoseBis}"
 
-            #new_mukunterkapitel = False
-            #if row.MUKUnterkapitel not in dictParents:
-            #    new_mukunterkapitel = True
+            # Same Leistung as before: only add diagnosis range
+            if prev_leistung == row.Leistung and the_concept is not None:
+                parseProp(the_concept.property, diagnose_von_bis, "MDDiagnoseVonBis")
+                continue
 
-            #    theParentConcept = pcam.CSConcept()
-            #    theParentConcept.code = row.MUKUnterkapitel
-            #    theParentConcept.display = row.MUKBeschreibung
-            #    dictParents[row.MUKUnterkapitel] = theParentConcept
-            #    self.concept.append(theParentConcept)
-            #    # setting the parent upon creation of the concept
-            #    parseParent(dictParents,row.MUKUnterkapitel,row.MKKapitel)
+            # New concept
+            the_concept = pcam.CSConcept()
+            the_concept.code = row.Leistung
+            the_concept.display = row.Kurztext
+            the_concept.definition = row.Beschreibung
 
-            #parseChild(dictParents,row.MUKUnterkapitel,row.Leistung)
+            # Add all standard properties
+            for prop_def in PROPERTIES:
+                attr, name = prop_def[0], prop_def[1]
+                type_of = prop_def[2] if len(prop_def) > 2 else None
+                value = getattr(row, attr)
+                if type_of:
+                    parseProp(the_concept.property, value, name, typeOfProperty=type_of)
+                else:
+                    parseProp(the_concept.property, value, name)
 
-            ### we are working on the lvl 2 parent (kapitel) ###
+            parseProp(the_concept.property, diagnose_von_bis, "MDDiagnoseVonBis")
 
-            #if row.MKKapitel not in dictParents:
-            #    theParentConcept = pcam.CSConcept()
-            #    theParentConcept.code = row.MKKapitel
-            #    theParentConcept.display = row.MKBeschreibung
-            #    dictParents[row.MKKapitel] = theParentConcept
-            #    self.concept.append(theParentConcept)
-
-            # adding child only if it is a new child
-            #if new_mukunterkapitel:
-            #    parseChild(dictParents,row.MKKapitel,row.MUKUnterkapitel)
-            #    conceptparent = row.MUKUnterkapitel
-
-            theConcept = pcam.CSConcept()
-            theConcept.code = row.Leistung
-            theConcept.display = row.Kurztext
-            theConcept.definition = row.Beschreibung
-
-            # adding parent-property to the concept
-            #theProperty = pcam.CSConcept.ConceptProperty()
-            #theProperty.code = "parent"
-            #theProperty.value = conceptparent
-            #theProperty.type = pcam.PropertyCodeType.code
-            #theConcept.property.append(theProperty)
-            
-            # adding chapters and subcapters as property instead of parent structure
-            parseProp(theConcept.property, row.MKKapitel, "KapitelCode")
-            parseProp(theConcept.property, row.MKBeschreibung, "KapitelBeschreibung")
-            parseProp(theConcept.property, row.MUKUnterkapitel, "UnterkapitelCode")
-            parseProp(theConcept.property, row.MUKBeschreibung, "UnterkapitelBeschreibung")
-            
-            # parsing respective properties to one concept
-            parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
-            parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
-            parseProp(theConcept.property, row.Leistungsart, "Leistungsart")
-            parseProp(theConcept.property, row.Zugang, "Zugang")
-            parseProp(theConcept.property, row.Leistungseinheit, "Leistungseinheit")
-            parseProp(theConcept.property, row.Gruppe, "Gruppe")
-            parseProp(theConcept.property, row.LGR, "LGR")
-            parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.Mindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
-            parseProp(theConcept.property, row.Höchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
-            parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
-            parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
-            parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
-            parseProp(theConcept.property, row.ErroranzahlTag, "ErroranzahlTag")
-            parseProp(theConcept.property, row.MEL_ambulant, "MEL_ambulant")
-            parseProp(theConcept.property, row.MEL0_Tage, "MEL>0_Tage")
-            parseProp(theConcept.property, row.MEL_TKL, "MEL_TKL")
-            parseProp(theConcept.property, row.MEL_OP, "MEL_OP")
-            parseProp(theConcept.property, row.Langtext, "Langtext")
-            parseProp(theConcept.property, row.Codierhinweis, "Codierhinweis")
-            parseProp(theConcept.property, row.Nichtinhalt, "Nichtinhalt")
-            parseProp(theConcept.property, row.Quelle, "Quelle")
-            parseProp(theConcept.property, row.ErfassungStationär, "ErfassungStationär")
-            parseProp(theConcept.property, row.GruppeAmbulant, "GruppeAmbulant")
-            parseProp(theConcept.property, row.LGRAmbulant, "LGRAmbulant")
-            parseProp(theConcept.property, row.WarninganzahlAmbulant, "WarninganzahlAmbulant")
-            parseProp(theConcept.property, row.ErroranzahlAmbulant, "ErroranzahlAmbulant")
-            parseProp(theConcept.property, row.DiagnoseAmbulant, "DiagnoseAmbulant")
-            parseProp(theConcept.property, row.ErfassungAmbulant, "ErfassungAmbulant")
-            parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
-            parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
-
-            parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
-            parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY")
-
-            self.concept.append(theConcept)
-            row = cursor.fetchone()
+            self.concept.append(the_concept)
+            prev_leistung = row.Leistung
 
     # just for calling the outer method
     def parse(inFilename):
