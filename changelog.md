@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix bm*g*s icd10 and lkat properties, by not creating empty ones
 - Fix bm*g*s icd10 property name from HDZ_days to HD_>0_days
 - Fix bm*g*s icd10 and lkat values by trimming beginning and ending whitsspaces
+- Fix lkf join, missing one of two foreign keys and fix MDDiagnose property as Von and Bis are connected
 
 ## [4.5.0+20240723]
 
