@@ -726,7 +726,7 @@ class PropCsvAndMaster():
             csv_line = []
             
             # Common initialization for CodeSystems and ValueSets
-            headerIteratior = 0
+            headerIterator = 0
             headerDesignationIterator = 0
             headerExtensionIterator = 0
             
@@ -781,14 +781,14 @@ class PropCsvAndMaster():
                         csv_line.append(tmp)
                     
                     elif easy_designations and (fitting_easy_desigs := [oneDesig for oneDesig in easy_designations if oneDesig.use.code == csv_header_element]):
-                        header_easy_desig_iteratior = csv_header[:headerIteratior].count(csv_header_element)
+                        header_easy_desig_iteratior = csv_header[:headerIterator].count(csv_header_element)
                         if header_easy_desig_iteratior < len(fitting_easy_desigs) and (tmp := fitting_easy_desigs[header_easy_desig_iteratior]):
                             csv_line.append(tmp.value)
                         else:
                             csv_line.append('')
 
                     elif easy_properties and (fitting_easy_props := [oneProp for oneProp in easy_properties if oneProp.code == csv_header_element]):
-                        header_easy_prop_iteratior = csv_header[:headerIteratior].count(csv_header_element)
+                        header_easy_prop_iteratior = csv_header[:headerIterator].count(csv_header_element)
                         if header_easy_prop_iteratior < len(fitting_easy_props) and (tmp := fitting_easy_props[header_easy_prop_iteratior]):
                             csv_line.append(tmp.value)
                         else:
@@ -797,7 +797,7 @@ class PropCsvAndMaster():
                     else:
                         csv_line.append('')
 
-                    headerIteratior += 1
+                    headerIterator += 1
 
                 # adding not existing columns because we just got some values
                 if 'code' not in csv_header and (tmp := oneConcept.code):
@@ -920,7 +920,7 @@ class PropCsvAndMaster():
                         csv_line.append(tmp)
                     
                     elif easy_designations and (fitting_easy_desigs := [oneDesig for oneDesig in easy_designations if oneDesig.use.code == csv_header_element]):
-                        header_easy_desig_iteratior = csv_header[:headerIteratior].count(csv_header_element)
+                        header_easy_desig_iteratior = csv_header[:headerIterator].count(csv_header_element)
                         if header_easy_desig_iteratior < len(fitting_easy_desigs) and (tmp := fitting_easy_desigs[header_easy_desig_iteratior]):
                             csv_line.append(tmp.value)
                         else:
@@ -929,7 +929,7 @@ class PropCsvAndMaster():
                     else:
                         csv_line.append('')
                     
-                    headerIteratior += 1
+                    headerIterator += 1
 
                 # adding not existing columns because we just got some values
                 if 'system' not in csv_header and (tmp := oneConcept.system):
