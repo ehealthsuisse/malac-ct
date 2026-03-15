@@ -63,6 +63,7 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
+@pcam.trim_output
 def get_Meta_with_name(self,meta_name):
         for oneMeta in self.get_Classification()[0].get_Meta():
             if oneMeta.get_name == meta_name:
@@ -76,84 +77,108 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def parse(inFilename):
         return parse(inFilename)
 
+    @pcam.trim_output
     def get_resource(self):
         return get_Meta_with_name(self,'resource')
 
+    @pcam.trim_output
     def get_id(self):
         if tmp_id := get_Meta_with_name(self, 'id'):
             return tmp_id
         else:
             return self.get_name()
 
+    @pcam.trim_output
     def get_url(self):
         return get_Meta_with_name(self,'url')
 
+    @pcam.trim_output
     def get_identifier(self):
         identifiers = []
         for oneIdentifier in self.get_Classification()[0].get_Identifier():
             identifiers.append(oneIdentifier.get_uid())
         return identifiers
 
+    @pcam.trim_output
     def get_version(self):
         return self.get_Classification()[0].get_Title()[0].get_version()
 
     # todo: only override functions that are different to claml2
+    @pcam.trim_output
     def get_name(self):
         return self.get_Classification()[0].get_Title()[0].get_name()
 
+    @pcam.trim_output
     def get_title(self):
         return self.get_Classification()[0].get_Title()[0].get_valueOf_()
 
+    @pcam.trim_output
     def get_status(self):
         return self.get_Classification()[0].get_Identifier()[0].get_status()
 
+    @pcam.trim_output
     def get_experimental(self):
         return get_Meta_with_name(self,'experimental')
 
+    @pcam.trim_output
     def get_date(self):
         return self.get_Classification()[0].get_Identifier()[0].get_date()
 
+    @pcam.trim_output
     def get_publisher(self):
         return self.get_Classification()[0].get_Authors().get_Author()[0].get_name()
 
+    @pcam.trim_output
     def get_contact(self):
         return self.get_Classification()[0].get_Authors().get_Author()[0].get_valueOf_()
 
+    @pcam.trim_output
     def get_description(self):
         return get_Meta_with_name(self,'description')
 
+    @pcam.trim_output
     def get_usecontext(self):
         return get_Meta_with_name(self,'useContext')
 
+    @pcam.trim_output
     def get_jurisdiction(self):
         return get_Meta_with_name(self,'jurisdiction')
 
+    @pcam.trim_output
     def get_purpose(self):
         return get_Meta_with_name(self,'purpose')
 
+    @pcam.trim_output
     def get_copyright(self):
         return get_Meta_with_name(self,'copyright')
 
+    @pcam.trim_output
     def get_casesensitive(self):
         return get_Meta_with_name(self,'caseSensitive')
 
+    @pcam.trim_output
     def get_hierarchymeaning(self):
         if tmp := get_Meta_with_name(self,'hierarchyMeaning'):
             return pcam.HierarchyMeaning(tmp)
         return None
 
+    @pcam.trim_output
     def get_compositional(self):
         return get_Meta_with_name(self,'compositional')
 
+    @pcam.trim_output
     def get_versionneeded(self):
         return get_Meta_with_name(self,'versionNeeded')
 
+    @pcam.trim_output
     def get_content(self):
         return get_Meta_with_name(self,'content')
 
+    @pcam.trim_output
     def get_count(self):
         return len(self.get_Class())
 
+    @pcam.trim_output
     def get_filter(self):
         retArr = []
         for oneMeta in self.get_Classification()[0].get_Meta():
@@ -166,6 +191,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 retArr.append(oneFilter)
         return retArr
 
+    @pcam.trim_output
     def get_property(self):
         retArr = []
         for oneMeta in self.get_Classification()[0].get_Meta():
@@ -178,33 +204,43 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                 retArr.append(oneProperty)
         return self.appendAdditionalConceptProperties(retArr)
 
+    @pcam.trim_output
     def get_immutable(self):
         return get_Meta_with_name(self,'immutable')
 
+    @pcam.trim_output
     def get_lockeddate(self):
         return get_Meta_with_name(self,'lockedDate')
 
+    @pcam.trim_output
     def get_inactive(self):
         return get_Meta_with_name(self,'inactive')
 
+    @pcam.trim_output
     def get_implicitrules(self):
         return get_Meta_with_name(self,'implicitRules')
 
+    @pcam.trim_output
     def get_language(self):
         return self.get_Classification()[0].get_lang()
 
+    @pcam.trim_output
     def get_text(self):
         return get_Meta_with_name(self,'text')
 
+    @pcam.trim_output
     def get_contained(self):
         return get_Meta_with_name(self,'contained')
 
+    @pcam.trim_output
     def get_extension(self):
         return get_Meta_with_name(self,'extension')
 
+    @pcam.trim_output
     def get_modifierextension(self):
         return get_Meta_with_name(self,'modifierExtension')
 
+    @pcam.trim_output
     def get_concept(self):
         if hasattr(self, "concept") and self.concept:
             return self.concept
@@ -597,6 +633,7 @@ supermod.IncludeDescendants.subclass = IncludeDescendantsSub
 # end class IncludeDescendantsSub
 
 
+@pcam.trim_output
 def get_root_tag(node):
     tag = supermod.Tag_pattern_.match(node.tag).groups()[-1]
     rootClass = None

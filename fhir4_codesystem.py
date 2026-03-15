@@ -68,74 +68,97 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
     def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, purpose=None, copyright=None, caseSensitive=None, valueSet=None, hierarchyMeaning=None, compositional=None, versionNeeded=None, content=None, supplements=None, count=None, filter=None, property=None, concept=None, **kwargs_):
         super(CodeSystem, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, purpose, copyright, caseSensitive, valueSet, hierarchyMeaning, compositional, versionNeeded, content, supplements, count, filter, property, concept,  **kwargs_)
 
+    @pcam.trim_output
     def get_resource(self):
         """Return resource type.
         """
         return pcam.Resource.CodeSystem.value
 
+    @pcam.trim_output
     def get_id(self):
         return f4csvs.get_id(super())
 
+    @pcam.trim_output
     def get_profiles(self):
         return f4csvs.get_profiles(super())
 
+    @pcam.trim_output
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
+    @pcam.trim_output
     def get_language(self):
         return f4csvs.get_language(super())
 
+    @pcam.trim_output
     def get_text(self):
         return f4csvs.get_text(super())
 
+    @pcam.trim_output
     def get_contained(self):
         return f4csvs.get_contained(super())
 
+    @pcam.trim_output
     def get_extension(self):
         return f4csvs.get_extension(super())
 
+    @pcam.trim_output
     def get_modifierextension(self):
         return f4csvs.get_modifierextension(super())
 
+    @pcam.trim_output
     def get_url(self):
         return f4csvs.get_url(super())
 
+    @pcam.trim_output
     def get_identifier(self):
         return f4csvs.get_identifier(super())
 
+    @pcam.trim_output
     def get_version(self):
         return f4csvs.get_version(super())
 
+    @pcam.trim_output
     def get_name(self):
         return f4csvs.get_name(super())
 
+    @pcam.trim_output
     def get_title(self):
         return f4csvs.get_title(super())
 
+    @pcam.trim_output
     def get_status(self):
         return f4csvs.get_status(super())
 
+    @pcam.trim_output
     def get_experimental(self):
         return f4csvs.get_experimental(super())
 
+    @pcam.trim_output
     def get_date(self):
         return f4csvs.get_date(super())
 
+    @pcam.trim_output
     def get_publisher(self):
         return f4csvs.get_publisher(super())
 
+    @pcam.trim_output
     def get_contact(self):
         return f4csvs.get_contact(super())
 
+    @pcam.trim_output
     def get_description(self):
         return f4csvs.get_description(super())
 
+    @pcam.trim_output
     def get_usecontext(self):
         return f4csvs.get_usecontext(super())
 
+    @pcam.trim_output
     def get_jurisdiction(self):
         return f4csvs.get_jurisdiction(super())
 
+    @pcam.trim_output
     def get_immutable(self):
         """Return ValueSet.immutable. Field from ValueSet.
 
@@ -143,12 +166,15 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_purpose(self):
         return f4csvs.get_purpose(super())
 
+    @pcam.trim_output
     def get_copyright(self):
         return f4csvs.get_copyright(super())
 
+    @pcam.trim_output
     def get_casesensitive(self):
         """Return CodeSystem.caseSensitive.
         """
@@ -156,6 +182,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_valueset(self):
         """Return CodeSystem.valueSet.
         """
@@ -163,6 +190,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_hierarchymeaning(self):
         """Return CodeSystem.hierarchyMeaning.
         """
@@ -170,6 +198,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return pcam.HierarchyMeaning(tmp.get_value())
         return None
 
+    @pcam.trim_output
     def get_compositional(self):
         """Return CodeSystem.compositional.
         """
@@ -177,6 +206,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_versionneeded(self):
         """Return CodeSystem.versionNeeded.
         """
@@ -184,6 +214,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_content(self):
         """Return CodeSystem.content.
         """
@@ -191,6 +222,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_supplements(self):
         """Return CodeSystem.supplements.
         """
@@ -198,6 +230,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_count(self):
         """Return CodeSystem.count.
         """
@@ -205,6 +238,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_filter(self):
         """Process CodeSystem.filter and return them as list of pcam.Filter.
 
@@ -240,6 +274,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         return the_filter_list
 
+    @pcam.trim_output
     def get_property(self):
         """Process CodeSystem.property and return them as list of pcam.Property
         """
@@ -269,6 +304,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
 
         return the_property_list
 
+    @pcam.trim_output
     def get_lockeddate(self):
         """Return ValueSet.compose.lockedDate. Field from ValueSet.
 
@@ -276,6 +312,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_inactive(self):
         """Return ValueSet.compose.inactive. Field from ValueSet.
 
@@ -283,6 +320,7 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_concept(self):
         """Process CodeSystem.concept and return a list of pcam.VSConcept.
 
@@ -1321,6 +1359,7 @@ supermod.Dosage.subclass = DosageSub
 # end class DosageSub
 
 
+@pcam.trim_output
 def get_root_tag(node):
     tag = supermod.Tag_pattern_.match(node.tag).groups()[-1]
     rootClass = None
