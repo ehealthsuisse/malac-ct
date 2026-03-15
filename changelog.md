@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [5.0.0+20250916]
+## [5.0.0+2026####]
+
+### Added
+- easyDesignations and easyProperties support for spreadCT format with automatic column extraction based on use codes and property codes
+- Unified designation and property logic for CodeSystems and ValueSets
 
 ### Changed
-
+- Refactored CSV generation with improved header iterator initialization and column processing
+- Enhanced separation logic for easy designations/properties vs. other designations/properties
+- Optimized column processing with new `headerIteratior` for better position tracking
 - Parse/export JSON using the MaLaC-HDs solution with [generateDS](https://gitlab.com/cdehealth/generateds/-/tree/919654b4b5ba0c232dce7a593a18aa42cf512445/) and [utils.py](https://gitlab.com/cdehealth/malac-hd/-/blob/1d1754c26fe99e238bef6cfa9e2a8a59d0771098/malac/models/fhir/utils.py)
 - Remove hierarchy in bm*g*s lkat, originating from HL7 Austria TC Terminology discussions
 

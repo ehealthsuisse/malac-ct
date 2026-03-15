@@ -534,7 +534,7 @@ class PropCsvAndMaster():
         # check if the needed argument is given
         if not hasattr(self, "processedTerminologies"):
             import sys
-            sys.exit('A outdated csv needs a terminologies list for gaining OIDs, given with "-appndProcTermTo".\n')
+            sys.exit('An outdated csv needs a terminologies list for gaining OIDs, given with "-appndProcTermTo".\n')
 
         # import the csv when its the first time used
         if type(self.processedTerminologies) is not list:
@@ -724,17 +724,41 @@ class PropCsvAndMaster():
 
         for oneConcept in conceptList:
             csv_line = []
-            #for CodeSystems
+            
+            # Common initialization for CodeSystems and ValueSets
+            headerIterator = 0
+            headerDesignationIterator = 0
+            headerExtensionIterator = 0
+            
+            # Common designation logic for both resource types
+            if file_style is FileStyle.propCSV:
+                easy_designations = []
+                other_designations = oneConcept.designation
+            elif file_style is FileStyle.spreadCT:
+                easy_designations = [oneDesig for oneDesig in oneConcept.designation 
+                                    if oneDesig.use.codesystem == 
+                                    "https://termgit.elga.gv.at/CodeSystem/austrian-designation-use"]
+                other_designations = [oneDesig for oneDesig in oneConcept.designation 
+                                    if oneDesig.use.codesystem != 
+                                    "https://termgit.elga.gv.at/CodeSystem/austrian-designation-use"]
+            
+            # for CodeSystems
             if self.get_resource() == 'CodeSystem':
-                #adding values to already existing columns, if value empty then an empty string is added
-                headerDesignationIterator = 0
+                # adding values to already existing columns, if value empty then an empty string is added
                 headerPropertyIterator = 0
-                headerExtensionIterator = 0
+                
+                if file_style is FileStyle.propCSV:
+                    easy_properties = []
+                    other_properties = oneConcept.property
+                elif file_style is FileStyle.spreadCT:
+                    easy_properties = oneConcept.property
+                    other_properties = []
+
                 for csv_header_element in csv_header:
 
                     if csv_header_element == "designation":
-                        if headerDesignationIterator < len(oneConcept.designation):
-                            csv_line.append(oneConcept.designation[headerDesignationIterator])
+                        if headerDesignationIterator < len(other_designations):
+                            csv_line.append(other_designations[headerDesignationIterator])
                         else:
                             csv_line.append('')
                         headerDesignationIterator += 1
@@ -747,51 +771,77 @@ class PropCsvAndMaster():
                         headerExtensionIterator += 1
 
                     elif csv_header_element == "property":
-                        if headerPropertyIterator < len(oneConcept.property):
-                            csv_line.append(oneConcept.property[headerPropertyIterator])
+                        if headerPropertyIterator < len(other_properties):
+                            csv_line.append(other_properties[headerPropertyIterator])
                         else:
                             csv_line.append('')
                         headerPropertyIterator += 1
 
                     elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                        csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        csv_line.append(tmp)
+                    
+                    elif easy_designations and (fitting_easy_desigs := [oneDesig for oneDesig in easy_designations if oneDesig.use.code == csv_header_element]):
+                        header_easy_desig_iteratior = csv_header[:headerIterator].count(csv_header_element)
+                        if header_easy_desig_iteratior < len(fitting_easy_desigs) and (tmp := fitting_easy_desigs[header_easy_desig_iteratior]):
+                            csv_line.append(tmp.value)
+                        else:
+                            csv_line.append('')
+
+                    elif easy_properties and (fitting_easy_props := [oneProp for oneProp in easy_properties if oneProp.code == csv_header_element]):
+                        header_easy_prop_iteratior = csv_header[:headerIterator].count(csv_header_element)
+                        if header_easy_prop_iteratior < len(fitting_easy_props) and (tmp := fitting_easy_props[header_easy_prop_iteratior]):
+                            csv_line.append(tmp.value)
+                        else:
+                            csv_line.append('')
+
                     else:
                         csv_line.append('')
 
-                #adding not existing columns because we just got some values
-                if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                    headerIterator += 1
+
+                # adding not existing columns because we just got some values
+                if 'code' not in csv_header and (tmp := oneConcept.code):
                     csv_header.append('code')
                     csv_line.append(tmp)
-                if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                if 'display' not in csv_header and (tmp := oneConcept.display):
                     csv_header.append('display')
                     csv_line.append(tmp)
-                if 'definition' not in csv_header and (tmp := oneConcept.definition):#hasattr(oneConcept,'definition'):
+                if 'definition' not in csv_header and (tmp := oneConcept.definition):
                     csv_header.append('definition')
                     csv_line.append(tmp)
-                while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                while other_designations and headerDesignationIterator < len(other_designations):
                     csv_header.append('designation')
-                    csv_line.append(conceptDesig[headerDesignationIterator])
+                    csv_line.append(other_designations[headerDesignationIterator])
                     headerDesignationIterator += 1
                 while (conceptExtension := oneConcept.extension) and headerExtensionIterator < len(conceptExtension):
                     csv_header.append('extension')
                     csv_line.append(conceptExtension[headerExtensionIterator])
                     headerExtensionIterator += 1
-                while (conceptProps := oneConcept.property) and headerPropertyIterator < len(conceptProps):
+                while other_properties and headerPropertyIterator < len(other_properties):
                     csv_header.append('property')
-                    csv_line.append(conceptProps[headerPropertyIterator])
+                    csv_line.append(other_properties[headerPropertyIterator])
                     headerPropertyIterator += 1
+                
+                for one_easy_design in easy_designations:
+                    while csv_header.count(one_easy_design.use.code) < len(fitting_easy_desigs := [one_desig for one_desig in easy_designations if one_desig.use.code == one_easy_design.use.code]):
+                        csv_line.append(fitting_easy_desigs[csv_header.count(one_easy_design.use.code)].value)
+                        csv_header.append(one_easy_design.use.code) 
+                        
+                for one_easy_prop in easy_properties:
+                    while csv_header.count(one_easy_prop.code) < len(fitting_easy_props := [one_prop for one_prop in easy_properties if one_prop.code == one_easy_prop.code]):
+                        csv_line.append(fitting_easy_props[csv_header.count(one_easy_prop.code)].value)
+                        csv_header.append(one_easy_prop.code)
 
-            #for ValueSets
+            # for ValueSets
             elif self.get_resource() == 'ValueSet':
                 # adding values to already existing columns, if value empty then an empty string is added
-                headerDesignationIterator = 0
                 headerFilterIterator = 0
-                headerExtensionIterator = 0
+                
                 for csv_header_element in csv_header:
 
                     if csv_header_element == "designation":
-                        if headerDesignationIterator < len(oneConcept.designation):
-                            csv_line.append(oneConcept.designation[headerDesignationIterator])
+                        if headerDesignationIterator < len(other_designations):
+                            csv_line.append(other_designations[headerDesignationIterator])
                         else:
                             csv_line.append('')
                         headerDesignationIterator += 1
@@ -867,12 +917,22 @@ class PropCsvAndMaster():
                                 csv_line.append('')
 
                     elif hasattr(oneConcept, csv_header_element) and (tmp := getattr(oneConcept,csv_header_element)):
-                        csv_line.append(tmp)#getattr(oneConcept,csv_header_element))
+                        csv_line.append(tmp)
+                    
+                    elif easy_designations and (fitting_easy_desigs := [oneDesig for oneDesig in easy_designations if oneDesig.use.code == csv_header_element]):
+                        header_easy_desig_iteratior = csv_header[:headerIterator].count(csv_header_element)
+                        if header_easy_desig_iteratior < len(fitting_easy_desigs) and (tmp := fitting_easy_desigs[header_easy_desig_iteratior]):
+                            csv_line.append(tmp.value)
+                        else:
+                            csv_line.append('')
+                    
                     else:
                         csv_line.append('')
+                    
+                    headerIterator += 1
 
-                #adding not existing columns because we just got some values
-                if 'system' not in csv_header and (tmp := oneConcept.system):# hasattr(oneConcept,'system'):
+                # adding not existing columns because we just got some values
+                if 'system' not in csv_header and (tmp := oneConcept.system):
                     csv_header.append('system')
                     csv_line.append(tmp)
                 if 'version' not in csv_header:
@@ -892,15 +952,15 @@ class PropCsvAndMaster():
                             csv_line.append(tmp)
                         else: # in case no version for the codesystem is available
                             csv_line.append('')
-                if 'code' not in csv_header and (tmp := oneConcept.code):#hasattr(oneConcept,'code'):
+                if 'code' not in csv_header and (tmp := oneConcept.code):
                     csv_header.append('code')
                     csv_line.append(tmp)
-                if 'display' not in csv_header and (tmp := oneConcept.display):#hasattr(oneConcept,'display'):
+                if 'display' not in csv_header and (tmp := oneConcept.display):
                     csv_header.append('display')
                     csv_line.append(tmp)
-                while (conceptDesig := oneConcept.designation) and headerDesignationIterator < len(conceptDesig):
+                while other_designations and headerDesignationIterator < len(other_designations):
                     csv_header.append('designation')
-                    csv_line.append(conceptDesig[headerDesignationIterator])
+                    csv_line.append(other_designations[headerDesignationIterator])
                     headerDesignationIterator += 1
 
                 if self.parenting_by == ParentingBy.conceptOrder and 'conceptOrder' not in csv_header and oneConcept:
@@ -952,6 +1012,13 @@ class PropCsvAndMaster():
                         csv_header.append('extension')
                         csv_line.append(conceptExtension[headerExtensionIterator])
                     headerExtensionIterator += 1
+                
+                # Common easy_designations completion for ValueSets
+                for one_easy_design in easy_designations:
+                    while csv_header.count(one_easy_design.use.code) < len(fitting_easy_desigs := [one_desig for one_desig in easy_designations if one_desig.use.code == one_easy_design.use.code]):
+                        csv_line.append(fitting_easy_desigs[csv_header.count(one_easy_design.use.code)].value)
+                        csv_header.append(one_easy_design.use.code)
+                
                 if 'abstract' not in csv_header and (tmp := oneConcept.abstract):
                     csv_header.append('abstract')
                     csv_line.append(tmp)
@@ -961,7 +1028,6 @@ class PropCsvAndMaster():
                 if 'exclude' not in csv_header and (tmp := oneConcept.exclude):
                     csv_header.append('exclude')
                     csv_line.append(tmp)
-
 
             csv_list.append(csv_line)
 
