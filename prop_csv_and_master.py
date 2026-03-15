@@ -18,6 +18,19 @@ class ParentingBy(enum.Enum):
         else:
             return newValue
 
+def trim_output(func):
+    """strips/trims strings and list of strings"""
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        
+        if isinstance(result, str):
+            return result.strip() if result else ""
+        elif isinstance(result, list):
+            return [item.strip() if isinstance(item, str) else item 
+                    for item in result]
+        return result
+    return wrapper
+
 class PropCsvAndMaster():
     # following are use only in malac-ct
     parenting_by = None
@@ -342,116 +355,153 @@ class PropCsvAndMaster():
     def parse(inFilename):
         return PropCsvAndMaster(inFilename)
 
+    @trim_output
     def get_resource(self):
         return self.resource.value if hasattr(self,"resource") and hasattr(self.resource,"value") else None
 
+    @trim_output
     def get_id(self):
         return self.id if hasattr(self,"id") else None
 
+    @trim_output
     def get_profiles(self):
         if not hasattr(self, 'profiles'):
             self.profiles = []
         return self.profiles
 
+    @trim_output
     def get_url(self):
         return self.url if hasattr(self,"url") else None
 
+    @trim_output
     def get_version(self):
         return self.version if hasattr(self,"version") else None
 
+    @trim_output
     def get_name(self):
         return self.name if hasattr(self,"name") else None
 
+    @trim_output
     def get_title(self):
         return self.title if hasattr(self,"title") else None
 
+    @trim_output
     def get_status(self):
         return self.status.value if hasattr(self,"status") and hasattr(self.status,"value") else None
 
+    @trim_output
     def get_description(self):
         return self.description if hasattr(self,"description") else None
 
+    @trim_output
     def get_content(self):
         return self.content.value if hasattr(self,"content") and hasattr(self.content,"value") else None
 
+    @trim_output
     def get_implicitrules(self):
         return self.implicitrules if hasattr(self,"implicitrules") else None
 
+    @trim_output
     def get_language(self):
         return self.language if hasattr(self,"language") else None
 
+    @trim_output
     def get_text(self):
         return self.text if hasattr(self,"text") else None
 
+    @trim_output
     def get_contained(self):
         return self.contained if hasattr(self,"contained") else None
 
+    @trim_output
     def get_extension(self):
         return self.extension if hasattr(self,"extension") else None
 
+    @trim_output
     def get_modifierextension(self):
         return self.modifierextension if hasattr(self,"modifierextension") else None
 
+    @trim_output
     def get_identifier(self):
         return self.identifier if hasattr(self,"identifier") else None
 
+    @trim_output
     def get_experimental(self):
         return self.experimental if hasattr(self,"experimental") else None
 
+    @trim_output
     def get_date(self):
         return self.date if hasattr(self,"date") else None
 
+    @trim_output
     def get_publisher(self):
         return self.publisher if hasattr(self,"publisher") else None
 
+    @trim_output
     def get_contact(self):
         return self.contact if hasattr(self,"contact") else None
 
+    @trim_output
     def get_usecontext(self):
         return self.usecontext if hasattr(self,"usecontext") else None
 
+    @trim_output
     def get_jurisdiction(self):
         return self.jurisdiction if hasattr(self,"jurisdiction") else None
 
+    @trim_output
     def get_purpose(self):
         return self.purpose if hasattr(self,"purpose") else None
 
+    @trim_output
     def get_copyright(self):
         return self.copyright if hasattr(self,"copyright") else None
 
+    @trim_output
     def get_immutable(self):
         return self.immutable if hasattr(self,"immutable") else None
 
+    @trim_output
     def get_lockeddate(self):
         return self.lockeddate if hasattr(self,"lockeddate") else None
 
+    @trim_output
     def get_inactive(self):
         return self.inactive if hasattr(self,"inactive") else None
 
+    @trim_output
     def get_casesensitive(self):
         return self.casesensitive if hasattr(self,"casesensitive") else None
 
+    @trim_output
     def get_valueset(self):
         return self.valueset if hasattr(self,"valueset") else None
 
+    @trim_output
     def get_hierarchymeaning(self):
         return self.hierarchymeaning if hasattr(self,"hierarchymeaning") else None
 
+    @trim_output
     def get_compositional(self):
         return self.compositional if hasattr(self,"compositional") else None
 
+    @trim_output
     def get_versionneeded(self):
         return self.versionneeded if hasattr(self,"versionneeded") else None
 
+    @trim_output
     def get_supplements(self):
         return self.supplements if hasattr(self,"supplements") else None
 
+    @trim_output
     def get_count(self):
         return len(self.get_concept())
 
+    @trim_output
     def get_filter(self):
         return self.filter if hasattr(self,"filter") else None
 
+    @trim_output
     def get_property(self):
         tmp = []
         if hasattr(self,"property"):
@@ -460,6 +510,7 @@ class PropCsvAndMaster():
             tmp = self.appendAdditionalConceptProperties(tmp)
         return tmp
 
+    @trim_output
     def get_concept(self):
         return self.concept if hasattr(self,"concept") else None
 
@@ -1339,6 +1390,7 @@ class CSConcept():
                     self.value = propertyElements[1]
 
         # only used for sort
+        @trim_output
         def get_value_if_code_is_child(self):
             if self.code == "child":
                 return str(self.value)
@@ -1346,6 +1398,7 @@ class CSConcept():
                 return str(0)
 
         # only used for sort
+        @trim_output
         def get_code(self):
             return self.code
 
@@ -1375,14 +1428,17 @@ class VSConcept():
         self.extension = []
 
     # created only for sorting, shouldn't be used for anything else
+    @trim_output
     def get_system(self):
         return self.system
 
     # created only for sorting, shouldn't be used for anything else
+    @trim_output
     def get_code(self):
         return self.code
 
     # created only for sorting, shouldn't be used for anything else
+    @trim_output
     def get_value_of_conceptOrder(self):
         for one_ext in self.extension:
             if one_ext.url == ext.ConceptOrder.extension_canonical:

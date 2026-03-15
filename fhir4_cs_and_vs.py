@@ -23,6 +23,7 @@ for mod in [f4cs.supermod, f4vs.supermod]:
 #
 ####################################################################################
 
+@pcam.trim_output
 def get_id(self):
     """Return CodeSystem.id or ValueSet.id
     """
@@ -33,6 +34,7 @@ def get_id(self):
 # NOT SUPPORTED:
 #   CodeSystem.meta or ValueSet.meta in general
 # def get_meta(resource):
+@pcam.trim_output
 def get_profiles(self):
     """Return CodeSytem.meta.profile or ValueSet.meta.profile.
     """
@@ -46,6 +48,7 @@ def get_profiles(self):
 
     return the_profile_list
 
+@pcam.trim_output
 def get_implicitrules(self):
     """Return CodeSytem.implicitRules or ValueSet.implicitRules.
     """
@@ -53,6 +56,7 @@ def get_implicitrules(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_language(self):
     """Return CodeSystem.language or ValueSet.language.
     """
@@ -60,6 +64,7 @@ def get_language(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_text(self):
     """NOT SUPPORTED: Return CodeSystem.text or ValueSet.text.
 
@@ -74,6 +79,7 @@ def get_text(self):
     """
     return None
 
+@pcam.trim_output
 def get_contained(self):
     """NOT SUPPORTED: Return CodeSystem.contained or ValueSet.contained.
 
@@ -87,6 +93,7 @@ def get_contained(self):
     """
     return None
 
+@pcam.trim_output
 def get_extension(self):
     """NOT SUPPORTED: Return CodeSystem.extension or ValueSet.extension.
 
@@ -98,6 +105,7 @@ def get_extension(self):
     """
     return None
 
+@pcam.trim_output
 def get_modifierextension(self):
     """NOT SUPPORTED: Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
 
@@ -109,6 +117,7 @@ def get_modifierextension(self):
     """
     return None
 
+@pcam.trim_output
 def get_url(self):
     """Return CodeSystem.url or ValueSet.url.
     """
@@ -116,6 +125,7 @@ def get_url(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_identifier(self):
     """Return CodeSystem.identifier or ValueSet.identifier.
 
@@ -141,6 +151,7 @@ def get_identifier(self):
 
     return the_identifier_list
 
+@pcam.trim_output
 def get_version(self):
     """Return CodeSystem.version or ValueSet.version.
     """
@@ -148,6 +159,7 @@ def get_version(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_name(self):
     """Return CodeSystem.name or ValueSet.name.
     """
@@ -162,6 +174,7 @@ def get_name(self):
             return tmp
     return None
 
+@pcam.trim_output
 def get_title(self):
     """Return CodeSystem.title or ValueSet.title.
     """
@@ -176,6 +189,7 @@ def get_title(self):
             return tmp
     return None
 
+@pcam.trim_output
 def get_status(self):
     """Return CodeSystem.status or ValueSet.status.
     """
@@ -183,6 +197,7 @@ def get_status(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_experimental(self):
     """Return CodeSystem.experimental or ValueSet.experimental.
     """
@@ -190,6 +205,7 @@ def get_experimental(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_date(self):
     """Return CodeSystem.date or ValueSet.date.
     """
@@ -197,6 +213,7 @@ def get_date(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_publisher(self):
     """Return CodeSystem.publisher or ValueSet.publisher.
     """
@@ -204,6 +221,7 @@ def get_publisher(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_contact(self):
     """Return CodeSystem.contact or ValueSet.contact.
     """
@@ -243,6 +261,7 @@ def get_contact(self):
 
     return the_contact_list
 
+@pcam.trim_output
 def get_description(self):
     """Return CodeSystem.description or ValueSet.description.
     """
@@ -265,6 +284,7 @@ def get_description(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_usecontext(self):
     """NOT SUPPORTED: Return CodeSystem.useContext or ValueSet.useContext.
 
@@ -274,6 +294,7 @@ def get_usecontext(self):
     """
     return []
 
+@pcam.trim_output
 def get_jurisdiction(self):
     """NOT SUPPORTED: Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
 
@@ -283,6 +304,7 @@ def get_jurisdiction(self):
     """
     return []
 
+@pcam.trim_output
 def get_purpose(self):
     """Return CodeSystem.purpose or ValueSet.purpose.
     """
@@ -290,6 +312,7 @@ def get_purpose(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_copyright(self):
     """Return CodeSystem.copyright or ValueSet.copyright.
     """
