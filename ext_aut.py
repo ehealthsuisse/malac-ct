@@ -35,16 +35,16 @@ class BMGICD(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2024"
-        self.id = "bmg-icd-10-2024"
-        self.name = "bmg-icd-10-2024"
-        self.title = "ICD-10 BMSGPK 2024"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-YYYY"
+        self.id = "bmg-icd-10-YYYY"
+        self.name = "bmg-icd-10-YYYY"
+        self.title = "ICD-10 BMSGPK YYYY"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.1+20240205"
-        self.identifier.append("1.2.40.0.34.5.222")
-        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
-        self.description = """Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
+        self.version = "1.0.0+YYYY"
+        self.identifier.append("1.2.40.0.34.5.###")
+        self.contact.append(pcam.ContactDetail.from_string("TODO Sozialministerium LKF Modell YYYY|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
+        self.description = """TODO Seit 1. Jänner 1989 sind in Österreichs Krankenanstalten die Entlassungsdiagnosen der in stationärer Behandlung befindlichen Patienten bundeseinheitlich nach der von der Weltgesundheitsorganisation veröffentlichten Internationalen Klassifikation der Krankheiten (ICD) in der jeweils aktuellen Fassung des für Gesundheit zuständigen Bundesministeriums zu erfassen. 
 Nach über 10-jähriger Verwendung der ICD-10 Version ICD-10 BMSG 2001 in unveränderter Form wurde eine Aktualisierung des Diagnosenschlüssels erforderlich. 
 Dabei sollte der bekannte Diagnosenschlüssel unter Berücksichtigung der seither erfolgten Updates der WHO in möglichst unveränderter Form beibehalten werden.<br/>
 In der Sitzung der Bundesgesundheitskommision vom 29. Juni 2012 wurde daher der Beschluss gefasst, die seit 1.1.2001 verwendete Version ICD-10 BMSG 2001 durch die seit dem 1.1.2013 geltende ICD-10 BMG 2013 zu ersetzen.<br/>
@@ -59,7 +59,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         row = cursor.fetchone()
         dictParents = {}
 
-        while row:
+        while row:                   
             theDKCode = row.DKBeschreibung.split("(")[1].replace(")","") #row.DKKapitel
             theDUKCode = row.DUKBeschreibung.split("(")[1].replace(")","") #row.DUKUnterkapitel
 
@@ -115,11 +115,11 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             parseProp(theConcept.property, row.DHDGruppe, "HD_Gruppe")
             parseProp(theConcept.property, row.DZDGruppe, "ZD_Gruppe")
             parseProp(theConcept.property, row.DGeschlecht, "Geschlecht")
-            parseProp(theConcept.property, row.DMindestalter, "Mindestalter")
-            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter")
+            parseProp(theConcept.property, row.DMindestalter, "Mindestalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
+            parseProp(theConcept.property, row.DHöchstalter, "Höchstalter", typeOfProperty=pcam.PropertyCodeType.integer) # Number
             parseProp(theConcept.property, row.DUnwahrscheinlich, "Unwahrscheinlich")
             parseProp(theConcept.property, row.DHDambulant, "HD_ambulant")
-            parseProp(theConcept.property, row.DHDZTage, "HDZ_Tage")
+            parseProp(theConcept.property, row.DHDZTage, "HD_>0_days") # should be named like that, see https://gitlab.com/elga-gmbh/malac-ct/-/issues/55
             parseProp(theConcept.property, row.DMeldepflicht, "Meldepflicht")
             parseProp(theConcept.property, row.DStationärerworben, "Stationär_erworben")
             dictParents[row.DDiagnose] = theConcept
@@ -146,8 +146,7 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         row = cursor.fetchone()
         conDict = self.buildConceptDictWithAttr("code")
         while row:
-            parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2023")
+            if row.Leistung: parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY")
             row = cursor.fetchone()
 
     # just for calling the outer method
@@ -173,7 +172,7 @@ class BMGLKF(pcam.PropCsvAndMaster):
             "FROM ((((((( [MELLIST] AS [M] LEFT JOIN [MELLIST - UNTERKAPITEL] AS [MUK] ON [M].Unterkapitel = [MUK].Unterkapitel)"
             "LEFT JOIN [MELLIST - KAPITEL] AS [MK] ON [M].Kapitel = [MK].Kapitel )"
             "LEFT JOIN [MELLIST - ANATOMIE GROB] AS [MAG] ON [M].AnatomieGrob = [MAG].Anatomie_Grob )"
-            "LEFT JOIN [MELLIST - ANATOMIE FEIN] AS [MAF] ON [M].AnatomieFein = [MAF].AnatomieFein_Code )"
+            "LEFT JOIN [MELLIST - ANATOMIE FEIN] AS [MAF] ON [M].AnatomieFein = [MAF].AnatomieFein_Code AND [M].AnatomieGrob = [MAF].Anatomie_Code)"
             "LEFT JOIN [MELLIST - LEISTUNGSART] AS [MLA] ON [M].Leistungsart = [MLA].Leistungsart_Code )"
             "LEFT JOIN [MELLIST - ZUGANG] AS [MZ] ON [M].Zugang = [MZ].Zugang_Code )"
             "LEFT JOIN [MELLIST - LEISTUNGSEINHEIT] AS [MLE] ON [M].Zugang = [MLE].Leistungseinheit_Code )"
@@ -182,16 +181,16 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
         #metadata
         self.resource = pcam.Resource.CodeSystem
-        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-2024"
-        self.id = "bmg-lkf-2024"
-        self.name = "bmg-lkf-2024"
-        self.title = "BMG Leistungskatalog Gesamt 2024"
+        self.url = "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY"
+        self.id = "bmg-lkf-YYYY"
+        self.name = "bmg-lkf-YYYY"
+        self.title = "BMG Leistungskatalog Gesamt YYYY"
         self.status = pcam.Status.active
         self.content = pcam.Content.complete
-        self.version = "1.0.1+20240205"
-        self.identifier.append("1.2.40.0.34.5.223")
-        self.contact.append(pcam.ContactDetail.from_string("Sozialministerium LKF Modell 2023|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
-        self.description = """Der Leistungskatalog BMSGPK 2024 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2024. Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:<br/>
+        self.version = "1.0.0+YYYY"
+        self.identifier.append("1.2.40.0.34.5.###")
+        self.contact.append(pcam.ContactDetail.from_string("TODO Sozialministerium LKF Modell YYYY|url^https://www.sozialministerium.at/Themen/Gesundheit/Gesundheitssystem/Krankenanstalten/LKF-Modell-2024/Programme-(XDok,-C-Files,-Stammdaten,-Intensiv-Scoring)-f%C3%BCr-landesgesundheitsfondsfinanzierte-Krankenanstalten-2024.html^^^^"))
+        self.description = """TODO Der Leistungskatalog BMSGPK 2024 bildet die verbindliche Grundlage für die bundesweite inheitliche Leistungsdokumentation in Österreich ab 1. Jänner 2024. Der Leistungskatalog umfasst stationäre und ambulante Prozeduren:<br/>
 * 889 stationäre Leistungen (große Operationen etc.)<br/>
 * 893 Leistungen, die sowohl ambulant als auch stationär zu erfassen sind (CT, MR, kleine Operationen etc.)<br/>
 * 347 Leistungen, die nur bei ambulanten Besuchen zu erfassen sind (EKG, Sonographie, ambulante Untersuchungen etc."""
@@ -199,91 +198,78 @@ class BMGLKF(pcam.PropCsvAndMaster):
         self.parseConcepts(cursor)
 
     def parseConcepts(self, cursor):
-        row = cursor.fetchone()
-        dictParents = {}
+        # Property definitions: (row_attribute, property_name, optional_type)
+        PROPERTIES = [
+            ("MKKapitel", "KapitelCode"),
+            ("MKBeschreibung", "KapitelBeschreibung"),
+            ("MUKUnterkapitel", "UnterkapitelCode"),
+            ("MUKBeschreibung", "UnterkapitelBeschreibung"),
+            ("AnatomieGrob", "AnatomieGrob"),
+            ("AnatomieFein", "AnatomieFein"),
+            ("Leistungsart", "Leistungsart"),
+            ("Zugang", "Zugang"),
+            ("Leistungseinheit", "Leistungseinheit"),
+            ("Gruppe", "Gruppe"),
+            ("LGR", "LGR"),
+            ("Geschlecht", "Geschlecht"),
+            ("Mindestalter", "Mindestalter", pcam.PropertyCodeType.integer),
+            ("Höchstalter", "Höchstalter", pcam.PropertyCodeType.integer),
+            ("WarninganzahlAufenthalt", "WarninganzahlAufenthalt"),
+            ("ErroranzahlAufenthalt", "ErroranzahlAufenthalt"),
+            ("WarninganzahlTag", "WarninganzahlTag"),
+            ("ErroranzahlTag", "ErroranzahlTag"),
+            ("MEL_ambulant", "MEL_ambulant"),
+            ("MEL0_Tage", "MEL>0_Tage"),
+            ("MEL_TKL", "MEL_TKL"),
+            ("MEL_OP", "MEL_OP"),
+            ("Langtext", "Langtext"),
+            ("Codierhinweis", "Codierhinweis"),
+            ("Nichtinhalt", "Nichtinhalt"),
+            ("Quelle", "Quelle"),
+            ("ErfassungStationär", "ErfassungStationär"),
+            ("GruppeAmbulant", "GruppeAmbulant"),
+            ("LGRAmbulant", "LGRAmbulant"),
+            ("WarninganzahlAmbulant", "WarninganzahlAmbulant"),
+            ("ErroranzahlAmbulant", "ErroranzahlAmbulant"),
+            ("DiagnoseAmbulant", "DiagnoseAmbulant"),
+            ("ErfassungAmbulant", "ErfassungAmbulant"),
+            ("BettenführenderFuco", "BettenführenderFuco"),
+            ("PhysischeAnwesenheit", "PhysischeAnwesenheit"),
+        ]
 
-        while row:
-            ### we are working on the lvl 1 parent (unterkapitel) ###
+        prev_leistung = None
+        the_concept = None
 
-            new_mukunterkapitel = False
-            if row.MUKUnterkapitel not in dictParents:
-                new_mukunterkapitel = True
+        for row in iter(cursor.fetchone, None):
+            diagnose_von_bis = ""
+            if row.MDDiagnoseVon and row.MDDiagnoseBis:
+                diagnose_von_bis = f"{row.MDDiagnoseVon}-{row.MDDiagnoseBis}"
 
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.MUKUnterkapitel
-                theParentConcept.display = row.MUKUnterkapitel
-                dictParents[row.MUKUnterkapitel] = theParentConcept
-                self.concept.append(theParentConcept)
-                # setting the parent upon creation of the concept
-                parseParent(dictParents,row.MUKUnterkapitel,row.MKKapitel)
+            # Same Leistung as before: only add diagnosis range
+            if prev_leistung == row.Leistung and the_concept is not None:
+                parseProp(the_concept.property, diagnose_von_bis, "MDDiagnoseVonBis")
+                continue
 
-            parseChild(dictParents,row.MUKUnterkapitel,row.Leistung)
+            # New concept
+            the_concept = pcam.CSConcept()
+            the_concept.code = row.Leistung
+            the_concept.display = row.Kurztext
+            the_concept.definition = row.Beschreibung
 
-            ### we are working on the lvl 2 parent (kapitel) ###
+            # Add all standard properties
+            for prop_def in PROPERTIES:
+                attr, name = prop_def[0], prop_def[1]
+                type_of = prop_def[2] if len(prop_def) > 2 else None
+                value = getattr(row, attr)
+                if type_of:
+                    parseProp(the_concept.property, value, name, typeOfProperty=type_of)
+                else:
+                    parseProp(the_concept.property, value, name)
 
-            if row.MKKapitel not in dictParents:
-                theParentConcept = pcam.CSConcept()
-                theParentConcept.code = row.MKKapitel
-                theParentConcept.display = row.MKBeschreibung
-                dictParents[row.MKKapitel] = theParentConcept
-                self.concept.append(theParentConcept)
+            parseProp(the_concept.property, diagnose_von_bis, "MDDiagnoseVonBis")
 
-            # adding child only if it is a new child
-            if new_mukunterkapitel:
-                parseChild(dictParents,row.MKKapitel,row.MUKUnterkapitel)
-                conceptparent = row.MUKUnterkapitel
-
-            theConcept = pcam.CSConcept()
-            theConcept.code = row.Leistung
-            theConcept.display = row.Kurztext
-            theConcept.definition = row.Beschreibung
-
-            # adding parent-property to the concept
-            theProperty = pcam.CSConcept.ConceptProperty()
-            theProperty.code = "parent"
-            theProperty.value = conceptparent
-            theProperty.type = pcam.PropertyCodeType.code
-            theConcept.property.append(theProperty)
-            # parsing respective properties to one concept
-            if row.AnatomieGrob: parseProp(theConcept.property, row.AnatomieGrob, "AnatomieGrob")
-            if row.AnatomieFein: parseProp(theConcept.property, row.AnatomieFein, "AnatomieFein")
-            if row.Leistungsart: parseProp(theConcept.property, row.Leistungsart, "Leistungsart")
-            if row.Zugang: parseProp(theConcept.property, row.Zugang, "Zugang")
-            if row.Leistungseinheit: parseProp(theConcept.property, row.Leistungseinheit, "Leistungseinheit")
-            if row.Gruppe: parseProp(theConcept.property, row.Gruppe, "Gruppe")
-            if row.LGR: parseProp(theConcept.property, row.LGR, "LGR")
-            if row.Geschlecht: parseProp(theConcept.property, row.Geschlecht, "Geschlecht")
-            if row.Mindestalter: parseProp(theConcept.property, row.Mindestalter, "Mindestalter")
-            if row.Höchstalter: parseProp(theConcept.property, row.Höchstalter, "Höchstalter")
-            if row.WarninganzahlAufenthalt: parseProp(theConcept.property, row.WarninganzahlAufenthalt, "WarninganzahlAufenthalt")
-            if row.ErroranzahlAufenthalt: parseProp(theConcept.property, row.ErroranzahlAufenthalt, "ErroranzahlAufenthalt")
-            if row.WarninganzahlTag: parseProp(theConcept.property, row.WarninganzahlTag, "WarninganzahlTag")
-            if row.ErroranzahlTag: parseProp(theConcept.property, row.ErroranzahlTag, "ErroranzahlTag")
-            if row.MEL_ambulant: parseProp(theConcept.property, row.MEL_ambulant, "MEL_ambulant")
-            if row.MEL0_Tage: parseProp(theConcept.property, row.MEL0_Tage, "MEL>0_Tage")
-            if row.MEL_TKL: parseProp(theConcept.property, row.MEL_TKL, "MEL_TKL")
-            if row.MEL_OP: parseProp(theConcept.property, row.MEL_OP, "MEL_OP")
-            if row.Langtext: parseProp(theConcept.property, row.Langtext, "Langtext")
-            if row.Codierhinweis: parseProp(theConcept.property, row.Codierhinweis, "Codierhinweis")
-            if row.Nichtinhalt: parseProp(theConcept.property, row.Nichtinhalt, "Nichtinhalt")
-            if row.Quelle: parseProp(theConcept.property, row.Quelle, "Quelle")
-            if row.ErfassungStationär: parseProp(theConcept.property, row.ErfassungStationär, "ErfassungStationär")
-            if row.GruppeAmbulant: parseProp(theConcept.property, row.GruppeAmbulant, "GruppeAmbulant")
-            if row.LGRAmbulant: parseProp(theConcept.property, row.LGRAmbulant, "LGRAmbulant")
-            if row.WarninganzahlAmbulant: parseProp(theConcept.property, row.WarninganzahlAmbulant, "WarninganzahlAmbulant")
-            if row.ErroranzahlAmbulant: parseProp(theConcept.property, row.ErroranzahlAmbulant, "ErroranzahlAmbulant")
-            if row.DiagnoseAmbulant: parseProp(theConcept.property, row.DiagnoseAmbulant, "DiagnoseAmbulant")
-            if row.ErfassungAmbulant: parseProp(theConcept.property, row.ErfassungAmbulant, "ErfassungAmbulant")
-            if row.BettenführenderFuco: parseProp(theConcept.property, row.BettenführenderFuco, "BettenführenderFuco")
-            if row.PhysischeAnwesenheit: parseProp(theConcept.property, row.PhysischeAnwesenheit, "PhysischeAnwesenheit")
-
-            parseProp(theConcept.property, row.MDDiagnoseVon, "MDDiagnoseVon", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
-            parseProp(theConcept.property, row.MDDiagnoseBis, "MDDiagnoseBis", pcam.PropertyCodeType.coding,
-                "https://termgit.elga.gv.at/CodeSystem/bmg-icd-10-2023")
-
-            self.concept.append(theConcept)
-            row = cursor.fetchone()
+            self.concept.append(the_concept)
+            prev_leistung = row.Leistung
 
     # just for calling the outer method
     def parse(inFilename):
@@ -291,7 +277,9 @@ class BMGLKF(pcam.PropCsvAndMaster):
 
 # checks if a certain property is filled and adds to the propertylist accordingly
 def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pcam.PropertyCodeType.string, codeSystemOfProp=None):
-    if propertyInRow != " ":
+    if propertyInRow and isinstance(propertyInRow, str):       
+        propertyInRow = propertyInRow.strip()
+    if propertyInRow is not None and propertyInRow != "": # do not "not propertyInRow" as we want false booleans to pass!
         theProperty = pcam.CSConcept.ConceptProperty()
         theProperty.code = nameOfProperty
         if typeOfProperty is pcam.PropertyCodeType.coding:
@@ -335,7 +323,7 @@ class SystemOid():
 
     def add_extension(the_element, oid):
         import re
-        pattern = re.compile("^[0-2](\.(0|[1-9][0-9]*))+$")
+        pattern = re.compile(r"^[0-2](\.(0|[1-9][0-9]*))+$")
         if pattern.match(oid):
             if not hasattr(the_element, 'extension'):
                 the_element.extension = []

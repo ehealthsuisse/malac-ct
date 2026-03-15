@@ -4,11 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.#.#]
+## [5.0.0+20250916]
 
 ### Changed
 
-- export for easyProperties and easyDesignations in spreadCT is implemented  
+- Parse/export JSON using the MaLaC-HDs solution with [generateDS](https://gitlab.com/cdehealth/generateds/-/tree/919654b4b5ba0c232dce7a593a18aa42cf512445/) and [utils.py](https://gitlab.com/cdehealth/malac-hd/-/blob/1d1754c26fe99e238bef6cfa9e2a8a59d0771098/malac/models/fhir/utils.py)
+- Remove hierarchy in bm*g*s lkat, originating from HL7 Austria TC Terminology discussions
+
+### Fixed
+
+- Now not every easyProperty is beeing interpreted as string, because the type can be determined from the metadata
+- Fix Hierarchy Meaning parenthesis typos
+- Fix bm*g*s icd10 and lkat properties, by not creating empty ones
+- Fix bm*g*s icd10 property name from HDZ_days to HD_>0_days
+- Fix bm*g*s icd10 and lkat values by trimming beginning and ending whitsspaces
+- Fix lkf join, missing one of two foreign keys and fix MDDiagnose property as Von and Bis are connected
 
 ## [4.5.0+20240723]
 
