@@ -702,6 +702,26 @@ class PropCsvAndMaster():
                 if popdCon := conDict.pop(oneMember.code+oneMember.system, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
 
+    def check_duplicate_codes_per_level(self):
+        seen_codes_per_level = {}
+        duplicates = {}
+
+        for concept in self.concept:
+            level = concept.level if hasattr(concept, 'level') else 0
+
+            # level = concept.level
+            if level not in seen_codes_per_level:
+                seen_codes_per_level[level] = []
+
+            if concept.code in seen_codes_per_level[level]:
+                if level not in duplicates:
+                    duplicates[level] = []
+                duplicates[level].append(concept.code)
+            else:
+                seen_codes_per_level[level].append(concept.code)
+
+        if duplicates:
+            print("Warning: Duplicate concepts found: ", {f"Level {k}": v for k, v in duplicates.items()})
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, file_style=FileStyle.propCSV):
         csv_meta = []

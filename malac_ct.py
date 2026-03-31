@@ -153,11 +153,12 @@ def main() -> None:
         for csv2AppendTo in args.appendProcessedTerminologyTo:
             timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
-    # sort the input
+    # sort the input, check for VS duplicates
     if 'CodeSystem-' in input.filename:
         input.sortConceptsExpandStyle()
     elif 'ValueSet-' in input.filename:
         input.sort_VS_concepts_by_conceptOrder()
+        input.check_duplicate_codes_per_level()
 
     # do the converting for every class known, or if fixed in output, once and break out the loop
     for oClass in listOClasses:
