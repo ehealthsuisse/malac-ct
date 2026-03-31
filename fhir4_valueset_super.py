@@ -1424,7 +1424,7 @@ class Element(GeneratedsSuper):
         child_list = []
         for child in self.extension:
             child_dict = child.exportJson(json_dict, 'extension', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['extension'] = child_list
@@ -1634,34 +1634,34 @@ class Meta(Element):
         super().exportJsonChildren(json_dict)
         if self.versionId is not None:
             child_dict = self.versionId.exportJson(json_dict, 'versionId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['versionId'] = child_dict
         if self.lastUpdated is not None:
             child_dict = self.lastUpdated.exportJson(json_dict, 'lastUpdated', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['lastUpdated'] = child_dict
         if self.source is not None:
             child_dict = self.source.exportJson(json_dict, 'source', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['source'] = child_dict
         child_list = []
         for child in self.profile:
             child_dict = child.exportJson(json_dict, 'profile', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['profile'] = child_list
         child_list = []
         for child in self.security:
             child_dict = child.exportJson(json_dict, 'security', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['security'] = child_list
         child_list = []
         for child in self.tag:
             child_dict = child.exportJson(json_dict, 'tag', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['tag'] = child_list
@@ -1915,46 +1915,46 @@ class Address(Element):
         super().exportJsonChildren(json_dict)
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.text is not None:
             child_dict = self.text.exportJson(json_dict, 'text', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['text'] = child_dict
         child_list = []
         for child in self.line:
             child_dict = child.exportJson(json_dict, 'line', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['line'] = child_list
         if self.city is not None:
             child_dict = self.city.exportJson(json_dict, 'city', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['city'] = child_dict
         if self.district is not None:
             child_dict = self.district.exportJson(json_dict, 'district', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['district'] = child_dict
         if self.state is not None:
             child_dict = self.state.exportJson(json_dict, 'state', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['state'] = child_dict
         if self.postalCode is not None:
             child_dict = self.postalCode.exportJson(json_dict, 'postalCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['postalCode'] = child_dict
         if self.country is not None:
             child_dict = self.country.exportJson(json_dict, 'country', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['country'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -2417,16 +2417,16 @@ class Contributor(Element):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         child_list = []
         for child in self.contact:
             child_dict = child.exportJson(json_dict, 'contact', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['contact'] = child_list
@@ -2768,35 +2768,35 @@ class Attachment(Element):
         super().exportJsonChildren(json_dict)
         if self.contentType is not None:
             child_dict = self.contentType.exportJson(json_dict, 'contentType', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['contentType'] = child_dict
         if self.language is not None:
             child_dict = self.language.exportJson(json_dict, 'language', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['language'] = child_dict
         if self.data is not None:
             child_dict = self.data.exportJson(json_dict, 'data', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['data'] = child_dict
         if self.url is not None:
             child_dict = self.url.exportJson(json_dict, 'url', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['url'] = child_dict
         if self.size is not None:
             child_dict = self.size.exportJson(json_dict, 'size', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['size'] = child_dict
         if self.hash is not None:
             child_dict = self.hash.exportJson(json_dict, 'hash', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['hash'] = child_dict
         if self.title is not None:
             child_dict = self.title.exportJson(json_dict, 'title', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['title'] = child_dict
         if self.creation is not None:
             child_dict = self.creation.exportJson(json_dict, 'creation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['creation'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -3083,52 +3083,52 @@ class DataRequirement(Element):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         child_list = []
         for child in self.profile:
             child_dict = child.exportJson(json_dict, 'profile', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['profile'] = child_list
         if self.subjectCodeableConcept is not None:
             child_dict = self.subjectCodeableConcept.exportJson(json_dict, 'subjectCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['subjectCodeableConcept'] = child_dict
         if self.subjectReference is not None:
             child_dict = self.subjectReference.exportJson(json_dict, 'subjectReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['subjectReference'] = child_dict
         child_list = []
         for child in self.mustSupport:
             child_dict = child.exportJson(json_dict, 'mustSupport', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['mustSupport'] = child_list
         child_list = []
         for child in self.codeFilter:
             child_dict = child.exportJson(json_dict, 'codeFilter', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['codeFilter'] = child_list
         child_list = []
         for child in self.dateFilter:
             child_dict = child.exportJson(json_dict, 'dateFilter', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['dateFilter'] = child_list
         if self.limit is not None:
             child_dict = self.limit.exportJson(json_dict, 'limit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['limit'] = child_dict
         child_list = []
         for child in self.sort:
             child_dict = child.exportJson(json_dict, 'sort', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['sort'] = child_list
@@ -3331,20 +3331,20 @@ class DataRequirement_CodeFilter(Element):
         super().exportJsonChildren(json_dict)
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
         if self.searchParam is not None:
             child_dict = self.searchParam.exportJson(json_dict, 'searchParam', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['searchParam'] = child_dict
         if self.valueSet is not None:
             child_dict = self.valueSet.exportJson(json_dict, 'valueSet', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSet'] = child_dict
         child_list = []
         for child in self.code:
             child_dict = child.exportJson(json_dict, 'code', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['code'] = child_list
@@ -3522,23 +3522,23 @@ class DataRequirement_DateFilter(Element):
         super().exportJsonChildren(json_dict)
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
         if self.searchParam is not None:
             child_dict = self.searchParam.exportJson(json_dict, 'searchParam', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['searchParam'] = child_dict
         if self.valueDateTime is not None:
             child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDateTime'] = child_dict
         if self.valuePeriod is not None:
             child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valuePeriod'] = child_dict
         if self.valueDuration is not None:
             child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDuration'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -3688,11 +3688,11 @@ class DataRequirement_Sort(Element):
         super().exportJsonChildren(json_dict)
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
         if self.direction is not None:
             child_dict = self.direction.exportJson(json_dict, 'direction', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['direction'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -3961,11 +3961,11 @@ class Money(Element):
         super().exportJsonChildren(json_dict)
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
         if self.currency is not None:
             child_dict = self.currency.exportJson(json_dict, 'currency', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['currency'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -4182,40 +4182,40 @@ class HumanName(Element):
         super().exportJsonChildren(json_dict)
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.text is not None:
             child_dict = self.text.exportJson(json_dict, 'text', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['text'] = child_dict
         if self.family is not None:
             child_dict = self.family.exportJson(json_dict, 'family', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['family'] = child_dict
         child_list = []
         for child in self.given:
             child_dict = child.exportJson(json_dict, 'given', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['given'] = child_list
         child_list = []
         for child in self.prefix:
             child_dict = child.exportJson(json_dict, 'prefix', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['prefix'] = child_list
         child_list = []
         for child in self.suffix:
             child_dict = child.exportJson(json_dict, 'suffix', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['suffix'] = child_list
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -4542,23 +4542,23 @@ class ContactPoint(Element):
         super().exportJsonChildren(json_dict)
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.rank is not None:
             child_dict = self.rank.exportJson(json_dict, 'rank', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['rank'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -5020,27 +5020,27 @@ class Identifier(Element):
         super().exportJsonChildren(json_dict)
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
         if self.assigner is not None:
             child_dict = self.assigner.exportJson(json_dict, 'assigner', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['assigner'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -5362,23 +5362,23 @@ class Coding(Element):
         super().exportJsonChildren(json_dict)
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.version is not None:
             child_dict = self.version.exportJson(json_dict, 'version', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['version'] = child_dict
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
         if self.display is not None:
             child_dict = self.display.exportJson(json_dict, 'display', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['display'] = child_dict
         if self.userSelected is not None:
             child_dict = self.userSelected.exportJson(json_dict, 'userSelected', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['userSelected'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -5583,31 +5583,31 @@ class SampledData(Element):
         super().exportJsonChildren(json_dict)
         if self.origin is not None:
             child_dict = self.origin.exportJson(json_dict, 'origin', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['origin'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
         if self.factor is not None:
             child_dict = self.factor.exportJson(json_dict, 'factor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['factor'] = child_dict
         if self.lowerLimit is not None:
             child_dict = self.lowerLimit.exportJson(json_dict, 'lowerLimit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['lowerLimit'] = child_dict
         if self.upperLimit is not None:
             child_dict = self.upperLimit.exportJson(json_dict, 'upperLimit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['upperLimit'] = child_dict
         if self.dimensions is not None:
             child_dict = self.dimensions.exportJson(json_dict, 'dimensions', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['dimensions'] = child_dict
         if self.data is not None:
             child_dict = self.data.exportJson(json_dict, 'data', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['data'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -5887,11 +5887,11 @@ class Ratio(Element):
         super().exportJsonChildren(json_dict)
         if self.numerator is not None:
             child_dict = self.numerator.exportJson(json_dict, 'numerator', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['numerator'] = child_dict
         if self.denominator is not None:
             child_dict = self.denominator.exportJson(json_dict, 'denominator', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['denominator'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -6051,19 +6051,19 @@ class Reference(Element):
         super().exportJsonChildren(json_dict)
         if self.reference is not None:
             child_dict = self.reference.exportJson(json_dict, 'reference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['reference'] = child_dict
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.identifier is not None:
             child_dict = self.identifier.exportJson(json_dict, 'identifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['identifier'] = child_dict
         if self.display is not None:
             child_dict = self.display.exportJson(json_dict, 'display', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['display'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -6280,38 +6280,38 @@ class TriggerDefinition(Element):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         if self.timingTiming is not None:
             child_dict = self.timingTiming.exportJson(json_dict, 'timingTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timingTiming'] = child_dict
         if self.timingReference is not None:
             child_dict = self.timingReference.exportJson(json_dict, 'timingReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timingReference'] = child_dict
         if self.timingDate is not None:
             child_dict = self.timingDate.exportJson(json_dict, 'timingDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timingDate'] = child_dict
         if self.timingDateTime is not None:
             child_dict = self.timingDateTime.exportJson(json_dict, 'timingDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timingDateTime'] = child_dict
         child_list = []
         for child in self.data:
             child_dict = child.exportJson(json_dict, 'data', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['data'] = child_list
         if self.condition is not None:
             child_dict = self.condition.exportJson(json_dict, 'condition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['condition'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -6658,23 +6658,23 @@ class Quantity(Element):
         super().exportJsonChildren(json_dict)
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
         if self.comparator is not None:
             child_dict = self.comparator.exportJson(json_dict, 'comparator', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['comparator'] = child_dict
         if self.unit is not None:
             child_dict = self.unit.exportJson(json_dict, 'unit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['unit'] = child_dict
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -6962,11 +6962,11 @@ class Period(Element):
         super().exportJsonChildren(json_dict)
         if self.start is not None:
             child_dict = self.start.exportJson(json_dict, 'start', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['start'] = child_dict
         if self.end is not None:
             child_dict = self.end.exportJson(json_dict, 'end', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['end'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -7197,11 +7197,11 @@ class Range(Element):
         super().exportJsonChildren(json_dict)
         if self.low is not None:
             child_dict = self.low.exportJson(json_dict, 'low', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['low'] = child_dict
         if self.high is not None:
             child_dict = self.high.exportJson(json_dict, 'high', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['high'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -7393,31 +7393,31 @@ class RelatedArtifact(Element):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.label is not None:
             child_dict = self.label.exportJson(json_dict, 'label', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['label'] = child_dict
         if self.display is not None:
             child_dict = self.display.exportJson(json_dict, 'display', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['display'] = child_dict
         if self.citation is not None:
             child_dict = self.citation.exportJson(json_dict, 'citation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['citation'] = child_dict
         if self.url is not None:
             child_dict = self.url.exportJson(json_dict, 'url', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['url'] = child_dict
         if self.document is not None:
             child_dict = self.document.exportJson(json_dict, 'document', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['document'] = child_dict
         if self.resource is not None:
             child_dict = self.resource.exportJson(json_dict, 'resource', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['resource'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -7732,19 +7732,19 @@ class Annotation(Element):
         super().exportJsonChildren(json_dict)
         if self.authorReference is not None:
             child_dict = self.authorReference.exportJson(json_dict, 'authorReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['authorReference'] = child_dict
         if self.authorString is not None:
             child_dict = self.authorString.exportJson(json_dict, 'authorString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['authorString'] = child_dict
         if self.time is not None:
             child_dict = self.time.exportJson(json_dict, 'time', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['time'] = child_dict
         if self.text is not None:
             child_dict = self.text.exportJson(json_dict, 'text', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['text'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -7898,12 +7898,12 @@ class ContactDetail(Element):
         super().exportJsonChildren(json_dict)
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         child_list = []
         for child in self.telecom:
             child_dict = child.exportJson(json_dict, 'telecom', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['telecom'] = child_list
@@ -8070,23 +8070,23 @@ class UsageContext(Element):
         super().exportJsonChildren(json_dict)
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
         if self.valueCodeableConcept is not None:
             child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCodeableConcept'] = child_dict
         if self.valueQuantity is not None:
             child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueQuantity'] = child_dict
         if self.valueRange is not None:
             child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRange'] = child_dict
         if self.valueReference is not None:
             child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueReference'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -8270,23 +8270,23 @@ class Expression(Element):
         super().exportJsonChildren(json_dict)
         if self.description is not None:
             child_dict = self.description.exportJson(json_dict, 'description', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['description'] = child_dict
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         if self.language is not None:
             child_dict = self.language.exportJson(json_dict, 'language', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['language'] = child_dict
         if self.expression is not None:
             child_dict = self.expression.exportJson(json_dict, 'expression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['expression'] = child_dict
         if self.reference is not None:
             child_dict = self.reference.exportJson(json_dict, 'reference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['reference'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -8635,33 +8635,33 @@ class Signature(Element):
         child_list = []
         for child in self.type_:
             child_dict = child.exportJson(json_dict, 'type', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['type'] = child_list
         if self.when is not None:
             child_dict = self.when.exportJson(json_dict, 'when', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['when'] = child_dict
         if self.who is not None:
             child_dict = self.who.exportJson(json_dict, 'who', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['who'] = child_dict
         if self.onBehalfOf is not None:
             child_dict = self.onBehalfOf.exportJson(json_dict, 'onBehalfOf', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['onBehalfOf'] = child_dict
         if self.targetFormat is not None:
             child_dict = self.targetFormat.exportJson(json_dict, 'targetFormat', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['targetFormat'] = child_dict
         if self.sigFormat is not None:
             child_dict = self.sigFormat.exportJson(json_dict, 'sigFormat', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['sigFormat'] = child_dict
         if self.data is not None:
             child_dict = self.data.exportJson(json_dict, 'data', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['data'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -9099,13 +9099,13 @@ class CodeableConcept(Element):
         child_list = []
         for child in self.coding:
             child_dict = child.exportJson(json_dict, 'coding', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['coding'] = child_list
         if self.text is not None:
             child_dict = self.text.exportJson(json_dict, 'text', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['text'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -9295,31 +9295,31 @@ class ParameterDefinition(Element):
         super().exportJsonChildren(json_dict)
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.min is not None:
             child_dict = self.min.exportJson(json_dict, 'min', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['min'] = child_dict
         if self.max is not None:
             child_dict = self.max.exportJson(json_dict, 'max', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['max'] = child_dict
         if self.documentation is not None:
             child_dict = self.documentation.exportJson(json_dict, 'documentation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['documentation'] = child_dict
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.profile is not None:
             child_dict = self.profile.exportJson(json_dict, 'profile', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['profile'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -10445,19 +10445,19 @@ class Resource(GeneratedsSuper):
     def exportJsonChildren(self, json_dict):
         if self.id is not None:
             child_dict = self.id.exportJson(json_dict, 'id', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['id'] = child_dict
         if self.meta is not None:
             child_dict = self.meta.exportJson(json_dict, 'meta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['meta'] = child_dict
         if self.implicitRules is not None:
             child_dict = self.implicitRules.exportJson(json_dict, 'implicitRules', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['implicitRules'] = child_dict
         if self.language is not None:
             child_dict = self.language.exportJson(json_dict, 'language', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['language'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -11698,14 +11698,14 @@ class DomainResource(Resource):
         child_list = []
         for child in self.extension:
             child_dict = child.exportJson(json_dict, 'extension', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['extension'] = child_list
         child_list = []
         for child in self.modifierExtension:
             child_dict = child.exportJson(json_dict, 'modifierExtension', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['modifierExtension'] = child_list
@@ -12145,7 +12145,7 @@ class BackboneElement(Element):
         child_list = []
         for child in self.modifierExtension:
             child_dict = child.exportJson(json_dict, 'modifierExtension', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['modifierExtension'] = child_list
@@ -12782,203 +12782,203 @@ class Extension(Element):
         super().exportJsonChildren(json_dict)
         if self.valueBase64Binary is not None:
             child_dict = self.valueBase64Binary.exportJson(json_dict, 'valueBase64Binary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueBase64Binary'] = child_dict
         if self.valueBoolean is not None:
             child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueBoolean'] = child_dict
         if self.valueCanonical is not None:
             child_dict = self.valueCanonical.exportJson(json_dict, 'valueCanonical', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCanonical'] = child_dict
         if self.valueCode is not None:
             child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCode'] = child_dict
         if self.valueDate is not None:
             child_dict = self.valueDate.exportJson(json_dict, 'valueDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDate'] = child_dict
         if self.valueDateTime is not None:
             child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDateTime'] = child_dict
         if self.valueDecimal is not None:
             child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDecimal'] = child_dict
         if self.valueId is not None:
             child_dict = self.valueId.exportJson(json_dict, 'valueId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueId'] = child_dict
         if self.valueInstant is not None:
             child_dict = self.valueInstant.exportJson(json_dict, 'valueInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueInstant'] = child_dict
         if self.valueInteger is not None:
             child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueInteger'] = child_dict
         if self.valueMarkdown is not None:
             child_dict = self.valueMarkdown.exportJson(json_dict, 'valueMarkdown', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMarkdown'] = child_dict
         if self.valueOid is not None:
             child_dict = self.valueOid.exportJson(json_dict, 'valueOid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueOid'] = child_dict
         if self.valuePositiveInt is not None:
             child_dict = self.valuePositiveInt.exportJson(json_dict, 'valuePositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valuePositiveInt'] = child_dict
         if self.valueString is not None:
             child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueString'] = child_dict
         if self.valueTime is not None:
             child_dict = self.valueTime.exportJson(json_dict, 'valueTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTime'] = child_dict
         if self.valueUnsignedInt is not None:
             child_dict = self.valueUnsignedInt.exportJson(json_dict, 'valueUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUnsignedInt'] = child_dict
         if self.valueUri is not None:
             child_dict = self.valueUri.exportJson(json_dict, 'valueUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUri'] = child_dict
         if self.valueUrl is not None:
             child_dict = self.valueUrl.exportJson(json_dict, 'valueUrl', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUrl'] = child_dict
         if self.valueUuid is not None:
             child_dict = self.valueUuid.exportJson(json_dict, 'valueUuid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUuid'] = child_dict
         if self.valueAddress is not None:
             child_dict = self.valueAddress.exportJson(json_dict, 'valueAddress', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAddress'] = child_dict
         if self.valueAge is not None:
             child_dict = self.valueAge.exportJson(json_dict, 'valueAge', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAge'] = child_dict
         if self.valueAnnotation is not None:
             child_dict = self.valueAnnotation.exportJson(json_dict, 'valueAnnotation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAnnotation'] = child_dict
         if self.valueAttachment is not None:
             child_dict = self.valueAttachment.exportJson(json_dict, 'valueAttachment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAttachment'] = child_dict
         if self.valueCodeableConcept is not None:
             child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCodeableConcept'] = child_dict
         if self.valueCoding is not None:
             child_dict = self.valueCoding.exportJson(json_dict, 'valueCoding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCoding'] = child_dict
         if self.valueContactPoint is not None:
             child_dict = self.valueContactPoint.exportJson(json_dict, 'valueContactPoint', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContactPoint'] = child_dict
         if self.valueCount is not None:
             child_dict = self.valueCount.exportJson(json_dict, 'valueCount', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCount'] = child_dict
         if self.valueDistance is not None:
             child_dict = self.valueDistance.exportJson(json_dict, 'valueDistance', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDistance'] = child_dict
         if self.valueDuration is not None:
             child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDuration'] = child_dict
         if self.valueHumanName is not None:
             child_dict = self.valueHumanName.exportJson(json_dict, 'valueHumanName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueHumanName'] = child_dict
         if self.valueIdentifier is not None:
             child_dict = self.valueIdentifier.exportJson(json_dict, 'valueIdentifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueIdentifier'] = child_dict
         if self.valueMoney is not None:
             child_dict = self.valueMoney.exportJson(json_dict, 'valueMoney', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMoney'] = child_dict
         if self.valuePeriod is not None:
             child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valuePeriod'] = child_dict
         if self.valueQuantity is not None:
             child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueQuantity'] = child_dict
         if self.valueRange is not None:
             child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRange'] = child_dict
         if self.valueRatio is not None:
             child_dict = self.valueRatio.exportJson(json_dict, 'valueRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRatio'] = child_dict
         if self.valueReference is not None:
             child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueReference'] = child_dict
         if self.valueSampledData is not None:
             child_dict = self.valueSampledData.exportJson(json_dict, 'valueSampledData', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSampledData'] = child_dict
         if self.valueSignature is not None:
             child_dict = self.valueSignature.exportJson(json_dict, 'valueSignature', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSignature'] = child_dict
         if self.valueTiming is not None:
             child_dict = self.valueTiming.exportJson(json_dict, 'valueTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTiming'] = child_dict
         if self.valueContactDetail is not None:
             child_dict = self.valueContactDetail.exportJson(json_dict, 'valueContactDetail', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContactDetail'] = child_dict
         if self.valueContributor is not None:
             child_dict = self.valueContributor.exportJson(json_dict, 'valueContributor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContributor'] = child_dict
         if self.valueDataRequirement is not None:
             child_dict = self.valueDataRequirement.exportJson(json_dict, 'valueDataRequirement', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDataRequirement'] = child_dict
         if self.valueExpression is not None:
             child_dict = self.valueExpression.exportJson(json_dict, 'valueExpression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueExpression'] = child_dict
         if self.valueParameterDefinition is not None:
             child_dict = self.valueParameterDefinition.exportJson(json_dict, 'valueParameterDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueParameterDefinition'] = child_dict
         if self.valueRelatedArtifact is not None:
             child_dict = self.valueRelatedArtifact.exportJson(json_dict, 'valueRelatedArtifact', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRelatedArtifact'] = child_dict
         if self.valueTriggerDefinition is not None:
             child_dict = self.valueTriggerDefinition.exportJson(json_dict, 'valueTriggerDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTriggerDefinition'] = child_dict
         if self.valueUsageContext is not None:
             child_dict = self.valueUsageContext.exportJson(json_dict, 'valueUsageContext', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUsageContext'] = child_dict
         if self.valueDosage is not None:
             child_dict = self.valueDosage.exportJson(json_dict, 'valueDosage', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDosage'] = child_dict
         if self.valueMeta is not None:
             child_dict = self.valueMeta.exportJson(json_dict, 'valueMeta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMeta'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -15830,39 +15830,39 @@ class ValueSet_Contains(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.abstract is not None:
             child_dict = self.abstract.exportJson(json_dict, 'abstract', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['abstract'] = child_dict
         if self.inactive is not None:
             child_dict = self.inactive.exportJson(json_dict, 'inactive', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['inactive'] = child_dict
         if self.version is not None:
             child_dict = self.version.exportJson(json_dict, 'version', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['version'] = child_dict
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
         if self.display is not None:
             child_dict = self.display.exportJson(json_dict, 'display', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['display'] = child_dict
         child_list = []
         for child in self.designation:
             child_dict = child.exportJson(json_dict, 'designation', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['designation'] = child_list
         child_list = []
         for child in self.contains:
             child_dict = child.exportJson(json_dict, 'contains', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['contains'] = child_list
@@ -16088,35 +16088,35 @@ class ValueSet_Parameter(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         if self.valueString is not None:
             child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueString'] = child_dict
         if self.valueBoolean is not None:
             child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueBoolean'] = child_dict
         if self.valueInteger is not None:
             child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueInteger'] = child_dict
         if self.valueDecimal is not None:
             child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDecimal'] = child_dict
         if self.valueUri is not None:
             child_dict = self.valueUri.exportJson(json_dict, 'valueUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUri'] = child_dict
         if self.valueCode is not None:
             child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCode'] = child_dict
         if self.valueDateTime is not None:
             child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDateTime'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -16342,31 +16342,31 @@ class ValueSet_Expansion(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.identifier is not None:
             child_dict = self.identifier.exportJson(json_dict, 'identifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['identifier'] = child_dict
         if self.timestamp is not None:
             child_dict = self.timestamp.exportJson(json_dict, 'timestamp', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timestamp'] = child_dict
         if self.total is not None:
             child_dict = self.total.exportJson(json_dict, 'total', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['total'] = child_dict
         if self.offset is not None:
             child_dict = self.offset.exportJson(json_dict, 'offset', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['offset'] = child_dict
         child_list = []
         for child in self.parameter:
             child_dict = child.exportJson(json_dict, 'parameter', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['parameter'] = child_list
         child_list = []
         for child in self.contains:
             child_dict = child.exportJson(json_dict, 'contains', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['contains'] = child_list
@@ -16533,15 +16533,15 @@ class ValueSet_Filter(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.property is not None:
             child_dict = self.property.exportJson(json_dict, 'property', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['property'] = child_dict
         if self.op is not None:
             child_dict = self.op.exportJson(json_dict, 'op', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['op'] = child_dict
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -16825,15 +16825,15 @@ class ValueSet_Designation(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.language is not None:
             child_dict = self.language.exportJson(json_dict, 'language', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['language'] = child_dict
         if self.use is not None:
             child_dict = self.use.exportJson(json_dict, 'use', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['use'] = child_dict
         if self.value is not None:
             child_dict = self.value.exportJson(json_dict, 'value', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['value'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -16992,16 +16992,16 @@ class ValueSet_Concept(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
         if self.display is not None:
             child_dict = self.display.exportJson(json_dict, 'display', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['display'] = child_dict
         child_list = []
         for child in self.designation:
             child_dict = child.exportJson(json_dict, 'designation', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['designation'] = child_list
@@ -17202,30 +17202,30 @@ class ValueSet_Include(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.system is not None:
             child_dict = self.system.exportJson(json_dict, 'system', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['system'] = child_dict
         if self.version is not None:
             child_dict = self.version.exportJson(json_dict, 'version', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['version'] = child_dict
         child_list = []
         for child in self.concept:
             child_dict = child.exportJson(json_dict, 'concept', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['concept'] = child_list
         child_list = []
         for child in self.filter:
             child_dict = child.exportJson(json_dict, 'filter', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['filter'] = child_list
         child_list = []
         for child in self.valueSet:
             child_dict = child.exportJson(json_dict, 'valueSet', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['valueSet'] = child_list
@@ -17416,23 +17416,23 @@ class ValueSet_Compose(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.lockedDate is not None:
             child_dict = self.lockedDate.exportJson(json_dict, 'lockedDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['lockedDate'] = child_dict
         if self.inactive is not None:
             child_dict = self.inactive.exportJson(json_dict, 'inactive', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['inactive'] = child_dict
         child_list = []
         for child in self.include:
             child_dict = child.exportJson(json_dict, 'include', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['include'] = child_list
         child_list = []
         for child in self.exclude:
             child_dict = child.exportJson(json_dict, 'exclude', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['exclude'] = child_list
@@ -17791,87 +17791,87 @@ class ValueSet(DomainResource):
         super().exportJsonChildren(json_dict)
         if self.url is not None:
             child_dict = self.url.exportJson(json_dict, 'url', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['url'] = child_dict
         child_list = []
         for child in self.identifier:
             child_dict = child.exportJson(json_dict, 'identifier', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['identifier'] = child_list
         if self.version is not None:
             child_dict = self.version.exportJson(json_dict, 'version', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['version'] = child_dict
         if self.name is not None:
             child_dict = self.name.exportJson(json_dict, 'name', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['name'] = child_dict
         if self.title is not None:
             child_dict = self.title.exportJson(json_dict, 'title', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['title'] = child_dict
         if self.status is not None:
             child_dict = self.status.exportJson(json_dict, 'status', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['status'] = child_dict
         if self.experimental is not None:
             child_dict = self.experimental.exportJson(json_dict, 'experimental', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['experimental'] = child_dict
         if self.date is not None:
             child_dict = self.date.exportJson(json_dict, 'date', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['date'] = child_dict
         if self.publisher is not None:
             child_dict = self.publisher.exportJson(json_dict, 'publisher', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['publisher'] = child_dict
         child_list = []
         for child in self.contact:
             child_dict = child.exportJson(json_dict, 'contact', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['contact'] = child_list
         if self.description is not None:
             child_dict = self.description.exportJson(json_dict, 'description', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['description'] = child_dict
         child_list = []
         for child in self.useContext:
             child_dict = child.exportJson(json_dict, 'useContext', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['useContext'] = child_list
         child_list = []
         for child in self.jurisdiction:
             child_dict = child.exportJson(json_dict, 'jurisdiction', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['jurisdiction'] = child_list
         if self.immutable is not None:
             child_dict = self.immutable.exportJson(json_dict, 'immutable', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['immutable'] = child_dict
         if self.purpose is not None:
             child_dict = self.purpose.exportJson(json_dict, 'purpose', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['purpose'] = child_dict
         if self.copyright is not None:
             child_dict = self.copyright.exportJson(json_dict, 'copyright', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['copyright'] = child_dict
         if self.compose is not None:
             child_dict = self.compose.exportJson(json_dict, 'compose', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['compose'] = child_dict
         if self.expansion is not None:
             child_dict = self.expansion.exportJson(json_dict, 'expansion', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['expansion'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -18086,11 +18086,11 @@ class ElementDefinition_Discriminator(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -18236,15 +18236,15 @@ class ElementDefinition_Binding(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.strength is not None:
             child_dict = self.strength.exportJson(json_dict, 'strength', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['strength'] = child_dict
         if self.description is not None:
             child_dict = self.description.exportJson(json_dict, 'description', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['description'] = child_dict
         if self.valueSet is not None:
             child_dict = self.valueSet.exportJson(json_dict, 'valueSet', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSet'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -18416,21 +18416,21 @@ class ElementDefinition_Slicing(BackboneElement):
         child_list = []
         for child in self.discriminator:
             child_dict = child.exportJson(json_dict, 'discriminator', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['discriminator'] = child_list
         if self.description is not None:
             child_dict = self.description.exportJson(json_dict, 'description', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['description'] = child_dict
         if self.ordered is not None:
             child_dict = self.ordered.exportJson(json_dict, 'ordered', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['ordered'] = child_dict
         if self.rules is not None:
             child_dict = self.rules.exportJson(json_dict, 'rules', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['rules'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -19065,207 +19065,207 @@ class ElementDefinition_Example(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.label is not None:
             child_dict = self.label.exportJson(json_dict, 'label', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['label'] = child_dict
         if self.valueBase64Binary is not None:
             child_dict = self.valueBase64Binary.exportJson(json_dict, 'valueBase64Binary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueBase64Binary'] = child_dict
         if self.valueBoolean is not None:
             child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueBoolean'] = child_dict
         if self.valueCanonical is not None:
             child_dict = self.valueCanonical.exportJson(json_dict, 'valueCanonical', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCanonical'] = child_dict
         if self.valueCode is not None:
             child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCode'] = child_dict
         if self.valueDate is not None:
             child_dict = self.valueDate.exportJson(json_dict, 'valueDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDate'] = child_dict
         if self.valueDateTime is not None:
             child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDateTime'] = child_dict
         if self.valueDecimal is not None:
             child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDecimal'] = child_dict
         if self.valueId is not None:
             child_dict = self.valueId.exportJson(json_dict, 'valueId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueId'] = child_dict
         if self.valueInstant is not None:
             child_dict = self.valueInstant.exportJson(json_dict, 'valueInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueInstant'] = child_dict
         if self.valueInteger is not None:
             child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueInteger'] = child_dict
         if self.valueMarkdown is not None:
             child_dict = self.valueMarkdown.exportJson(json_dict, 'valueMarkdown', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMarkdown'] = child_dict
         if self.valueOid is not None:
             child_dict = self.valueOid.exportJson(json_dict, 'valueOid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueOid'] = child_dict
         if self.valuePositiveInt is not None:
             child_dict = self.valuePositiveInt.exportJson(json_dict, 'valuePositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valuePositiveInt'] = child_dict
         if self.valueString is not None:
             child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueString'] = child_dict
         if self.valueTime is not None:
             child_dict = self.valueTime.exportJson(json_dict, 'valueTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTime'] = child_dict
         if self.valueUnsignedInt is not None:
             child_dict = self.valueUnsignedInt.exportJson(json_dict, 'valueUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUnsignedInt'] = child_dict
         if self.valueUri is not None:
             child_dict = self.valueUri.exportJson(json_dict, 'valueUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUri'] = child_dict
         if self.valueUrl is not None:
             child_dict = self.valueUrl.exportJson(json_dict, 'valueUrl', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUrl'] = child_dict
         if self.valueUuid is not None:
             child_dict = self.valueUuid.exportJson(json_dict, 'valueUuid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUuid'] = child_dict
         if self.valueAddress is not None:
             child_dict = self.valueAddress.exportJson(json_dict, 'valueAddress', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAddress'] = child_dict
         if self.valueAge is not None:
             child_dict = self.valueAge.exportJson(json_dict, 'valueAge', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAge'] = child_dict
         if self.valueAnnotation is not None:
             child_dict = self.valueAnnotation.exportJson(json_dict, 'valueAnnotation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAnnotation'] = child_dict
         if self.valueAttachment is not None:
             child_dict = self.valueAttachment.exportJson(json_dict, 'valueAttachment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueAttachment'] = child_dict
         if self.valueCodeableConcept is not None:
             child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCodeableConcept'] = child_dict
         if self.valueCoding is not None:
             child_dict = self.valueCoding.exportJson(json_dict, 'valueCoding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCoding'] = child_dict
         if self.valueContactPoint is not None:
             child_dict = self.valueContactPoint.exportJson(json_dict, 'valueContactPoint', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContactPoint'] = child_dict
         if self.valueCount is not None:
             child_dict = self.valueCount.exportJson(json_dict, 'valueCount', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueCount'] = child_dict
         if self.valueDistance is not None:
             child_dict = self.valueDistance.exportJson(json_dict, 'valueDistance', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDistance'] = child_dict
         if self.valueDuration is not None:
             child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDuration'] = child_dict
         if self.valueHumanName is not None:
             child_dict = self.valueHumanName.exportJson(json_dict, 'valueHumanName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueHumanName'] = child_dict
         if self.valueIdentifier is not None:
             child_dict = self.valueIdentifier.exportJson(json_dict, 'valueIdentifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueIdentifier'] = child_dict
         if self.valueMoney is not None:
             child_dict = self.valueMoney.exportJson(json_dict, 'valueMoney', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMoney'] = child_dict
         if self.valuePeriod is not None:
             child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valuePeriod'] = child_dict
         if self.valueQuantity is not None:
             child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueQuantity'] = child_dict
         if self.valueRange is not None:
             child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRange'] = child_dict
         if self.valueRatio is not None:
             child_dict = self.valueRatio.exportJson(json_dict, 'valueRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRatio'] = child_dict
         if self.valueReference is not None:
             child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueReference'] = child_dict
         if self.valueSampledData is not None:
             child_dict = self.valueSampledData.exportJson(json_dict, 'valueSampledData', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSampledData'] = child_dict
         if self.valueSignature is not None:
             child_dict = self.valueSignature.exportJson(json_dict, 'valueSignature', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueSignature'] = child_dict
         if self.valueTiming is not None:
             child_dict = self.valueTiming.exportJson(json_dict, 'valueTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTiming'] = child_dict
         if self.valueContactDetail is not None:
             child_dict = self.valueContactDetail.exportJson(json_dict, 'valueContactDetail', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContactDetail'] = child_dict
         if self.valueContributor is not None:
             child_dict = self.valueContributor.exportJson(json_dict, 'valueContributor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueContributor'] = child_dict
         if self.valueDataRequirement is not None:
             child_dict = self.valueDataRequirement.exportJson(json_dict, 'valueDataRequirement', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDataRequirement'] = child_dict
         if self.valueExpression is not None:
             child_dict = self.valueExpression.exportJson(json_dict, 'valueExpression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueExpression'] = child_dict
         if self.valueParameterDefinition is not None:
             child_dict = self.valueParameterDefinition.exportJson(json_dict, 'valueParameterDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueParameterDefinition'] = child_dict
         if self.valueRelatedArtifact is not None:
             child_dict = self.valueRelatedArtifact.exportJson(json_dict, 'valueRelatedArtifact', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueRelatedArtifact'] = child_dict
         if self.valueTriggerDefinition is not None:
             child_dict = self.valueTriggerDefinition.exportJson(json_dict, 'valueTriggerDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueTriggerDefinition'] = child_dict
         if self.valueUsageContext is not None:
             child_dict = self.valueUsageContext.exportJson(json_dict, 'valueUsageContext', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueUsageContext'] = child_dict
         if self.valueDosage is not None:
             child_dict = self.valueDosage.exportJson(json_dict, 'valueDosage', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueDosage'] = child_dict
         if self.valueMeta is not None:
             child_dict = self.valueMeta.exportJson(json_dict, 'valueMeta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['valueMeta'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -19706,32 +19706,32 @@ class ElementDefinition_Type(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
         child_list = []
         for child in self.profile:
             child_dict = child.exportJson(json_dict, 'profile', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['profile'] = child_list
         child_list = []
         for child in self.targetProfile:
             child_dict = child.exportJson(json_dict, 'targetProfile', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['targetProfile'] = child_list
         child_list = []
         for child in self.aggregation:
             child_dict = child.exportJson(json_dict, 'aggregation', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['aggregation'] = child_list
         if self.versioning is not None:
             child_dict = self.versioning.exportJson(json_dict, 'versioning', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['versioning'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -19892,15 +19892,15 @@ class ElementDefinition_Base(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
         if self.min is not None:
             child_dict = self.min.exportJson(json_dict, 'min', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['min'] = child_dict
         if self.max is not None:
             child_dict = self.max.exportJson(json_dict, 'max', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['max'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -20062,19 +20062,19 @@ class ElementDefinition_Mapping(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.identity is not None:
             child_dict = self.identity.exportJson(json_dict, 'identity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['identity'] = child_dict
         if self.language is not None:
             child_dict = self.language.exportJson(json_dict, 'language', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['language'] = child_dict
         if self.map is not None:
             child_dict = self.map.exportJson(json_dict, 'map', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['map'] = child_dict
         if self.comment is not None:
             child_dict = self.comment.exportJson(json_dict, 'comment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['comment'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -20274,31 +20274,31 @@ class ElementDefinition_Constraint(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.key is not None:
             child_dict = self.key.exportJson(json_dict, 'key', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['key'] = child_dict
         if self.requirements is not None:
             child_dict = self.requirements.exportJson(json_dict, 'requirements', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['requirements'] = child_dict
         if self.severity is not None:
             child_dict = self.severity.exportJson(json_dict, 'severity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['severity'] = child_dict
         if self.human is not None:
             child_dict = self.human.exportJson(json_dict, 'human', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['human'] = child_dict
         if self.expression is not None:
             child_dict = self.expression.exportJson(json_dict, 'expression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['expression'] = child_dict
         if self.xpath is not None:
             child_dict = self.xpath.exportJson(json_dict, 'xpath', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['xpath'] = child_dict
         if self.source is not None:
             child_dict = self.source.exportJson(json_dict, 'source', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['source'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -22518,813 +22518,813 @@ class ElementDefinition(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.path is not None:
             child_dict = self.path.exportJson(json_dict, 'path', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['path'] = child_dict
         child_list = []
         for child in self.representation:
             child_dict = child.exportJson(json_dict, 'representation', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['representation'] = child_list
         if self.sliceName is not None:
             child_dict = self.sliceName.exportJson(json_dict, 'sliceName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['sliceName'] = child_dict
         if self.sliceIsConstraining is not None:
             child_dict = self.sliceIsConstraining.exportJson(json_dict, 'sliceIsConstraining', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['sliceIsConstraining'] = child_dict
         if self.label is not None:
             child_dict = self.label.exportJson(json_dict, 'label', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['label'] = child_dict
         child_list = []
         for child in self.code:
             child_dict = child.exportJson(json_dict, 'code', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['code'] = child_list
         if self.slicing is not None:
             child_dict = self.slicing.exportJson(json_dict, 'slicing', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['slicing'] = child_dict
         if self.short is not None:
             child_dict = self.short.exportJson(json_dict, 'short', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['short'] = child_dict
         if self.definition is not None:
             child_dict = self.definition.exportJson(json_dict, 'definition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['definition'] = child_dict
         if self.comment is not None:
             child_dict = self.comment.exportJson(json_dict, 'comment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['comment'] = child_dict
         if self.requirements is not None:
             child_dict = self.requirements.exportJson(json_dict, 'requirements', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['requirements'] = child_dict
         child_list = []
         for child in self.alias:
             child_dict = child.exportJson(json_dict, 'alias', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['alias'] = child_list
         if self.min is not None:
             child_dict = self.min.exportJson(json_dict, 'min', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['min'] = child_dict
         if self.max is not None:
             child_dict = self.max.exportJson(json_dict, 'max', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['max'] = child_dict
         if self.base is not None:
             child_dict = self.base.exportJson(json_dict, 'base', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['base'] = child_dict
         if self.contentReference is not None:
             child_dict = self.contentReference.exportJson(json_dict, 'contentReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['contentReference'] = child_dict
         child_list = []
         for child in self.type_:
             child_dict = child.exportJson(json_dict, 'type', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['type'] = child_list
         if self.defaultValueBase64Binary is not None:
             child_dict = self.defaultValueBase64Binary.exportJson(json_dict, 'defaultValueBase64Binary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueBase64Binary'] = child_dict
         if self.defaultValueBoolean is not None:
             child_dict = self.defaultValueBoolean.exportJson(json_dict, 'defaultValueBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueBoolean'] = child_dict
         if self.defaultValueCanonical is not None:
             child_dict = self.defaultValueCanonical.exportJson(json_dict, 'defaultValueCanonical', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueCanonical'] = child_dict
         if self.defaultValueCode is not None:
             child_dict = self.defaultValueCode.exportJson(json_dict, 'defaultValueCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueCode'] = child_dict
         if self.defaultValueDate is not None:
             child_dict = self.defaultValueDate.exportJson(json_dict, 'defaultValueDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDate'] = child_dict
         if self.defaultValueDateTime is not None:
             child_dict = self.defaultValueDateTime.exportJson(json_dict, 'defaultValueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDateTime'] = child_dict
         if self.defaultValueDecimal is not None:
             child_dict = self.defaultValueDecimal.exportJson(json_dict, 'defaultValueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDecimal'] = child_dict
         if self.defaultValueId is not None:
             child_dict = self.defaultValueId.exportJson(json_dict, 'defaultValueId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueId'] = child_dict
         if self.defaultValueInstant is not None:
             child_dict = self.defaultValueInstant.exportJson(json_dict, 'defaultValueInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueInstant'] = child_dict
         if self.defaultValueInteger is not None:
             child_dict = self.defaultValueInteger.exportJson(json_dict, 'defaultValueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueInteger'] = child_dict
         if self.defaultValueMarkdown is not None:
             child_dict = self.defaultValueMarkdown.exportJson(json_dict, 'defaultValueMarkdown', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueMarkdown'] = child_dict
         if self.defaultValueOid is not None:
             child_dict = self.defaultValueOid.exportJson(json_dict, 'defaultValueOid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueOid'] = child_dict
         if self.defaultValuePositiveInt is not None:
             child_dict = self.defaultValuePositiveInt.exportJson(json_dict, 'defaultValuePositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValuePositiveInt'] = child_dict
         if self.defaultValueString is not None:
             child_dict = self.defaultValueString.exportJson(json_dict, 'defaultValueString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueString'] = child_dict
         if self.defaultValueTime is not None:
             child_dict = self.defaultValueTime.exportJson(json_dict, 'defaultValueTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueTime'] = child_dict
         if self.defaultValueUnsignedInt is not None:
             child_dict = self.defaultValueUnsignedInt.exportJson(json_dict, 'defaultValueUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueUnsignedInt'] = child_dict
         if self.defaultValueUri is not None:
             child_dict = self.defaultValueUri.exportJson(json_dict, 'defaultValueUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueUri'] = child_dict
         if self.defaultValueUrl is not None:
             child_dict = self.defaultValueUrl.exportJson(json_dict, 'defaultValueUrl', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueUrl'] = child_dict
         if self.defaultValueUuid is not None:
             child_dict = self.defaultValueUuid.exportJson(json_dict, 'defaultValueUuid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueUuid'] = child_dict
         if self.defaultValueAddress is not None:
             child_dict = self.defaultValueAddress.exportJson(json_dict, 'defaultValueAddress', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueAddress'] = child_dict
         if self.defaultValueAge is not None:
             child_dict = self.defaultValueAge.exportJson(json_dict, 'defaultValueAge', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueAge'] = child_dict
         if self.defaultValueAnnotation is not None:
             child_dict = self.defaultValueAnnotation.exportJson(json_dict, 'defaultValueAnnotation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueAnnotation'] = child_dict
         if self.defaultValueAttachment is not None:
             child_dict = self.defaultValueAttachment.exportJson(json_dict, 'defaultValueAttachment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueAttachment'] = child_dict
         if self.defaultValueCodeableConcept is not None:
             child_dict = self.defaultValueCodeableConcept.exportJson(json_dict, 'defaultValueCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueCodeableConcept'] = child_dict
         if self.defaultValueCoding is not None:
             child_dict = self.defaultValueCoding.exportJson(json_dict, 'defaultValueCoding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueCoding'] = child_dict
         if self.defaultValueContactPoint is not None:
             child_dict = self.defaultValueContactPoint.exportJson(json_dict, 'defaultValueContactPoint', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueContactPoint'] = child_dict
         if self.defaultValueCount is not None:
             child_dict = self.defaultValueCount.exportJson(json_dict, 'defaultValueCount', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueCount'] = child_dict
         if self.defaultValueDistance is not None:
             child_dict = self.defaultValueDistance.exportJson(json_dict, 'defaultValueDistance', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDistance'] = child_dict
         if self.defaultValueDuration is not None:
             child_dict = self.defaultValueDuration.exportJson(json_dict, 'defaultValueDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDuration'] = child_dict
         if self.defaultValueHumanName is not None:
             child_dict = self.defaultValueHumanName.exportJson(json_dict, 'defaultValueHumanName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueHumanName'] = child_dict
         if self.defaultValueIdentifier is not None:
             child_dict = self.defaultValueIdentifier.exportJson(json_dict, 'defaultValueIdentifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueIdentifier'] = child_dict
         if self.defaultValueMoney is not None:
             child_dict = self.defaultValueMoney.exportJson(json_dict, 'defaultValueMoney', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueMoney'] = child_dict
         if self.defaultValuePeriod is not None:
             child_dict = self.defaultValuePeriod.exportJson(json_dict, 'defaultValuePeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValuePeriod'] = child_dict
         if self.defaultValueQuantity is not None:
             child_dict = self.defaultValueQuantity.exportJson(json_dict, 'defaultValueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueQuantity'] = child_dict
         if self.defaultValueRange is not None:
             child_dict = self.defaultValueRange.exportJson(json_dict, 'defaultValueRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueRange'] = child_dict
         if self.defaultValueRatio is not None:
             child_dict = self.defaultValueRatio.exportJson(json_dict, 'defaultValueRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueRatio'] = child_dict
         if self.defaultValueReference is not None:
             child_dict = self.defaultValueReference.exportJson(json_dict, 'defaultValueReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueReference'] = child_dict
         if self.defaultValueSampledData is not None:
             child_dict = self.defaultValueSampledData.exportJson(json_dict, 'defaultValueSampledData', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueSampledData'] = child_dict
         if self.defaultValueSignature is not None:
             child_dict = self.defaultValueSignature.exportJson(json_dict, 'defaultValueSignature', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueSignature'] = child_dict
         if self.defaultValueTiming is not None:
             child_dict = self.defaultValueTiming.exportJson(json_dict, 'defaultValueTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueTiming'] = child_dict
         if self.defaultValueContactDetail is not None:
             child_dict = self.defaultValueContactDetail.exportJson(json_dict, 'defaultValueContactDetail', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueContactDetail'] = child_dict
         if self.defaultValueContributor is not None:
             child_dict = self.defaultValueContributor.exportJson(json_dict, 'defaultValueContributor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueContributor'] = child_dict
         if self.defaultValueDataRequirement is not None:
             child_dict = self.defaultValueDataRequirement.exportJson(json_dict, 'defaultValueDataRequirement', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDataRequirement'] = child_dict
         if self.defaultValueExpression is not None:
             child_dict = self.defaultValueExpression.exportJson(json_dict, 'defaultValueExpression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueExpression'] = child_dict
         if self.defaultValueParameterDefinition is not None:
             child_dict = self.defaultValueParameterDefinition.exportJson(json_dict, 'defaultValueParameterDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueParameterDefinition'] = child_dict
         if self.defaultValueRelatedArtifact is not None:
             child_dict = self.defaultValueRelatedArtifact.exportJson(json_dict, 'defaultValueRelatedArtifact', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueRelatedArtifact'] = child_dict
         if self.defaultValueTriggerDefinition is not None:
             child_dict = self.defaultValueTriggerDefinition.exportJson(json_dict, 'defaultValueTriggerDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueTriggerDefinition'] = child_dict
         if self.defaultValueUsageContext is not None:
             child_dict = self.defaultValueUsageContext.exportJson(json_dict, 'defaultValueUsageContext', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueUsageContext'] = child_dict
         if self.defaultValueDosage is not None:
             child_dict = self.defaultValueDosage.exportJson(json_dict, 'defaultValueDosage', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueDosage'] = child_dict
         if self.defaultValueMeta is not None:
             child_dict = self.defaultValueMeta.exportJson(json_dict, 'defaultValueMeta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['defaultValueMeta'] = child_dict
         if self.meaningWhenMissing is not None:
             child_dict = self.meaningWhenMissing.exportJson(json_dict, 'meaningWhenMissing', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['meaningWhenMissing'] = child_dict
         if self.orderMeaning is not None:
             child_dict = self.orderMeaning.exportJson(json_dict, 'orderMeaning', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['orderMeaning'] = child_dict
         if self.fixedBase64Binary is not None:
             child_dict = self.fixedBase64Binary.exportJson(json_dict, 'fixedBase64Binary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedBase64Binary'] = child_dict
         if self.fixedBoolean is not None:
             child_dict = self.fixedBoolean.exportJson(json_dict, 'fixedBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedBoolean'] = child_dict
         if self.fixedCanonical is not None:
             child_dict = self.fixedCanonical.exportJson(json_dict, 'fixedCanonical', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedCanonical'] = child_dict
         if self.fixedCode is not None:
             child_dict = self.fixedCode.exportJson(json_dict, 'fixedCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedCode'] = child_dict
         if self.fixedDate is not None:
             child_dict = self.fixedDate.exportJson(json_dict, 'fixedDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDate'] = child_dict
         if self.fixedDateTime is not None:
             child_dict = self.fixedDateTime.exportJson(json_dict, 'fixedDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDateTime'] = child_dict
         if self.fixedDecimal is not None:
             child_dict = self.fixedDecimal.exportJson(json_dict, 'fixedDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDecimal'] = child_dict
         if self.fixedId is not None:
             child_dict = self.fixedId.exportJson(json_dict, 'fixedId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedId'] = child_dict
         if self.fixedInstant is not None:
             child_dict = self.fixedInstant.exportJson(json_dict, 'fixedInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedInstant'] = child_dict
         if self.fixedInteger is not None:
             child_dict = self.fixedInteger.exportJson(json_dict, 'fixedInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedInteger'] = child_dict
         if self.fixedMarkdown is not None:
             child_dict = self.fixedMarkdown.exportJson(json_dict, 'fixedMarkdown', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedMarkdown'] = child_dict
         if self.fixedOid is not None:
             child_dict = self.fixedOid.exportJson(json_dict, 'fixedOid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedOid'] = child_dict
         if self.fixedPositiveInt is not None:
             child_dict = self.fixedPositiveInt.exportJson(json_dict, 'fixedPositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedPositiveInt'] = child_dict
         if self.fixedString is not None:
             child_dict = self.fixedString.exportJson(json_dict, 'fixedString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedString'] = child_dict
         if self.fixedTime is not None:
             child_dict = self.fixedTime.exportJson(json_dict, 'fixedTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedTime'] = child_dict
         if self.fixedUnsignedInt is not None:
             child_dict = self.fixedUnsignedInt.exportJson(json_dict, 'fixedUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedUnsignedInt'] = child_dict
         if self.fixedUri is not None:
             child_dict = self.fixedUri.exportJson(json_dict, 'fixedUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedUri'] = child_dict
         if self.fixedUrl is not None:
             child_dict = self.fixedUrl.exportJson(json_dict, 'fixedUrl', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedUrl'] = child_dict
         if self.fixedUuid is not None:
             child_dict = self.fixedUuid.exportJson(json_dict, 'fixedUuid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedUuid'] = child_dict
         if self.fixedAddress is not None:
             child_dict = self.fixedAddress.exportJson(json_dict, 'fixedAddress', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedAddress'] = child_dict
         if self.fixedAge is not None:
             child_dict = self.fixedAge.exportJson(json_dict, 'fixedAge', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedAge'] = child_dict
         if self.fixedAnnotation is not None:
             child_dict = self.fixedAnnotation.exportJson(json_dict, 'fixedAnnotation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedAnnotation'] = child_dict
         if self.fixedAttachment is not None:
             child_dict = self.fixedAttachment.exportJson(json_dict, 'fixedAttachment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedAttachment'] = child_dict
         if self.fixedCodeableConcept is not None:
             child_dict = self.fixedCodeableConcept.exportJson(json_dict, 'fixedCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedCodeableConcept'] = child_dict
         if self.fixedCoding is not None:
             child_dict = self.fixedCoding.exportJson(json_dict, 'fixedCoding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedCoding'] = child_dict
         if self.fixedContactPoint is not None:
             child_dict = self.fixedContactPoint.exportJson(json_dict, 'fixedContactPoint', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedContactPoint'] = child_dict
         if self.fixedCount is not None:
             child_dict = self.fixedCount.exportJson(json_dict, 'fixedCount', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedCount'] = child_dict
         if self.fixedDistance is not None:
             child_dict = self.fixedDistance.exportJson(json_dict, 'fixedDistance', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDistance'] = child_dict
         if self.fixedDuration is not None:
             child_dict = self.fixedDuration.exportJson(json_dict, 'fixedDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDuration'] = child_dict
         if self.fixedHumanName is not None:
             child_dict = self.fixedHumanName.exportJson(json_dict, 'fixedHumanName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedHumanName'] = child_dict
         if self.fixedIdentifier is not None:
             child_dict = self.fixedIdentifier.exportJson(json_dict, 'fixedIdentifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedIdentifier'] = child_dict
         if self.fixedMoney is not None:
             child_dict = self.fixedMoney.exportJson(json_dict, 'fixedMoney', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedMoney'] = child_dict
         if self.fixedPeriod is not None:
             child_dict = self.fixedPeriod.exportJson(json_dict, 'fixedPeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedPeriod'] = child_dict
         if self.fixedQuantity is not None:
             child_dict = self.fixedQuantity.exportJson(json_dict, 'fixedQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedQuantity'] = child_dict
         if self.fixedRange is not None:
             child_dict = self.fixedRange.exportJson(json_dict, 'fixedRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedRange'] = child_dict
         if self.fixedRatio is not None:
             child_dict = self.fixedRatio.exportJson(json_dict, 'fixedRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedRatio'] = child_dict
         if self.fixedReference is not None:
             child_dict = self.fixedReference.exportJson(json_dict, 'fixedReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedReference'] = child_dict
         if self.fixedSampledData is not None:
             child_dict = self.fixedSampledData.exportJson(json_dict, 'fixedSampledData', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedSampledData'] = child_dict
         if self.fixedSignature is not None:
             child_dict = self.fixedSignature.exportJson(json_dict, 'fixedSignature', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedSignature'] = child_dict
         if self.fixedTiming is not None:
             child_dict = self.fixedTiming.exportJson(json_dict, 'fixedTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedTiming'] = child_dict
         if self.fixedContactDetail is not None:
             child_dict = self.fixedContactDetail.exportJson(json_dict, 'fixedContactDetail', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedContactDetail'] = child_dict
         if self.fixedContributor is not None:
             child_dict = self.fixedContributor.exportJson(json_dict, 'fixedContributor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedContributor'] = child_dict
         if self.fixedDataRequirement is not None:
             child_dict = self.fixedDataRequirement.exportJson(json_dict, 'fixedDataRequirement', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDataRequirement'] = child_dict
         if self.fixedExpression is not None:
             child_dict = self.fixedExpression.exportJson(json_dict, 'fixedExpression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedExpression'] = child_dict
         if self.fixedParameterDefinition is not None:
             child_dict = self.fixedParameterDefinition.exportJson(json_dict, 'fixedParameterDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedParameterDefinition'] = child_dict
         if self.fixedRelatedArtifact is not None:
             child_dict = self.fixedRelatedArtifact.exportJson(json_dict, 'fixedRelatedArtifact', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedRelatedArtifact'] = child_dict
         if self.fixedTriggerDefinition is not None:
             child_dict = self.fixedTriggerDefinition.exportJson(json_dict, 'fixedTriggerDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedTriggerDefinition'] = child_dict
         if self.fixedUsageContext is not None:
             child_dict = self.fixedUsageContext.exportJson(json_dict, 'fixedUsageContext', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedUsageContext'] = child_dict
         if self.fixedDosage is not None:
             child_dict = self.fixedDosage.exportJson(json_dict, 'fixedDosage', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedDosage'] = child_dict
         if self.fixedMeta is not None:
             child_dict = self.fixedMeta.exportJson(json_dict, 'fixedMeta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['fixedMeta'] = child_dict
         if self.patternBase64Binary is not None:
             child_dict = self.patternBase64Binary.exportJson(json_dict, 'patternBase64Binary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternBase64Binary'] = child_dict
         if self.patternBoolean is not None:
             child_dict = self.patternBoolean.exportJson(json_dict, 'patternBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternBoolean'] = child_dict
         if self.patternCanonical is not None:
             child_dict = self.patternCanonical.exportJson(json_dict, 'patternCanonical', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternCanonical'] = child_dict
         if self.patternCode is not None:
             child_dict = self.patternCode.exportJson(json_dict, 'patternCode', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternCode'] = child_dict
         if self.patternDate is not None:
             child_dict = self.patternDate.exportJson(json_dict, 'patternDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDate'] = child_dict
         if self.patternDateTime is not None:
             child_dict = self.patternDateTime.exportJson(json_dict, 'patternDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDateTime'] = child_dict
         if self.patternDecimal is not None:
             child_dict = self.patternDecimal.exportJson(json_dict, 'patternDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDecimal'] = child_dict
         if self.patternId is not None:
             child_dict = self.patternId.exportJson(json_dict, 'patternId', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternId'] = child_dict
         if self.patternInstant is not None:
             child_dict = self.patternInstant.exportJson(json_dict, 'patternInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternInstant'] = child_dict
         if self.patternInteger is not None:
             child_dict = self.patternInteger.exportJson(json_dict, 'patternInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternInteger'] = child_dict
         if self.patternMarkdown is not None:
             child_dict = self.patternMarkdown.exportJson(json_dict, 'patternMarkdown', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternMarkdown'] = child_dict
         if self.patternOid is not None:
             child_dict = self.patternOid.exportJson(json_dict, 'patternOid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternOid'] = child_dict
         if self.patternPositiveInt is not None:
             child_dict = self.patternPositiveInt.exportJson(json_dict, 'patternPositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternPositiveInt'] = child_dict
         if self.patternString is not None:
             child_dict = self.patternString.exportJson(json_dict, 'patternString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternString'] = child_dict
         if self.patternTime is not None:
             child_dict = self.patternTime.exportJson(json_dict, 'patternTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternTime'] = child_dict
         if self.patternUnsignedInt is not None:
             child_dict = self.patternUnsignedInt.exportJson(json_dict, 'patternUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternUnsignedInt'] = child_dict
         if self.patternUri is not None:
             child_dict = self.patternUri.exportJson(json_dict, 'patternUri', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternUri'] = child_dict
         if self.patternUrl is not None:
             child_dict = self.patternUrl.exportJson(json_dict, 'patternUrl', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternUrl'] = child_dict
         if self.patternUuid is not None:
             child_dict = self.patternUuid.exportJson(json_dict, 'patternUuid', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternUuid'] = child_dict
         if self.patternAddress is not None:
             child_dict = self.patternAddress.exportJson(json_dict, 'patternAddress', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternAddress'] = child_dict
         if self.patternAge is not None:
             child_dict = self.patternAge.exportJson(json_dict, 'patternAge', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternAge'] = child_dict
         if self.patternAnnotation is not None:
             child_dict = self.patternAnnotation.exportJson(json_dict, 'patternAnnotation', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternAnnotation'] = child_dict
         if self.patternAttachment is not None:
             child_dict = self.patternAttachment.exportJson(json_dict, 'patternAttachment', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternAttachment'] = child_dict
         if self.patternCodeableConcept is not None:
             child_dict = self.patternCodeableConcept.exportJson(json_dict, 'patternCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternCodeableConcept'] = child_dict
         if self.patternCoding is not None:
             child_dict = self.patternCoding.exportJson(json_dict, 'patternCoding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternCoding'] = child_dict
         if self.patternContactPoint is not None:
             child_dict = self.patternContactPoint.exportJson(json_dict, 'patternContactPoint', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternContactPoint'] = child_dict
         if self.patternCount is not None:
             child_dict = self.patternCount.exportJson(json_dict, 'patternCount', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternCount'] = child_dict
         if self.patternDistance is not None:
             child_dict = self.patternDistance.exportJson(json_dict, 'patternDistance', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDistance'] = child_dict
         if self.patternDuration is not None:
             child_dict = self.patternDuration.exportJson(json_dict, 'patternDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDuration'] = child_dict
         if self.patternHumanName is not None:
             child_dict = self.patternHumanName.exportJson(json_dict, 'patternHumanName', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternHumanName'] = child_dict
         if self.patternIdentifier is not None:
             child_dict = self.patternIdentifier.exportJson(json_dict, 'patternIdentifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternIdentifier'] = child_dict
         if self.patternMoney is not None:
             child_dict = self.patternMoney.exportJson(json_dict, 'patternMoney', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternMoney'] = child_dict
         if self.patternPeriod is not None:
             child_dict = self.patternPeriod.exportJson(json_dict, 'patternPeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternPeriod'] = child_dict
         if self.patternQuantity is not None:
             child_dict = self.patternQuantity.exportJson(json_dict, 'patternQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternQuantity'] = child_dict
         if self.patternRange is not None:
             child_dict = self.patternRange.exportJson(json_dict, 'patternRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternRange'] = child_dict
         if self.patternRatio is not None:
             child_dict = self.patternRatio.exportJson(json_dict, 'patternRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternRatio'] = child_dict
         if self.patternReference is not None:
             child_dict = self.patternReference.exportJson(json_dict, 'patternReference', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternReference'] = child_dict
         if self.patternSampledData is not None:
             child_dict = self.patternSampledData.exportJson(json_dict, 'patternSampledData', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternSampledData'] = child_dict
         if self.patternSignature is not None:
             child_dict = self.patternSignature.exportJson(json_dict, 'patternSignature', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternSignature'] = child_dict
         if self.patternTiming is not None:
             child_dict = self.patternTiming.exportJson(json_dict, 'patternTiming', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternTiming'] = child_dict
         if self.patternContactDetail is not None:
             child_dict = self.patternContactDetail.exportJson(json_dict, 'patternContactDetail', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternContactDetail'] = child_dict
         if self.patternContributor is not None:
             child_dict = self.patternContributor.exportJson(json_dict, 'patternContributor', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternContributor'] = child_dict
         if self.patternDataRequirement is not None:
             child_dict = self.patternDataRequirement.exportJson(json_dict, 'patternDataRequirement', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDataRequirement'] = child_dict
         if self.patternExpression is not None:
             child_dict = self.patternExpression.exportJson(json_dict, 'patternExpression', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternExpression'] = child_dict
         if self.patternParameterDefinition is not None:
             child_dict = self.patternParameterDefinition.exportJson(json_dict, 'patternParameterDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternParameterDefinition'] = child_dict
         if self.patternRelatedArtifact is not None:
             child_dict = self.patternRelatedArtifact.exportJson(json_dict, 'patternRelatedArtifact', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternRelatedArtifact'] = child_dict
         if self.patternTriggerDefinition is not None:
             child_dict = self.patternTriggerDefinition.exportJson(json_dict, 'patternTriggerDefinition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternTriggerDefinition'] = child_dict
         if self.patternUsageContext is not None:
             child_dict = self.patternUsageContext.exportJson(json_dict, 'patternUsageContext', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternUsageContext'] = child_dict
         if self.patternDosage is not None:
             child_dict = self.patternDosage.exportJson(json_dict, 'patternDosage', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternDosage'] = child_dict
         if self.patternMeta is not None:
             child_dict = self.patternMeta.exportJson(json_dict, 'patternMeta', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patternMeta'] = child_dict
         child_list = []
         for child in self.example:
             child_dict = child.exportJson(json_dict, 'example', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['example'] = child_list
         if self.minValueDate is not None:
             child_dict = self.minValueDate.exportJson(json_dict, 'minValueDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueDate'] = child_dict
         if self.minValueDateTime is not None:
             child_dict = self.minValueDateTime.exportJson(json_dict, 'minValueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueDateTime'] = child_dict
         if self.minValueInstant is not None:
             child_dict = self.minValueInstant.exportJson(json_dict, 'minValueInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueInstant'] = child_dict
         if self.minValueTime is not None:
             child_dict = self.minValueTime.exportJson(json_dict, 'minValueTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueTime'] = child_dict
         if self.minValueDecimal is not None:
             child_dict = self.minValueDecimal.exportJson(json_dict, 'minValueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueDecimal'] = child_dict
         if self.minValueInteger is not None:
             child_dict = self.minValueInteger.exportJson(json_dict, 'minValueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueInteger'] = child_dict
         if self.minValuePositiveInt is not None:
             child_dict = self.minValuePositiveInt.exportJson(json_dict, 'minValuePositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValuePositiveInt'] = child_dict
         if self.minValueUnsignedInt is not None:
             child_dict = self.minValueUnsignedInt.exportJson(json_dict, 'minValueUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueUnsignedInt'] = child_dict
         if self.minValueQuantity is not None:
             child_dict = self.minValueQuantity.exportJson(json_dict, 'minValueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['minValueQuantity'] = child_dict
         if self.maxValueDate is not None:
             child_dict = self.maxValueDate.exportJson(json_dict, 'maxValueDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueDate'] = child_dict
         if self.maxValueDateTime is not None:
             child_dict = self.maxValueDateTime.exportJson(json_dict, 'maxValueDateTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueDateTime'] = child_dict
         if self.maxValueInstant is not None:
             child_dict = self.maxValueInstant.exportJson(json_dict, 'maxValueInstant', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueInstant'] = child_dict
         if self.maxValueTime is not None:
             child_dict = self.maxValueTime.exportJson(json_dict, 'maxValueTime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueTime'] = child_dict
         if self.maxValueDecimal is not None:
             child_dict = self.maxValueDecimal.exportJson(json_dict, 'maxValueDecimal', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueDecimal'] = child_dict
         if self.maxValueInteger is not None:
             child_dict = self.maxValueInteger.exportJson(json_dict, 'maxValueInteger', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueInteger'] = child_dict
         if self.maxValuePositiveInt is not None:
             child_dict = self.maxValuePositiveInt.exportJson(json_dict, 'maxValuePositiveInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValuePositiveInt'] = child_dict
         if self.maxValueUnsignedInt is not None:
             child_dict = self.maxValueUnsignedInt.exportJson(json_dict, 'maxValueUnsignedInt', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueUnsignedInt'] = child_dict
         if self.maxValueQuantity is not None:
             child_dict = self.maxValueQuantity.exportJson(json_dict, 'maxValueQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxValueQuantity'] = child_dict
         if self.maxLength is not None:
             child_dict = self.maxLength.exportJson(json_dict, 'maxLength', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxLength'] = child_dict
         child_list = []
         for child in self.condition:
             child_dict = child.exportJson(json_dict, 'condition', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['condition'] = child_list
         child_list = []
         for child in self.constraint:
             child_dict = child.exportJson(json_dict, 'constraint', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['constraint'] = child_list
         if self.mustSupport is not None:
             child_dict = self.mustSupport.exportJson(json_dict, 'mustSupport', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['mustSupport'] = child_dict
         if self.isModifier is not None:
             child_dict = self.isModifier.exportJson(json_dict, 'isModifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['isModifier'] = child_dict
         if self.isModifierReason is not None:
             child_dict = self.isModifierReason.exportJson(json_dict, 'isModifierReason', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['isModifierReason'] = child_dict
         if self.isSummary is not None:
             child_dict = self.isSummary.exportJson(json_dict, 'isSummary', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['isSummary'] = child_dict
         if self.binding is not None:
             child_dict = self.binding.exportJson(json_dict, 'binding', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['binding'] = child_dict
         child_list = []
         for child in self.mapping:
             child_dict = child.exportJson(json_dict, 'mapping', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['mapping'] = child_list
@@ -24567,56 +24567,56 @@ class ProdCharacteristic(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.height is not None:
             child_dict = self.height.exportJson(json_dict, 'height', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['height'] = child_dict
         if self.width is not None:
             child_dict = self.width.exportJson(json_dict, 'width', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['width'] = child_dict
         if self.depth is not None:
             child_dict = self.depth.exportJson(json_dict, 'depth', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['depth'] = child_dict
         if self.weight is not None:
             child_dict = self.weight.exportJson(json_dict, 'weight', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['weight'] = child_dict
         if self.nominalVolume is not None:
             child_dict = self.nominalVolume.exportJson(json_dict, 'nominalVolume', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['nominalVolume'] = child_dict
         if self.externalDiameter is not None:
             child_dict = self.externalDiameter.exportJson(json_dict, 'externalDiameter', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['externalDiameter'] = child_dict
         if self.shape is not None:
             child_dict = self.shape.exportJson(json_dict, 'shape', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['shape'] = child_dict
         child_list = []
         for child in self.color:
             child_dict = child.exportJson(json_dict, 'color', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['color'] = child_list
         child_list = []
         for child in self.imprint:
             child_dict = child.exportJson(json_dict, 'imprint', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['imprint'] = child_list
         child_list = []
         for child in self.image:
             child_dict = child.exportJson(json_dict, 'image', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['image'] = child_list
         if self.scoring is not None:
             child_dict = self.scoring.exportJson(json_dict, 'scoring', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['scoring'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -24992,80 +24992,80 @@ class Timing_Repeat(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.boundsDuration is not None:
             child_dict = self.boundsDuration.exportJson(json_dict, 'boundsDuration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['boundsDuration'] = child_dict
         if self.boundsRange is not None:
             child_dict = self.boundsRange.exportJson(json_dict, 'boundsRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['boundsRange'] = child_dict
         if self.boundsPeriod is not None:
             child_dict = self.boundsPeriod.exportJson(json_dict, 'boundsPeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['boundsPeriod'] = child_dict
         if self.count is not None:
             child_dict = self.count.exportJson(json_dict, 'count', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['count'] = child_dict
         if self.countMax is not None:
             child_dict = self.countMax.exportJson(json_dict, 'countMax', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['countMax'] = child_dict
         if self.duration is not None:
             child_dict = self.duration.exportJson(json_dict, 'duration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['duration'] = child_dict
         if self.durationMax is not None:
             child_dict = self.durationMax.exportJson(json_dict, 'durationMax', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['durationMax'] = child_dict
         if self.durationUnit is not None:
             child_dict = self.durationUnit.exportJson(json_dict, 'durationUnit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['durationUnit'] = child_dict
         if self.frequency is not None:
             child_dict = self.frequency.exportJson(json_dict, 'frequency', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['frequency'] = child_dict
         if self.frequencyMax is not None:
             child_dict = self.frequencyMax.exportJson(json_dict, 'frequencyMax', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['frequencyMax'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
         if self.periodMax is not None:
             child_dict = self.periodMax.exportJson(json_dict, 'periodMax', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['periodMax'] = child_dict
         if self.periodUnit is not None:
             child_dict = self.periodUnit.exportJson(json_dict, 'periodUnit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['periodUnit'] = child_dict
         child_list = []
         for child in self.dayOfWeek:
             child_dict = child.exportJson(json_dict, 'dayOfWeek', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['dayOfWeek'] = child_list
         child_list = []
         for child in self.timeOfDay:
             child_dict = child.exportJson(json_dict, 'timeOfDay', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['timeOfDay'] = child_list
         child_list = []
         for child in self.when:
             child_dict = child.exportJson(json_dict, 'when', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['when'] = child_list
         if self.offset is not None:
             child_dict = self.offset.exportJson(json_dict, 'offset', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['offset'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -25296,17 +25296,17 @@ class Timing(BackboneElement):
         child_list = []
         for child in self.event:
             child_dict = child.exportJson(json_dict, 'event', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['event'] = child_list
         if self.repeat is not None:
             child_dict = self.repeat.exportJson(json_dict, 'repeat', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['repeat'] = child_dict
         if self.code is not None:
             child_dict = self.code.exportJson(json_dict, 'code', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['code'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -25477,20 +25477,20 @@ class ProductShelfLife(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.identifier is not None:
             child_dict = self.identifier.exportJson(json_dict, 'identifier', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['identifier'] = child_dict
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.period is not None:
             child_dict = self.period.exportJson(json_dict, 'period', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['period'] = child_dict
         child_list = []
         for child in self.specialPrecautionsForStorage:
             child_dict = child.exportJson(json_dict, 'specialPrecautionsForStorage', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['specialPrecautionsForStorage'] = child_list
@@ -25670,23 +25670,23 @@ class Population(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.ageRange is not None:
             child_dict = self.ageRange.exportJson(json_dict, 'ageRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['ageRange'] = child_dict
         if self.ageCodeableConcept is not None:
             child_dict = self.ageCodeableConcept.exportJson(json_dict, 'ageCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['ageCodeableConcept'] = child_dict
         if self.gender is not None:
             child_dict = self.gender.exportJson(json_dict, 'gender', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['gender'] = child_dict
         if self.race is not None:
             child_dict = self.race.exportJson(json_dict, 'race', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['race'] = child_dict
         if self.physiologicalCondition is not None:
             child_dict = self.physiologicalCondition.exportJson(json_dict, 'physiologicalCondition', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['physiologicalCondition'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -25836,11 +25836,11 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.lowLimit is not None:
             child_dict = self.lowLimit.exportJson(json_dict, 'lowLimit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['lowLimit'] = child_dict
         if self.highLimit is not None:
             child_dict = self.highLimit.exportJson(json_dict, 'highLimit', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['highLimit'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -26019,27 +26019,27 @@ class SubstanceAmount(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.amountQuantity is not None:
             child_dict = self.amountQuantity.exportJson(json_dict, 'amountQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['amountQuantity'] = child_dict
         if self.amountRange is not None:
             child_dict = self.amountRange.exportJson(json_dict, 'amountRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['amountRange'] = child_dict
         if self.amountString is not None:
             child_dict = self.amountString.exportJson(json_dict, 'amountString', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['amountString'] = child_dict
         if self.amountType is not None:
             child_dict = self.amountType.exportJson(json_dict, 'amountType', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['amountType'] = child_dict
         if self.amountText is not None:
             child_dict = self.amountText.exportJson(json_dict, 'amountText', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['amountText'] = child_dict
         if self.referenceRange is not None:
             child_dict = self.referenceRange.exportJson(json_dict, 'referenceRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['referenceRange'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -26238,23 +26238,23 @@ class MarketingStatus(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.country is not None:
             child_dict = self.country.exportJson(json_dict, 'country', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['country'] = child_dict
         if self.jurisdiction is not None:
             child_dict = self.jurisdiction.exportJson(json_dict, 'jurisdiction', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['jurisdiction'] = child_dict
         if self.status is not None:
             child_dict = self.status.exportJson(json_dict, 'status', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['status'] = child_dict
         if self.dateRange is not None:
             child_dict = self.dateRange.exportJson(json_dict, 'dateRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['dateRange'] = child_dict
         if self.restoreDate is not None:
             child_dict = self.restoreDate.exportJson(json_dict, 'restoreDate', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['restoreDate'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -26445,27 +26445,27 @@ class Dosage_DoseAndRate(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.type_ is not None:
             child_dict = self.type_.exportJson(json_dict, 'type', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['type'] = child_dict
         if self.doseRange is not None:
             child_dict = self.doseRange.exportJson(json_dict, 'doseRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['doseRange'] = child_dict
         if self.doseQuantity is not None:
             child_dict = self.doseQuantity.exportJson(json_dict, 'doseQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['doseQuantity'] = child_dict
         if self.rateRatio is not None:
             child_dict = self.rateRatio.exportJson(json_dict, 'rateRatio', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['rateRatio'] = child_dict
         if self.rateRange is not None:
             child_dict = self.rateRange.exportJson(json_dict, 'rateRange', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['rateRange'] = child_dict
         if self.rateQuantity is not None:
             child_dict = self.rateQuantity.exportJson(json_dict, 'rateQuantity', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['rateQuantity'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -26771,65 +26771,65 @@ class Dosage(BackboneElement):
         super().exportJsonChildren(json_dict)
         if self.sequence is not None:
             child_dict = self.sequence.exportJson(json_dict, 'sequence', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['sequence'] = child_dict
         if self.text is not None:
             child_dict = self.text.exportJson(json_dict, 'text', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['text'] = child_dict
         child_list = []
         for child in self.additionalInstruction:
             child_dict = child.exportJson(json_dict, 'additionalInstruction', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['additionalInstruction'] = child_list
         if self.patientInstruction is not None:
             child_dict = self.patientInstruction.exportJson(json_dict, 'patientInstruction', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['patientInstruction'] = child_dict
         if self.timing is not None:
             child_dict = self.timing.exportJson(json_dict, 'timing', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['timing'] = child_dict
         if self.asNeededBoolean is not None:
             child_dict = self.asNeededBoolean.exportJson(json_dict, 'asNeededBoolean', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['asNeededBoolean'] = child_dict
         if self.asNeededCodeableConcept is not None:
             child_dict = self.asNeededCodeableConcept.exportJson(json_dict, 'asNeededCodeableConcept', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['asNeededCodeableConcept'] = child_dict
         if self.site is not None:
             child_dict = self.site.exportJson(json_dict, 'site', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['site'] = child_dict
         if self.route is not None:
             child_dict = self.route.exportJson(json_dict, 'route', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['route'] = child_dict
         if self.method is not None:
             child_dict = self.method.exportJson(json_dict, 'method', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['method'] = child_dict
         child_list = []
         for child in self.doseAndRate:
             child_dict = child.exportJson(json_dict, 'doseAndRate', True)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 child_list.append(child_dict)
         if child_list:
             json_dict['doseAndRate'] = child_list
         if self.maxDosePerPeriod is not None:
             child_dict = self.maxDosePerPeriod.exportJson(json_dict, 'maxDosePerPeriod', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxDosePerPeriod'] = child_dict
         if self.maxDosePerAdministration is not None:
             child_dict = self.maxDosePerAdministration.exportJson(json_dict, 'maxDosePerAdministration', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxDosePerAdministration'] = child_dict
         if self.maxDosePerLifetime is not None:
             child_dict = self.maxDosePerLifetime.exportJson(json_dict, 'maxDosePerLifetime', False)
-            if child_dict:
+            if child_dict is not None and child_dict != {}:
                 json_dict['maxDosePerLifetime'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
