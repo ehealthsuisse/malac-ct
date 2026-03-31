@@ -83,6 +83,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     def parse(inFilename):
         return parse(inFilename)
 
+    @pcam.trim_output
     def get_resource(self):
         if hasattr(self,"resource") and (res := self.resource):
             return res
@@ -94,9 +95,11 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    @pcam.trim_output
     def get_id(self):
         return self.get_name()
 
+    @pcam.trim_output
     def get_url(self):
         if tempUrl := self.globalUrl:
             return tempUrl+self.get_resource()+"/"+self.get_id()
@@ -105,15 +108,19 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     #def get_version(self):
     #    return self.get_version()
 
+    @pcam.trim_output
     def get_name(self):
         return (re.sub(r'[^A-Za-z0-9\-]+', '', super(SVSextELGA1Sub,self).get_name().replace(" ","-").replace("_","-").replace("--","-").replace("---","-").replace("--","-"))).strip("-").lower()
 
+    @pcam.trim_output
     def get_title(self):
         return super(SVSextELGA1Sub,self).get_displayName()
 
+    @pcam.trim_output
     def get_status(self):
         return pcam.Status.active.value
 
+    @pcam.trim_output
     def get_description(self):
         tempRet = ""
         boolAddedSomething = False
@@ -140,6 +147,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             tempRet = None
         return tempRet
 
+    @pcam.trim_output
     def get_content(self):
         if hasattr(self,"content") and (tmp := self.content):
             return tmp
@@ -164,6 +172,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     # def get_modifierextension(self):
     #     return None
 
+    @pcam.trim_output
     def get_identifier(self):
         if hasattr(self,"identifier"):
             return self.identifier
@@ -175,14 +184,17 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     # def get_experimental(self):
     #     return None
 
+    @pcam.trim_output
     def get_date(self):
         return str(self.get_effectiveDate())
 
+    @pcam.trim_output
     def get_publisher(self):
         if (tmp := self.get_verantw_Org()) and tmp != "":
             return tmp
         return None
 
+    @pcam.trim_output
     def get_contact(self):
         tempConDetS = []
         if (website := self.get_website()) and not website == "":
@@ -230,6 +242,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
     # def get_versionneeded(self):
     #     return None
 
+    @pcam.trim_output
     def get_supplements(self):
         tmpSupplUrl = ""
         if tempUrl := self.globalUrl:
@@ -238,12 +251,14 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
             return tmpSupplUrl+tmp
         return None
 
+    @pcam.trim_output
     def get_count(self):
         return len(self.get_concept())
 
     # def get_filter(self):
     #     return None
 
+    @pcam.trim_output
     def get_concept(self):
         if hasattr(self, "concept") and self.concept:
             return self.concept
@@ -469,7 +484,7 @@ class SVSextELGA1Sub(supermod.SVSextELGA2, pcam.PropCsvAndMaster):
         effectiveDate = last_change_date = status_date = self.get_date() or date.today() # TODO should here be the today date?
         gueltigkeitsbereich = "empfohlen"
 
-        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match('([0-9]+\.)+[0-9]+',tmp)):
+        if (identifier := self.get_identifier()) and (tmp := identifier[0]) and (re.match(r'([0-9]+\.)+[0-9]+',tmp)):
             id = tmp
         else:
             id = self.gainOidFromName(self.get_resource()+"-"+self.get_id())
@@ -714,6 +729,7 @@ supermod.concept.subclass = conceptSub
 # end class conceptSub
 
 
+@pcam.trim_output
 def get_root_tag(node):
     tag = supermod.Tag_pattern_.match(node.tag).groups()[-1]
     rootClass = None

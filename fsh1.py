@@ -204,7 +204,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                     index = tempindex
                 else:
                     tempindex = index
-                if not re.match('\* concept\[(\d+|\+|=)+\]\.code .*', line):
+                if not re.match(r'\* concept\[(\d+|\+|=)+\]\.code .*', line):
                     if oneConcept := dictConcept[index]:
                         if 'display' in line:
                             oneConcept.display = value
