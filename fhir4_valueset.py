@@ -65,10 +65,12 @@ SaveElementTreeNode = True
 # Data representation classes
 #
 
-class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
+# no Sub suffix, because the new json export uses the classname as elementname
+class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
     def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, immutable=None, purpose=None, copyright=None, compose=None, expansion=None, **kwargs_):
-        super(ValueSetSub, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
+        super(ValueSet, self).__init__(id, meta, implicitRules, language, extension, modifierExtension, url, identifier, version, name, title, status, experimental, date, publisher, contact, description, useContext, jurisdiction, immutable, purpose, copyright, compose, expansion,  **kwargs_)
 
+    @pcam.trim_output
     def get_resource(self):
         """Return resource type.
 
@@ -80,69 +82,91 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         else:
             return pcam.Resource.ValueSet.value
 
+    @pcam.trim_output
     def get_id(self):
         return f4csvs.get_id(super())
 
+    @pcam.trim_output
     def get_profiles(self):
         return f4csvs.get_profiles(super())
 
+    @pcam.trim_output
     def get_implicitrules(self):
         return f4csvs.get_implicitrules(super())
 
+    @pcam.trim_output
     def get_language(self):
         return f4csvs.get_language(super())
 
+    @pcam.trim_output
     def get_text(self):
         return f4csvs.get_text(super())
 
+    @pcam.trim_output
     def get_contained(self):
         return f4csvs.get_contained(super())
 
+    @pcam.trim_output
     def get_extension(self):
         return f4csvs.get_extension(super())
 
+    @pcam.trim_output
     def get_modifierextension(self):
         return f4csvs.get_modifierextension(super())
 
+    @pcam.trim_output
     def get_url(self):
         return f4csvs.get_url(super())
 
+    @pcam.trim_output
     def get_identifier(self):
         return f4csvs.get_identifier(super())
 
+    @pcam.trim_output
     def get_version(self):
         return f4csvs.get_version(super())
 
+    @pcam.trim_output
     def get_name(self):
         return f4csvs.get_name(super())
 
+    @pcam.trim_output
     def get_title(self):
         return f4csvs.get_title(super())
 
+    @pcam.trim_output
     def get_status(self):
         return f4csvs.get_status(super())
 
+    @pcam.trim_output
     def get_experimental(self):
         return f4csvs.get_experimental(super())
 
+    @pcam.trim_output
     def get_date(self):
         return f4csvs.get_date(super())
 
+    @pcam.trim_output
     def get_publisher(self):
         return f4csvs.get_publisher(super())
 
+    @pcam.trim_output
     def get_contact(self):
         return f4csvs.get_contact(super())
 
+    @pcam.trim_output
     def get_description(self):
         return f4csvs.get_description(super())
 
+    @pcam.trim_output
     def get_usecontext(self):
         return f4csvs.get_usecontext(super())
 
+    @pcam.trim_output
     def get_jurisdiction(self):
         return f4csvs.get_jurisdiction(super())
 
+    @pcam.trim_output
     def get_immutable(self):
         """Return ValueSet.immutable.
         """
@@ -150,12 +174,15 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_purpose(self):
         return f4csvs.get_purpose(super())
 
+    @pcam.trim_output
     def get_copyright(self):
         return f4csvs.get_copyright(super())
 
+    @pcam.trim_output
     def get_casesensitive(self):
         """Return CodeSystem.caseSensitive. Field from CodeSystem.
 
@@ -163,6 +190,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_valueset(self):
         """Return CodeSystem.valueSet. Field from CodeSystem.
 
@@ -170,6 +198,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_hierarchymeaning(self):
         """Return CodeSystem.hierarchyMeaning. Field from CodeSystem.
 
@@ -177,6 +206,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_compositional(self):
         """Return CodeSystem.compositional. Field from CodeSystem.
 
@@ -184,6 +214,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_versionneeded(self):
         """Return CodeSystem.versionNeeded. Field from CodeSystem.
 
@@ -191,6 +222,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_content(self):
         """Return CodeSystem.content. Field from CodeSystem.
         """
@@ -201,6 +233,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
             return None
 
+    @pcam.trim_output
     def get_supplements(self):
         """Return CodeSystem.supplements. Field from CodeSystem.
         """
@@ -211,6 +244,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
             # Required because some exporto() (e.g. in prop_csv_and_master.py) do not check if resource is a CodeSystem or ValueSet.
             return None
 
+    @pcam.trim_output
     def get_count(self):
         """Return CodeSystem.count. Field from CodeSystem.
 
@@ -218,6 +252,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return None
 
+    @pcam.trim_output
     def get_filter(self):
         """Return CodeSystem.filter. Field from CodeSystem.
 
@@ -225,6 +260,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return []
 
+    @pcam.trim_output
     def get_property(self):
         """Return CodeSystem.property. Field from CodeSystem.
 
@@ -232,6 +268,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
         return []
 
+    @pcam.trim_output
     def get_lockeddate(self):
         """Return ValueSet.compose.lockedDate.
         """
@@ -240,6 +277,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_inactive(self):
         """Return ValueSet.compose.inactive.
         """
@@ -248,6 +286,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 return tmp.get_value()
         return None
 
+    @pcam.trim_output
     def get_concept(self):
         """Processes ValueSet.compose.include, ValueSet.compose.exclude, and ValueSet.expansion.contains and
         returns a list of pcam.VSConcept.
@@ -264,11 +303,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 compose = tmp
                 # parse ValueSet.compose.include
                 if tmp := compose.get_include():
-                    self.concept.extend(ValueSetSub.parse_include_information(tmp))
+                    self.concept.extend(ValueSet.parse_include_information(tmp))
 
                 # parse ValueSet.compose.exclude
                 if tmp := compose.get_exclude():
-                    self.concept.extend(ValueSetSub.parse_include_information(tmp, True))
+                    self.concept.extend(ValueSet.parse_include_information(tmp, True))
 
             # based on the concepts processed so far, a dictionary with the
             # concept's code as key will be created in order to add information
@@ -442,7 +481,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if tmp := one_contains.get_contains():
                         self.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
 
-    def exporto(self, outfile):
+    def exporto(self, outfile, json=False):
         """Write information to a FHIR ValueSet.
 
         self -- Object holding the information that should be written to the FHIR ValueSet.
@@ -451,7 +490,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         """
 
         # Create new FHIR ValueSet
-        valueset = ValueSetSub()
+        valueset = ValueSet()
 
         # export general metadata
         f4csvs.exporto(self, globals(), valueset)
@@ -462,18 +501,18 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         the_compose = None
 
         if tmp := self.get_lockeddate():
-            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
+            the_compose = ValueSet.create_compose_if_not_existent(valueset)
             the_compose.set_lockedDate(dateSub(value=tmp))
 
         if tmp := self.get_inactive():
-            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
+            the_compose = ValueSet.create_compose_if_not_existent(valueset)
             the_compose.set_inactive(booleanSub(value=tmp))
 
         if tmp := self.get_concept():
-            the_compose = ValueSetSub.create_compose_if_not_existent(valueset)
+            the_compose = ValueSet.create_compose_if_not_existent(valueset)
 
             # create ValueSet.compose.include and/or ValueSet.compose.exclude
-            do_expansion = ValueSetSub.exporto_include_exclude(self, the_compose, tmp)
+            do_expansion = ValueSet.exporto_include_exclude(self, the_compose, tmp)
 
             # if an expansion shall be appended to the ValueSet definition
             if do_expansion:
@@ -491,7 +530,7 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
                 # NOT SUPPORTED ValueSet_Expansion.parameter
 
                 # the expansion will be created starting with those concepts which are at level=0 of a possible hierarchy
-                the_expansion.set_contains(ValueSetSub.exporto_expansion(self, list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
+                the_expansion.set_contains(ValueSet.exporto_expansion(self, list(filter(lambda concept: concept.level is not None and concept.level == 0, tmp))))
 
                 valueset.set_expansion(the_expansion)
 
@@ -499,7 +538,11 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
         f4csvs.exporto_profiles(self, globals(), valueset)
 
         # export the FHIR ValueSet resource to the outfile
-        valueset.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
+        if json:
+            import json
+            json.dump(valueset.exportJson(), outfile, indent=2)
+        else:
+            valueset.export(outfile=outfile, level=0, namespacedef_='xmlns="http://hl7.org/fhir"')
 
     def create_compose_if_not_existent(valueset):
         """Create ValueSet.compose if it does not yet exist.
@@ -693,14 +736,14 @@ class ValueSetSub(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                 # if one_concept contains any members a recursion will be started
                 if tmp := one_concept.member:
-                    the_concept.set_contains(ValueSetSub.exporto_expansion(self, tmp))
+                    the_concept.set_contains(ValueSet.exporto_expansion(self, tmp))
 
                 the_concept_list.append(the_concept)
 
         return the_concept_list
 
-supermod.ValueSet.subclass = ValueSetSub
-# end class ValueSetSub
+supermod.ValueSet.subclass = ValueSet
+# end class ValueSet
 
 class ElementSub(supermod.Element):
     def __init__(self, id=None, extension=None, extensiontype_=None, **kwargs_):
@@ -1499,6 +1542,7 @@ supermod.Dosage.subclass = DosageSub
 # end class DosageSub
 
 
+@pcam.trim_output
 def get_root_tag(node):
     tag = supermod.Tag_pattern_.match(node.tag).groups()[-1]
     rootClass = None

@@ -2,21 +2,24 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Thu Mar  3 11:30:58 2022 by generateDS.py version 2.40.8.
-# Python 3.10.2 (tags/v3.10.2:a58ebcc, Jan 17 2022, 14:12:15) [MSC v.1929 64 bit (AMD64)]
+# Generated Wed Apr 16 11:59:58 2025 by generateDS.py version 2.43.3.
+# Python 3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]
 #
 # Command line options:
-#   ('-o', 'FHIR4CodeSystemSuper.py')
-#   ('-s', 'FHIR4CodeSystem.py')
+#   ('-o', 'fhir4_codesystem_super.py')
+#   ('--no-questions', '')
+#   ('-f', '')
+#   ('--export', 'write json')
+#   ('--use-namespacedef-instead-of-namespaceprefix-for', 'xhtml')
 #
 # Command line arguments:
-#   codesystem.xsd
+#   C:\Users\nikol\gitrepos\malac-ct\FHIR\codesystem.xsd
 #
 # Command line:
-#   C:/Dokumente und Einstellungen/gkleinoscheg/Downloads/generateDS-2.40.8/generateDS.py -o "FHIR4CodeSystemSuper.py" -s "FHIR4CodeSystem.py" codesystem.xsd
+#   generateDS.py -o "fhir4_codesystem_super.py" --no-questions -f --export="write json" --use-namespacedef-instead-of-namespaceprefix-for="xhtml" C:\Users\nikol\gitrepos\malac-ct\FHIR\codesystem.xsd
 #
 # Current working directory (os.getcwd()):
-#   FHIR
+#   generateds
 #
 
 import sys
@@ -28,18 +31,23 @@ from six.moves import zip_longest
 import os
 import re as re_
 import base64
+# imports for django and/or sqlalchemy
+import json as json_
 import datetime as datetime_
 import decimal as decimal_
 from lxml import etree as etree_
+from typing import List as List_
 
 
 Validate_simpletypes_ = True
 SaveElementTreeNode = True
+SaveNodeDict = True
 TagNamePrefix = ""
 if sys.version_info.major == 2:
     BaseStrType_ = basestring
 else:
     BaseStrType_ = str
+node_dict = {}
 
 
 def parsexml_(infile, parser=None, **kwargs):
@@ -176,7 +184,7 @@ except ModulenotfoundExp_ as exp:
     except ModulenotfoundExp_ as exp:
         class GeneratedsSuperSuper(object):
             pass
-
+    
     class GeneratedsSuper(GeneratedsSuperSuper):
         __hash__ = object.__hash__
         tzoff_pattern = re_.compile(r'(\+|-)((0\d|1[0-3]):[0-5]\d|14:00)$')
@@ -258,7 +266,11 @@ except ModulenotfoundExp_ as exp:
                     raise_parse_error(node, 'Requires sequence of integer values')
             return values
         def gds_format_float(self, input_data, input_name=''):
-            return ('%.15f' % float(input_data)).rstrip('0')
+            value = ('%.15f' % float(input_data)).rstrip('0')
+            if value.endswith('.'):
+                value += '0'
+            return value
+    
         def gds_parse_float(self, input_data, node=None, input_name=''):
             try:
                 fval_ = float(input_data)
@@ -347,6 +359,7 @@ except ModulenotfoundExp_ as exp:
         def gds_format_boolean(self, input_data, input_name=''):
             return ('%s' % input_data).lower()
         def gds_parse_boolean(self, input_data, node=None, input_name=''):
+            input_data = input_data.strip()
             if input_data in ('true', '1'):
                 bval = True
             elif input_data in ('false', '0'):
@@ -526,6 +539,7 @@ except ModulenotfoundExp_ as exp:
             # The target value must match at least one of the patterns
             # in order for the test to succeed.
             found1 = True
+            target = str(target)
             for patterns1 in patterns:
                 found2 = False
                 for patterns2 in patterns1:
@@ -651,7 +665,9 @@ except ModulenotfoundExp_ as exp:
                 return instring
         @staticmethod
         def convert_unicode(instring):
-            if isinstance(instring, str):
+            if instring is None:
+                result = ""
+            elif isinstance(instring, str):
                 result = quote_xml(instring)
             elif sys.version_info.major == 2 and isinstance(instring, unicode):
                 result = quote_xml(instring).encode('utf8')
@@ -686,8 +702,8 @@ except ModulenotfoundExp_ as exp:
                     self.gds_elementtree_node_.sourceline)
             else:
                 return ""
-
-
+    
+    
     def getSubclassFromModule_(module, class_):
         '''Get the subclass of a class from a specific module.'''
         name = class_.__name__ + 'Sub'
@@ -769,16 +785,9 @@ def quote_xml_aux(inStr):
 def quote_attrib(inStr):
     s1 = (isinstance(inStr, BaseStrType_) and inStr or '%s' % inStr)
     s1 = s1.replace('&', '&amp;')
-    """For correct conversion from FHIR XML to JSON it is necessary to
-    convert all \n to &#10; With that the line feeds will be detected correctly.
-
-    Related issues:
-    - https://github.com/IBM/FHIR/issues/3577
-    - https://sourceforge.net/p/generateds/tickets/29/
-    """
-    s1 = s1.replace('\n', '&#10;')
     s1 = s1.replace('<', '&lt;')
     s1 = s1.replace('>', '&gt;')
+    s1 = s1.replace('\n', '&#10;')
     if '"' in s1:
         if "'" in s1:
             s1 = '"%s"' % s1.replace('"', "&quot;")
@@ -1001,11 +1010,10 @@ def _cast(typ, value):
         return value
     return typ(value)
 
-#
-# Data representation classes.
-#
 
-
+#
+# Start enum classes
+#
 class AddressType_list(str, Enum):
     POSTAL='postal' # Postal
     PHYSICAL='physical' # Physical
@@ -1308,16 +1316,19 @@ class UnitsOfTime_list(str, Enum):
     A='a' # 年
 
 
+#
+# Start data representation classes
+#
 class Element(GeneratedsSuper):
     """Element -- Base definition for all elements in a resource.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     extension -- May be used to represent additional information that is not part of the basic definition of the element. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = None
-    def __init__(self, id=None, extension=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1373,7 +1384,7 @@ class Element(GeneratedsSuper):
                 lineno = self.gds_get_node_lineno_()
                 self.gds_collector_.add_message('Value "%(value)s"%(lineno)s does not match xsd minLength restriction on string-primitive' % {"value" : encode_str_2_3(value), "lineno": lineno} )
                 result = False
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.extension
         ):
@@ -1396,7 +1407,7 @@ class Element(GeneratedsSuper):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Element')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Element', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -1423,10 +1434,30 @@ class Element(GeneratedsSuper):
         for extension_ in self.extension:
             namespaceprefix_ = self.extension_nsprefix_ + ':' if (UseCapturedNS_ and self.extension_nsprefix_) else ''
             extension_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='extension', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['id']):
+        return json_dict
+    def exportJsonAttributes(self, json_dict):
+        if self.id is not None:
+            json_dict['id'] = self.id
+    def exportJsonChildren(self, json_dict):
+        child_list = []
+        for child in self.extension:
+            child_dict = child.exportJson(json_dict, 'extension', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['extension'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -1462,12 +1493,12 @@ class Meta(Element):
     profile -- A list of profiles (references to [[[StructureDefinition]]] resources) that this resource claims to conform to. The URL is a reference to [[[StructureDefinition.url]]].
     security -- Security labels applied to this resource. These tags connect specific resources to the overall security policy and infrastructure.
     tag -- Tags applied to this resource. Tags are intended to be used to identify and relate resources to process and workflow, and applications are not required to consider the tags when interpreting the meaning of a resource.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, versionId=None, lastUpdated=None, source=None, profile=None, security=None, tag=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, versionId: 'id' = None, lastUpdated: 'instant' = None, source: 'uri' = None, profile: List_['canonical'] = None, security: List_['Coding'] = None, tag: List_['Coding'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1552,7 +1583,7 @@ class Meta(Element):
         self.tag.insert(index, value)
     def replace_tag_at(self, index, value):
         self.tag[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.versionId is not None or
             self.lastUpdated is not None or
@@ -1560,7 +1591,7 @@ class Meta(Element):
             self.profile or
             self.security or
             self.tag or
-            super(Meta, self)._hasContent()
+            super(Meta, self).has__content()
         ):
             return True
         else:
@@ -1581,7 +1612,7 @@ class Meta(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Meta')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Meta', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -1614,10 +1645,56 @@ class Meta(Element):
         for tag_ in self.tag:
             namespaceprefix_ = self.tag_nsprefix_ + ':' if (UseCapturedNS_ and self.tag_nsprefix_) else ''
             tag_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='tag', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.versionId is not None:
+            child_dict = self.versionId.exportJson(json_dict, 'versionId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['versionId'] = child_dict
+        if self.lastUpdated is not None:
+            child_dict = self.lastUpdated.exportJson(json_dict, 'lastUpdated', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['lastUpdated'] = child_dict
+        if self.source is not None:
+            child_dict = self.source.exportJson(json_dict, 'source', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['source'] = child_dict
+        child_list = []
+        for child in self.profile:
+            child_dict = child.exportJson(json_dict, 'profile', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['profile'] = child_list
+        child_list = []
+        for child in self.security:
+            child_dict = child.exportJson(json_dict, 'security', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['security'] = child_list
+        child_list = []
+        for child in self.tag:
+            child_dict = child.exportJson(json_dict, 'tag', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['tag'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -1675,12 +1752,12 @@ class Address(Element):
     postalCode -- A postal code designating a region defined by the postal service.
     country -- Country - a nation as commonly understood or generally accepted.
     period -- Time period when address was/is in use.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, use=None, type_=None, text=None, line=None, city=None, district=None, state=None, postalCode=None, country=None, period=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, use: 'AddressUse' = None, type_: 'AddressType' = None, text: 'string' = None, line: List_['string'] = None, city: 'string' = None, district: 'string' = None, state: 'string' = None, postalCode: 'string' = None, country: 'string' = None, period: 'Period' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1771,7 +1848,7 @@ class Address(Element):
         return self.period
     def set_period(self, period):
         self.period = period
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.use is not None or
             self.type_ is not None or
@@ -1783,7 +1860,7 @@ class Address(Element):
             self.postalCode is not None or
             self.country is not None or
             self.period is not None or
-            super(Address, self)._hasContent()
+            super(Address, self).has__content()
         ):
             return True
         else:
@@ -1804,7 +1881,7 @@ class Address(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Address')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Address', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -1849,10 +1926,66 @@ class Address(Element):
         if self.period is not None:
             namespaceprefix_ = self.period_nsprefix_ + ':' if (UseCapturedNS_ and self.period_nsprefix_) else ''
             self.period.export(outfile, level, namespaceprefix_, namespacedef_='', name_='period', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.text is not None:
+            child_dict = self.text.exportJson(json_dict, 'text', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['text'] = child_dict
+        child_list = []
+        for child in self.line:
+            child_dict = child.exportJson(json_dict, 'line', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['line'] = child_list
+        if self.city is not None:
+            child_dict = self.city.exportJson(json_dict, 'city', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['city'] = child_dict
+        if self.district is not None:
+            child_dict = self.district.exportJson(json_dict, 'district', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['district'] = child_dict
+        if self.state is not None:
+            child_dict = self.state.exportJson(json_dict, 'state', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['state'] = child_dict
+        if self.postalCode is not None:
+            child_dict = self.postalCode.exportJson(json_dict, 'postalCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['postalCode'] = child_dict
+        if self.country is not None:
+            child_dict = self.country.exportJson(json_dict, 'country', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['country'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -1920,12 +2053,12 @@ class Address(Element):
 class AddressUse(Element):
     """AddressUse -- The use of an address.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'AddressUse_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1974,9 +2107,9 @@ class AddressUse(Element):
                     self.validate_AddressUse_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_AddressUse_list_patterns_, ))
     validate_AddressUse_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(AddressUse, self)._hasContent()
+            super(AddressUse, self).has__content()
         ):
             return True
         else:
@@ -1997,7 +2130,7 @@ class AddressUse(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='AddressUse')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='AddressUse', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2011,10 +2144,25 @@ class AddressUse(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='AddressUse', fromsubclass_=False, pretty_print=True):
         super(AddressUse, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2039,12 +2187,12 @@ class AddressUse(Element):
 class AddressType(Element):
     """AddressType -- The type of an address (physical / postal).
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'AddressType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2093,9 +2241,9 @@ class AddressType(Element):
                     self.validate_AddressType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_AddressType_list_patterns_, ))
     validate_AddressType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(AddressType, self)._hasContent()
+            super(AddressType, self).has__content()
         ):
             return True
         else:
@@ -2116,7 +2264,7 @@ class AddressType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='AddressType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='AddressType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2130,10 +2278,25 @@ class AddressType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='AddressType', fromsubclass_=False, pretty_print=True):
         super(AddressType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2161,12 +2324,12 @@ class Contributor(Element):
     type -- The type of contributor.
     name -- The name of the individual or organization responsible for the contribution.
     contact -- Contact details to assist a user in finding and communicating with the contributor.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, type_=None, name=None, contact=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, type_: 'ContributorType' = None, name: 'string' = None, contact: List_['ContactDetail'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2215,12 +2378,12 @@ class Contributor(Element):
         self.contact.insert(index, value)
     def replace_contact_at(self, index, value):
         self.contact[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.name is not None or
             self.contact or
-            super(Contributor, self)._hasContent()
+            super(Contributor, self).has__content()
         ):
             return True
         else:
@@ -2241,7 +2404,7 @@ class Contributor(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Contributor')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Contributor', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2265,10 +2428,38 @@ class Contributor(Element):
         for contact_ in self.contact:
             namespaceprefix_ = self.contact_nsprefix_ + ':' if (UseCapturedNS_ and self.contact_nsprefix_) else ''
             contact_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='contact', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        child_list = []
+        for child in self.contact:
+            child_dict = child.exportJson(json_dict, 'contact', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['contact'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2301,12 +2492,12 @@ class Contributor(Element):
 class ContributorType(Element):
     """ContributorType -- The type of contributor.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ContributorType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2355,9 +2546,9 @@ class ContributorType(Element):
                     self.validate_ContributorType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ContributorType_list_patterns_, ))
     validate_ContributorType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ContributorType, self)._hasContent()
+            super(ContributorType, self).has__content()
         ):
             return True
         else:
@@ -2378,7 +2569,7 @@ class ContributorType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ContributorType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ContributorType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2392,10 +2583,25 @@ class ContributorType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ContributorType', fromsubclass_=False, pretty_print=True):
         super(ContributorType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2428,12 +2634,12 @@ class Attachment(Element):
     hash -- The calculated hash of the data using SHA-1. Represented using base64.
     title -- A label or set of text to display in place of the data.
     creation -- The date that the attachment was first created.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, contentType=None, language=None, data=None, url=None, size=None, hash=None, title=None, creation=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, contentType: 'code' = None, language: 'code' = None, data: 'base64Binary' = None, url: 'url' = None, size: 'unsignedInt' = None, hash: 'base64Binary' = None, title: 'string' = None, creation: 'dateTime' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2503,7 +2709,7 @@ class Attachment(Element):
         return self.creation
     def set_creation(self, creation):
         self.creation = creation
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.contentType is not None or
             self.language is not None or
@@ -2513,7 +2719,7 @@ class Attachment(Element):
             self.hash is not None or
             self.title is not None or
             self.creation is not None or
-            super(Attachment, self)._hasContent()
+            super(Attachment, self).has__content()
         ):
             return True
         else:
@@ -2534,7 +2740,7 @@ class Attachment(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Attachment')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Attachment', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2573,10 +2779,55 @@ class Attachment(Element):
         if self.creation is not None:
             namespaceprefix_ = self.creation_nsprefix_ + ':' if (UseCapturedNS_ and self.creation_nsprefix_) else ''
             self.creation.export(outfile, level, namespaceprefix_, namespacedef_='', name_='creation', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.contentType is not None:
+            child_dict = self.contentType.exportJson(json_dict, 'contentType', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['contentType'] = child_dict
+        if self.language is not None:
+            child_dict = self.language.exportJson(json_dict, 'language', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['language'] = child_dict
+        if self.data is not None:
+            child_dict = self.data.exportJson(json_dict, 'data', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['data'] = child_dict
+        if self.url is not None:
+            child_dict = self.url.exportJson(json_dict, 'url', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['url'] = child_dict
+        if self.size is not None:
+            child_dict = self.size.exportJson(json_dict, 'size', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['size'] = child_dict
+        if self.hash is not None:
+            child_dict = self.hash.exportJson(json_dict, 'hash', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['hash'] = child_dict
+        if self.title is not None:
+            child_dict = self.title.exportJson(json_dict, 'title', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['title'] = child_dict
+        if self.creation is not None:
+            child_dict = self.creation.exportJson(json_dict, 'creation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['creation'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2643,12 +2894,12 @@ class DataRequirement(Element):
     dateFilter -- Date filters specify additional constraints on the data in terms of the applicable date range for specific elements. Each date filter specifies an additional constraint on the data, i.e. date filters are AND'ed, not OR'ed.
     limit -- Specifies a maximum number of results that are required (uses the _count search parameter).
     sort -- Specifies the order of the results to be returned.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, type_=None, profile=None, subjectCodeableConcept=None, subjectReference=None, mustSupport=None, codeFilter=None, dateFilter=None, limit=None, sort=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, type_: 'code' = None, profile: List_['canonical'] = None, subjectCodeableConcept: 'CodeableConcept' = None, subjectReference: 'Reference' = None, mustSupport: List_['string'] = None, codeFilter: List_['DataRequirement.CodeFilter'] = None, dateFilter: List_['DataRequirement.DateFilter'] = None, limit: 'positiveInt' = None, sort: List_['DataRequirement.Sort'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2769,7 +3020,7 @@ class DataRequirement(Element):
         self.sort.insert(index, value)
     def replace_sort_at(self, index, value):
         self.sort[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.profile or
@@ -2780,7 +3031,7 @@ class DataRequirement(Element):
             self.dateFilter or
             self.limit is not None or
             self.sort or
-            super(DataRequirement, self)._hasContent()
+            super(DataRequirement, self).has__content()
         ):
             return True
         else:
@@ -2801,7 +3052,7 @@ class DataRequirement(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataRequirement')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataRequirement', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -2843,10 +3094,74 @@ class DataRequirement(Element):
         for sort_ in self.sort:
             namespaceprefix_ = self.sort_nsprefix_ + ':' if (UseCapturedNS_ and self.sort_nsprefix_) else ''
             sort_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='sort', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        child_list = []
+        for child in self.profile:
+            child_dict = child.exportJson(json_dict, 'profile', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['profile'] = child_list
+        if self.subjectCodeableConcept is not None:
+            child_dict = self.subjectCodeableConcept.exportJson(json_dict, 'subjectCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['subjectCodeableConcept'] = child_dict
+        if self.subjectReference is not None:
+            child_dict = self.subjectReference.exportJson(json_dict, 'subjectReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['subjectReference'] = child_dict
+        child_list = []
+        for child in self.mustSupport:
+            child_dict = child.exportJson(json_dict, 'mustSupport', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['mustSupport'] = child_list
+        child_list = []
+        for child in self.codeFilter:
+            child_dict = child.exportJson(json_dict, 'codeFilter', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['codeFilter'] = child_list
+        child_list = []
+        for child in self.dateFilter:
+            child_dict = child.exportJson(json_dict, 'dateFilter', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['dateFilter'] = child_list
+        if self.limit is not None:
+            child_dict = self.limit.exportJson(json_dict, 'limit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['limit'] = child_dict
+        child_list = []
+        for child in self.sort:
+            child_dict = child.exportJson(json_dict, 'sort', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['sort'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -2913,12 +3228,12 @@ class DataRequirement_CodeFilter(Element):
     searchParam -- A token parameter that refers to a search parameter defined on the specified type of the DataRequirement, and which searches on elements of type code, Coding, or CodeableConcept.
     valueSet -- The valueset for the code filter. The valueSet and code elements are additive. If valueSet is specified, the filter will return only those data items for which the value of the code-valued element specified in the path is a member of the specified valueset.
     code -- The codes for the code filter. If values are given, the filter will return only those data items for which the code-valued attribute specified by the path has a value that is one of the specified codes. If codes are specified in addition to a value set, the filter returns items matching a code in the value set or one of the specified codes.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, path=None, searchParam=None, valueSet=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, path: 'string' = None, searchParam: 'string' = None, valueSet: 'canonical' = None, code: List_['Coding'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -2973,13 +3288,13 @@ class DataRequirement_CodeFilter(Element):
         self.code.insert(index, value)
     def replace_code_at(self, index, value):
         self.code[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.path is not None or
             self.searchParam is not None or
             self.valueSet is not None or
             self.code or
-            super(DataRequirement_CodeFilter, self)._hasContent()
+            super(DataRequirement_CodeFilter, self).has__content()
         ):
             return True
         else:
@@ -3000,7 +3315,7 @@ class DataRequirement_CodeFilter(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataRequirement.CodeFilter')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataRequirement.CodeFilter', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3027,10 +3342,42 @@ class DataRequirement_CodeFilter(Element):
         for code_ in self.code:
             namespaceprefix_ = self.code_nsprefix_ + ':' if (UseCapturedNS_ and self.code_nsprefix_) else ''
             code_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='code', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
+        if self.searchParam is not None:
+            child_dict = self.searchParam.exportJson(json_dict, 'searchParam', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['searchParam'] = child_dict
+        if self.valueSet is not None:
+            child_dict = self.valueSet.exportJson(json_dict, 'valueSet', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSet'] = child_dict
+        child_list = []
+        for child in self.code:
+            child_dict = child.exportJson(json_dict, 'code', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['code'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3071,12 +3418,12 @@ class DataRequirement_DateFilter(Element):
     The value of the filter. If period is specified, the filter will return only those data items that fall within the bounds determined by the Period, inclusive of the period boundaries. If dateTime is specified, the filter will return only those data items that are equal to the specified dateTime. If a Duration is specified, the filter will return only those data items that fall within Duration before now.
     path -- The date-valued attribute of the filter. The specified path SHALL be a FHIRPath resolveable on the specified type of the DataRequirement, and SHALL consist only of identifiers, constant indexers, and .resolve(). The path is allowed to contain qualifiers (.) to traverse sub-elements, as well as indexers ([x]) to traverse multiple-cardinality sub-elements (see the [Simple FHIRPath Profile](fhirpath.html#simple) for full details). Note that the index must be an integer constant. The path must resolve to an element of type date, dateTime, Period, Schedule, or Timing.
     searchParam -- A date parameter that refers to a search parameter defined on the specified type of the DataRequirement, and which searches on elements of type date, dateTime, Period, Schedule, or Timing.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, path=None, searchParam=None, valueDateTime=None, valuePeriod=None, valueDuration=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, path: 'string' = None, searchParam: 'string' = None, valueDateTime: 'dateTime' = None, valuePeriod: 'Period' = None, valueDuration: 'Duration' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3128,14 +3475,14 @@ class DataRequirement_DateFilter(Element):
         return self.valueDuration
     def set_valueDuration(self, valueDuration):
         self.valueDuration = valueDuration
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.path is not None or
             self.searchParam is not None or
             self.valueDateTime is not None or
             self.valuePeriod is not None or
             self.valueDuration is not None or
-            super(DataRequirement_DateFilter, self)._hasContent()
+            super(DataRequirement_DateFilter, self).has__content()
         ):
             return True
         else:
@@ -3156,7 +3503,7 @@ class DataRequirement_DateFilter(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataRequirement.DateFilter')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataRequirement.DateFilter', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3186,10 +3533,43 @@ class DataRequirement_DateFilter(Element):
         if self.valueDuration is not None:
             namespaceprefix_ = self.valueDuration_nsprefix_ + ':' if (UseCapturedNS_ and self.valueDuration_nsprefix_) else ''
             self.valueDuration.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueDuration', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
+        if self.searchParam is not None:
+            child_dict = self.searchParam.exportJson(json_dict, 'searchParam', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['searchParam'] = child_dict
+        if self.valueDateTime is not None:
+            child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDateTime'] = child_dict
+        if self.valuePeriod is not None:
+            child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valuePeriod'] = child_dict
+        if self.valueDuration is not None:
+            child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDuration'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3234,12 +3614,12 @@ class DataRequirement_Sort(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     path -- The attribute of the sort. The specified path must be resolvable from the type of the required data. The path is allowed to contain qualifiers (.) to traverse sub-elements, as well as indexers ([x]) to traverse multiple-cardinality sub-elements. Note that the index must be an integer constant.
     direction -- The direction of the sort, ascending or descending.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, path=None, direction=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, path: 'string' = None, direction: 'SortDirection' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3273,11 +3653,11 @@ class DataRequirement_Sort(Element):
         return self.direction
     def set_direction(self, direction):
         self.direction = direction
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.path is not None or
             self.direction is not None or
-            super(DataRequirement_Sort, self)._hasContent()
+            super(DataRequirement_Sort, self).has__content()
         ):
             return True
         else:
@@ -3298,7 +3678,7 @@ class DataRequirement_Sort(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataRequirement.Sort')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataRequirement.Sort', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3319,10 +3699,31 @@ class DataRequirement_Sort(Element):
         if self.direction is not None:
             namespaceprefix_ = self.direction_nsprefix_ + ':' if (UseCapturedNS_ and self.direction_nsprefix_) else ''
             self.direction.export(outfile, level, namespaceprefix_, namespacedef_='', name_='direction', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
+        if self.direction is not None:
+            child_dict = self.direction.exportJson(json_dict, 'direction', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['direction'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3350,12 +3751,12 @@ class DataRequirement_Sort(Element):
 class SortDirection(Element):
     """SortDirection -- The possible sort directions, ascending or descending.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'SortDirection_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3404,9 +3805,9 @@ class SortDirection(Element):
                     self.validate_SortDirection_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_SortDirection_list_patterns_, ))
     validate_SortDirection_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(SortDirection, self)._hasContent()
+            super(SortDirection, self).has__content()
         ):
             return True
         else:
@@ -3427,7 +3828,7 @@ class SortDirection(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SortDirection')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SortDirection', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3441,10 +3842,25 @@ class SortDirection(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='SortDirection', fromsubclass_=False, pretty_print=True):
         super(SortDirection, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3471,12 +3887,12 @@ class Money(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     value -- Numerical value (with implicit precision).
     currency -- ISO 4217 Currency Code.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, currency=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, currency: 'code' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3510,11 +3926,11 @@ class Money(Element):
         return self.currency
     def set_currency(self, currency):
         self.currency = currency
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.value is not None or
             self.currency is not None or
-            super(Money, self)._hasContent()
+            super(Money, self).has__content()
         ):
             return True
         else:
@@ -3535,7 +3951,7 @@ class Money(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Money')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Money', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3556,10 +3972,31 @@ class Money(Element):
         if self.currency is not None:
             namespaceprefix_ = self.currency_nsprefix_ + ':' if (UseCapturedNS_ and self.currency_nsprefix_) else ''
             self.currency.export(outfile, level, namespaceprefix_, namespacedef_='', name_='currency', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
+        if self.currency is not None:
+            child_dict = self.currency.exportJson(json_dict, 'currency', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['currency'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3594,12 +4031,12 @@ class HumanName(Element):
     prefix -- Part of the name that is acquired as a title due to academic, legal, employment or nobility status, etc. and that appears at the start of the name.
     suffix -- Part of the name that is acquired as a title due to academic, legal, employment or nobility status, etc. and that appears at the end of the name.
     period -- Indicates the period of time when this name was valid for the named person.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, use=None, text=None, family=None, given=None, prefix=None, suffix=None, period=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, use: 'NameUse' = None, text: 'string' = None, family: 'string' = None, given: List_['string'] = None, prefix: List_['string'] = None, suffix: List_['string'] = None, period: 'Period' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3690,7 +4127,7 @@ class HumanName(Element):
         return self.period
     def set_period(self, period):
         self.period = period
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.use is not None or
             self.text is not None or
@@ -3699,7 +4136,7 @@ class HumanName(Element):
             self.prefix or
             self.suffix or
             self.period is not None or
-            super(HumanName, self)._hasContent()
+            super(HumanName, self).has__content()
         ):
             return True
         else:
@@ -3720,7 +4157,7 @@ class HumanName(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='HumanName')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='HumanName', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3756,10 +4193,60 @@ class HumanName(Element):
         if self.period is not None:
             namespaceprefix_ = self.period_nsprefix_ + ':' if (UseCapturedNS_ and self.period_nsprefix_) else ''
             self.period.export(outfile, level, namespaceprefix_, namespacedef_='', name_='period', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.text is not None:
+            child_dict = self.text.exportJson(json_dict, 'text', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['text'] = child_dict
+        if self.family is not None:
+            child_dict = self.family.exportJson(json_dict, 'family', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['family'] = child_dict
+        child_list = []
+        for child in self.given:
+            child_dict = child.exportJson(json_dict, 'given', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['given'] = child_list
+        child_list = []
+        for child in self.prefix:
+            child_dict = child.exportJson(json_dict, 'prefix', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['prefix'] = child_list
+        child_list = []
+        for child in self.suffix:
+            child_dict = child.exportJson(json_dict, 'suffix', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['suffix'] = child_list
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3812,12 +4299,12 @@ class HumanName(Element):
 class NameUse(Element):
     """NameUse -- The use of a human name.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'NameUse_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3866,9 +4353,9 @@ class NameUse(Element):
                     self.validate_NameUse_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_NameUse_list_patterns_, ))
     validate_NameUse_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(NameUse, self)._hasContent()
+            super(NameUse, self).has__content()
         ):
             return True
         else:
@@ -3889,7 +4376,7 @@ class NameUse(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='NameUse')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='NameUse', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -3903,10 +4390,25 @@ class NameUse(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='NameUse', fromsubclass_=False, pretty_print=True):
         super(NameUse, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -3936,12 +4438,12 @@ class ContactPoint(Element):
     use -- Identifies the purpose for the contact point.
     rank -- Specifies a preferred order in which to use a set of contacts. ContactPoints with lower rank values are more preferred than those with higher rank values.
     period -- Time period when the contact point was/is in use.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, system=None, value=None, use=None, rank=None, period=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, system: 'ContactPointSystem' = None, value: 'string' = None, use: 'ContactPointUse' = None, rank: 'positiveInt' = None, period: 'Period' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3993,14 +4495,14 @@ class ContactPoint(Element):
         return self.period
     def set_period(self, period):
         self.period = period
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.system is not None or
             self.value is not None or
             self.use is not None or
             self.rank is not None or
             self.period is not None or
-            super(ContactPoint, self)._hasContent()
+            super(ContactPoint, self).has__content()
         ):
             return True
         else:
@@ -4021,7 +4523,7 @@ class ContactPoint(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ContactPoint')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ContactPoint', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4051,10 +4553,43 @@ class ContactPoint(Element):
         if self.period is not None:
             namespaceprefix_ = self.period_nsprefix_ + ':' if (UseCapturedNS_ and self.period_nsprefix_) else ''
             self.period.export(outfile, level, namespaceprefix_, namespacedef_='', name_='period', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.system is not None:
+            child_dict = self.system.exportJson(json_dict, 'system', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['system'] = child_dict
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.rank is not None:
+            child_dict = self.rank.exportJson(json_dict, 'rank', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['rank'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4097,12 +4632,12 @@ class ContactPoint(Element):
 class ContactPointSystem(Element):
     """ContactPointSystem -- Telecommunications form for contact point.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ContactPointSystem_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4151,9 +4686,9 @@ class ContactPointSystem(Element):
                     self.validate_ContactPointSystem_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ContactPointSystem_list_patterns_, ))
     validate_ContactPointSystem_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ContactPointSystem, self)._hasContent()
+            super(ContactPointSystem, self).has__content()
         ):
             return True
         else:
@@ -4174,7 +4709,7 @@ class ContactPointSystem(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ContactPointSystem')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ContactPointSystem', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4188,10 +4723,25 @@ class ContactPointSystem(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ContactPointSystem', fromsubclass_=False, pretty_print=True):
         super(ContactPointSystem, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4216,12 +4766,12 @@ class ContactPointSystem(Element):
 class ContactPointUse(Element):
     """ContactPointUse -- Use of contact point.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ContactPointUse_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4270,9 +4820,9 @@ class ContactPointUse(Element):
                     self.validate_ContactPointUse_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ContactPointUse_list_patterns_, ))
     validate_ContactPointUse_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ContactPointUse, self)._hasContent()
+            super(ContactPointUse, self).has__content()
         ):
             return True
         else:
@@ -4293,7 +4843,7 @@ class ContactPointUse(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ContactPointUse')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ContactPointUse', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4307,10 +4857,25 @@ class ContactPointUse(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ContactPointUse', fromsubclass_=False, pretty_print=True):
         super(ContactPointUse, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4341,12 +4906,12 @@ class Identifier(Element):
     value -- The portion of the identifier typically relevant to the user and which is unique within the context of the system.
     period -- Time period during which identifier is/was valid for use.
     assigner -- Organization that issued/manages the identifier.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, use=None, type_=None, system=None, value=None, period=None, assigner=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, use: 'IdentifierUse' = None, type_: 'CodeableConcept' = None, system: 'uri' = None, value: 'string' = None, period: 'Period' = None, assigner: 'Reference' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4404,7 +4969,7 @@ class Identifier(Element):
         return self.assigner
     def set_assigner(self, assigner):
         self.assigner = assigner
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.use is not None or
             self.type_ is not None or
@@ -4412,7 +4977,7 @@ class Identifier(Element):
             self.value is not None or
             self.period is not None or
             self.assigner is not None or
-            super(Identifier, self)._hasContent()
+            super(Identifier, self).has__content()
         ):
             return True
         else:
@@ -4433,7 +4998,7 @@ class Identifier(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Identifier')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Identifier', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4466,10 +5031,47 @@ class Identifier(Element):
         if self.assigner is not None:
             namespaceprefix_ = self.assigner_nsprefix_ + ':' if (UseCapturedNS_ and self.assigner_nsprefix_) else ''
             self.assigner.export(outfile, level, namespaceprefix_, namespacedef_='', name_='assigner', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.system is not None:
+            child_dict = self.system.exportJson(json_dict, 'system', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['system'] = child_dict
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
+        if self.assigner is not None:
+            child_dict = self.assigner.exportJson(json_dict, 'assigner', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['assigner'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4517,12 +5119,12 @@ class Identifier(Element):
 class IdentifierUse(Element):
     """IdentifierUse -- Identifies the purpose for this identifier, if known .
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'IdentifierUse_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4571,9 +5173,9 @@ class IdentifierUse(Element):
                     self.validate_IdentifierUse_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_IdentifierUse_list_patterns_, ))
     validate_IdentifierUse_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(IdentifierUse, self)._hasContent()
+            super(IdentifierUse, self).has__content()
         ):
             return True
         else:
@@ -4594,7 +5196,7 @@ class IdentifierUse(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='IdentifierUse')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='IdentifierUse', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4608,10 +5210,25 @@ class IdentifierUse(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='IdentifierUse', fromsubclass_=False, pretty_print=True):
         super(IdentifierUse, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4641,12 +5258,12 @@ class Coding(Element):
     code -- A symbol in syntax defined by the system. The symbol may be a predefined code or an expression in a syntax defined by the coding system (e.g. post-coordination).
     display -- A representation of the meaning of the code in the system, following the rules of the system.
     userSelected -- Indicates that this coding was chosen by a user directly - e.g. off a pick list of available items (codes or displays).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, system=None, version=None, code=None, display=None, userSelected=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, system: 'uri' = None, version: 'string' = None, code: 'code' = None, display: 'string' = None, userSelected: 'boolean' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4698,14 +5315,14 @@ class Coding(Element):
         return self.userSelected
     def set_userSelected(self, userSelected):
         self.userSelected = userSelected
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.system is not None or
             self.version is not None or
             self.code is not None or
             self.display is not None or
             self.userSelected is not None or
-            super(Coding, self)._hasContent()
+            super(Coding, self).has__content()
         ):
             return True
         else:
@@ -4726,7 +5343,7 @@ class Coding(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Coding')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Coding', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4756,10 +5373,43 @@ class Coding(Element):
         if self.userSelected is not None:
             namespaceprefix_ = self.userSelected_nsprefix_ + ':' if (UseCapturedNS_ and self.userSelected_nsprefix_) else ''
             self.userSelected.export(outfile, level, namespaceprefix_, namespacedef_='', name_='userSelected', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.system is not None:
+            child_dict = self.system.exportJson(json_dict, 'system', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['system'] = child_dict
+        if self.version is not None:
+            child_dict = self.version.exportJson(json_dict, 'version', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['version'] = child_dict
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.display is not None:
+            child_dict = self.display.exportJson(json_dict, 'display', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['display'] = child_dict
+        if self.userSelected is not None:
+            child_dict = self.userSelected.exportJson(json_dict, 'userSelected', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['userSelected'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -4809,12 +5459,12 @@ class SampledData(Element):
     upperLimit -- The upper limit of detection of the measured points. This is needed if any of the data points have the value "U" (higher than detection limit).
     dimensions -- The number of sample points at each time point. If this value is greater than one, then the dimensions will be interlaced - all the sample points for a point in time will be recorded at once.
     data -- A series of data points which are decimal values separated by a single space (character u20). The special values "E" (error), "L" (below detection limit) and "U" (above detection limit) can also be used in place of a decimal value.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, origin=None, period=None, factor=None, lowerLimit=None, upperLimit=None, dimensions=None, data=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, origin: 'Quantity' = None, period: 'decimal' = None, factor: 'decimal' = None, lowerLimit: 'decimal' = None, upperLimit: 'decimal' = None, dimensions: 'positiveInt' = None, data: 'SampledDataDataType' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4878,7 +5528,7 @@ class SampledData(Element):
         return self.data
     def set_data(self, data):
         self.data = data
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.origin is not None or
             self.period is not None or
@@ -4887,7 +5537,7 @@ class SampledData(Element):
             self.upperLimit is not None or
             self.dimensions is not None or
             self.data is not None or
-            super(SampledData, self)._hasContent()
+            super(SampledData, self).has__content()
         ):
             return True
         else:
@@ -4908,7 +5558,7 @@ class SampledData(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SampledData')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SampledData', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -4944,10 +5594,51 @@ class SampledData(Element):
         if self.data is not None:
             namespaceprefix_ = self.data_nsprefix_ + ':' if (UseCapturedNS_ and self.data_nsprefix_) else ''
             self.data.export(outfile, level, namespaceprefix_, namespacedef_='', name_='data', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.origin is not None:
+            child_dict = self.origin.exportJson(json_dict, 'origin', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['origin'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
+        if self.factor is not None:
+            child_dict = self.factor.exportJson(json_dict, 'factor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['factor'] = child_dict
+        if self.lowerLimit is not None:
+            child_dict = self.lowerLimit.exportJson(json_dict, 'lowerLimit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['lowerLimit'] = child_dict
+        if self.upperLimit is not None:
+            child_dict = self.upperLimit.exportJson(json_dict, 'upperLimit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['upperLimit'] = child_dict
+        if self.dimensions is not None:
+            child_dict = self.dimensions.exportJson(json_dict, 'dimensions', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['dimensions'] = child_dict
+        if self.data is not None:
+            child_dict = self.data.exportJson(json_dict, 'data', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['data'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5002,7 +5693,7 @@ class SampledDataDataType(Element):
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'SampledDataDataType_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5041,9 +5732,9 @@ class SampledDataDataType(Element):
                     self.validate_SampledDataDataType_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_SampledDataDataType_primitive_patterns_, ))
     validate_SampledDataDataType_primitive_patterns_ = [['^(((-{0,1}\\d*\\.{0,1}\\d+)|[EUL])( ((-{0,1}\\d*\\.{0,1}\\d+)|[EUL]))*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(SampledDataDataType, self)._hasContent()
+            super(SampledDataDataType, self).has__content()
         ):
             return True
         else:
@@ -5064,7 +5755,7 @@ class SampledDataDataType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SampledDataDataType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SampledDataDataType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5078,10 +5769,25 @@ class SampledDataDataType(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='SampledDataDataType', fromsubclass_=False, pretty_print=True):
         super(SampledDataDataType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5107,12 +5813,12 @@ class Ratio(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     numerator -- The value of the numerator.
     denominator -- The value of the denominator.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, numerator=None, denominator=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, numerator: 'Quantity' = None, denominator: 'Quantity' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5146,11 +5852,11 @@ class Ratio(Element):
         return self.denominator
     def set_denominator(self, denominator):
         self.denominator = denominator
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.numerator is not None or
             self.denominator is not None or
-            super(Ratio, self)._hasContent()
+            super(Ratio, self).has__content()
         ):
             return True
         else:
@@ -5171,7 +5877,7 @@ class Ratio(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Ratio')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Ratio', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5192,10 +5898,31 @@ class Ratio(Element):
         if self.denominator is not None:
             namespaceprefix_ = self.denominator_nsprefix_ + ':' if (UseCapturedNS_ and self.denominator_nsprefix_) else ''
             self.denominator.export(outfile, level, namespaceprefix_, namespacedef_='', name_='denominator', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.numerator is not None:
+            child_dict = self.numerator.exportJson(json_dict, 'numerator', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['numerator'] = child_dict
+        if self.denominator is not None:
+            child_dict = self.denominator.exportJson(json_dict, 'denominator', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['denominator'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5230,12 +5957,12 @@ class Reference(Element):
     The type is the Canonical URL of Resource Definition that is the type this reference refers to. References are URLs that are relative to http://hl7.org/fhir/StructureDefinition/ e.g. "Patient" is a reference to http://hl7.org/fhir/StructureDefinition/Patient. Absolute URLs are only allowed for logical models (and can only be used in references in logical models, not resources).
     identifier -- An identifier for the target resource. This is used when there is no way to reference the other resource directly, either because the entity it represents is not available through a FHIR server, or because there is no way for the author of the resource to convert a known identifier to an actual location. There is no requirement that a Reference.identifier point to something that is actually exposed as a FHIR instance, but it SHALL point to a business concept that would be expected to be exposed as a FHIR instance, and that instance would need to be of a FHIR resource type allowed by the reference.
     display -- Plain text narrative that identifies the resource in addition to the resource reference.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, reference=None, type_=None, identifier=None, display=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, reference: 'string' = None, type_: 'uri' = None, identifier: 'Identifier' = None, display: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5281,13 +6008,13 @@ class Reference(Element):
         return self.display
     def set_display(self, display):
         self.display = display
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.reference is not None or
             self.type_ is not None or
             self.identifier is not None or
             self.display is not None or
-            super(Reference, self)._hasContent()
+            super(Reference, self).has__content()
         ):
             return True
         else:
@@ -5308,7 +6035,7 @@ class Reference(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Reference')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Reference', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5335,10 +6062,39 @@ class Reference(Element):
         if self.display is not None:
             namespaceprefix_ = self.display_nsprefix_ + ':' if (UseCapturedNS_ and self.display_nsprefix_) else ''
             self.display.export(outfile, level, namespaceprefix_, namespacedef_='', name_='display', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.reference is not None:
+            child_dict = self.reference.exportJson(json_dict, 'reference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['reference'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.identifier is not None:
+            child_dict = self.identifier.exportJson(json_dict, 'identifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['identifier'] = child_dict
+        if self.display is not None:
+            child_dict = self.display.exportJson(json_dict, 'display', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['display'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5381,12 +6137,12 @@ class TriggerDefinition(Element):
     name -- A formal name for the event. This may be an absolute URI that identifies the event formally (e.g. from a trigger registry), or a simple relative URI that identifies the event in a local context.
     data -- The triggering data of the event (if this is a data trigger). If more than one data is requirement is specified, then all the data requirements must be true.
     condition -- A boolean-valued expression that is evaluated in the context of the container of the trigger definition and returns whether or not the trigger fires.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, type_=None, name=None, timingTiming=None, timingReference=None, timingDate=None, timingDateTime=None, data=None, condition=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, type_: 'TriggerType' = None, name: 'string' = None, timingTiming: 'Timing' = None, timingReference: 'Reference' = None, timingDate: 'date' = None, timingDateTime: 'dateTime' = None, data: List_['DataRequirement'] = None, condition: 'Expression' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5465,7 +6221,7 @@ class TriggerDefinition(Element):
         return self.condition
     def set_condition(self, condition):
         self.condition = condition
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.name is not None or
@@ -5475,7 +6231,7 @@ class TriggerDefinition(Element):
             self.timingDateTime is not None or
             self.data or
             self.condition is not None or
-            super(TriggerDefinition, self)._hasContent()
+            super(TriggerDefinition, self).has__content()
         ):
             return True
         else:
@@ -5496,7 +6252,7 @@ class TriggerDefinition(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='TriggerDefinition')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='TriggerDefinition', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5535,10 +6291,58 @@ class TriggerDefinition(Element):
         if self.condition is not None:
             namespaceprefix_ = self.condition_nsprefix_ + ':' if (UseCapturedNS_ and self.condition_nsprefix_) else ''
             self.condition.export(outfile, level, namespaceprefix_, namespacedef_='', name_='condition', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        if self.timingTiming is not None:
+            child_dict = self.timingTiming.exportJson(json_dict, 'timingTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['timingTiming'] = child_dict
+        if self.timingReference is not None:
+            child_dict = self.timingReference.exportJson(json_dict, 'timingReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['timingReference'] = child_dict
+        if self.timingDate is not None:
+            child_dict = self.timingDate.exportJson(json_dict, 'timingDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['timingDate'] = child_dict
+        if self.timingDateTime is not None:
+            child_dict = self.timingDateTime.exportJson(json_dict, 'timingDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['timingDateTime'] = child_dict
+        child_list = []
+        for child in self.data:
+            child_dict = child.exportJson(json_dict, 'data', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['data'] = child_list
+        if self.condition is not None:
+            child_dict = self.condition.exportJson(json_dict, 'condition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['condition'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5596,12 +6400,12 @@ class TriggerDefinition(Element):
 class TriggerType(Element):
     """TriggerType -- The type of trigger.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'TriggerType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5650,9 +6454,9 @@ class TriggerType(Element):
                     self.validate_TriggerType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_TriggerType_list_patterns_, ))
     validate_TriggerType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(TriggerType, self)._hasContent()
+            super(TriggerType, self).has__content()
         ):
             return True
         else:
@@ -5673,7 +6477,7 @@ class TriggerType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='TriggerType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='TriggerType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5687,10 +6491,25 @@ class TriggerType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='TriggerType', fromsubclass_=False, pretty_print=True):
         super(TriggerType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5724,12 +6543,12 @@ class Quantity(Element):
     unit -- A human-readable form of the unit.
     system -- The identification of the system that provides the coded form of the unit.
     code -- A computer processable form of the unit in some unit representation system.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, comparator=None, unit=None, system=None, code=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, comparator: 'QuantityComparator' = None, unit: 'string' = None, system: 'uri' = None, code: 'code' = None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5784,14 +6603,14 @@ class Quantity(Element):
         self.code = code
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.value is not None or
             self.comparator is not None or
             self.unit is not None or
             self.system is not None or
             self.code is not None or
-            super(Quantity, self)._hasContent()
+            super(Quantity, self).has__content()
         ):
             return True
         else:
@@ -5812,7 +6631,7 @@ class Quantity(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Quantity')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Quantity', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5850,10 +6669,43 @@ class Quantity(Element):
         if self.code is not None:
             namespaceprefix_ = self.code_nsprefix_ + ':' if (UseCapturedNS_ and self.code_nsprefix_) else ''
             self.code.export(outfile, level, namespaceprefix_, namespacedef_='', name_='code', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
+        if self.comparator is not None:
+            child_dict = self.comparator.exportJson(json_dict, 'comparator', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['comparator'] = child_dict
+        if self.unit is not None:
+            child_dict = self.unit.exportJson(json_dict, 'unit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['unit'] = child_dict
+        if self.system is not None:
+            child_dict = self.system.exportJson(json_dict, 'system', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['system'] = child_dict
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -5900,12 +6752,12 @@ class Quantity(Element):
 class QuantityComparator(Element):
     """QuantityComparator -- How the Quantity should be understood and represented.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'QuantityComparator_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -5954,9 +6806,9 @@ class QuantityComparator(Element):
                     self.validate_QuantityComparator_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_QuantityComparator_list_patterns_, ))
     validate_QuantityComparator_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(QuantityComparator, self)._hasContent()
+            super(QuantityComparator, self).has__content()
         ):
             return True
         else:
@@ -5977,7 +6829,7 @@ class QuantityComparator(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='QuantityComparator')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='QuantityComparator', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -5991,10 +6843,25 @@ class QuantityComparator(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='QuantityComparator', fromsubclass_=False, pretty_print=True):
         super(QuantityComparator, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6021,12 +6888,12 @@ class Period(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     start -- The start of the period. The boundary is inclusive.
     end -- The end of the period. If the end of the period is missing, it means no end was known or planned at the time the instance was created. The start may be in the past, and the end date in the future, which means that period is expected/planned to end at that time.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, start=None, end=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, start: 'dateTime' = None, end: 'dateTime' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6060,11 +6927,11 @@ class Period(Element):
         return self.end
     def set_end(self, end):
         self.end = end
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.start is not None or
             self.end is not None or
-            super(Period, self)._hasContent()
+            super(Period, self).has__content()
         ):
             return True
         else:
@@ -6085,7 +6952,7 @@ class Period(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Period')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Period', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6106,10 +6973,31 @@ class Period(Element):
         if self.end is not None:
             namespaceprefix_ = self.end_nsprefix_ + ':' if (UseCapturedNS_ and self.end_nsprefix_) else ''
             self.end.export(outfile, level, namespaceprefix_, namespacedef_='', name_='end', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.start is not None:
+            child_dict = self.start.exportJson(json_dict, 'start', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['start'] = child_dict
+        if self.end is not None:
+            child_dict = self.end.exportJson(json_dict, 'end', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['end'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6137,12 +7025,12 @@ class Period(Element):
 class Duration(Quantity):
     """Duration -- A length of time.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Quantity
-    def __init__(self, id=None, extension=None, value=None, comparator=None, unit=None, system=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, comparator: 'QuantityComparator' = None, unit: 'string' = None, system: 'uri' = None, code: 'code' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6164,9 +7052,9 @@ class Duration(Quantity):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(Duration, self)._hasContent()
+            super(Duration, self).has__content()
         ):
             return True
         else:
@@ -6187,7 +7075,7 @@ class Duration(Quantity):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Duration')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Duration', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6198,10 +7086,23 @@ class Duration(Quantity):
         super(Duration, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Duration')
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='Duration', fromsubclass_=False, pretty_print=True):
         super(Duration, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6222,12 +7123,12 @@ class Range(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     low -- The low limit. The boundary is inclusive.
     high -- The high limit. The boundary is inclusive.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, low=None, high=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, low: 'Quantity' = None, high: 'Quantity' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6261,11 +7162,11 @@ class Range(Element):
         return self.high
     def set_high(self, high):
         self.high = high
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.low is not None or
             self.high is not None or
-            super(Range, self)._hasContent()
+            super(Range, self).has__content()
         ):
             return True
         else:
@@ -6286,7 +7187,7 @@ class Range(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Range')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Range', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6307,10 +7208,31 @@ class Range(Element):
         if self.high is not None:
             namespaceprefix_ = self.high_nsprefix_ + ':' if (UseCapturedNS_ and self.high_nsprefix_) else ''
             self.high.export(outfile, level, namespaceprefix_, namespacedef_='', name_='high', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.low is not None:
+            child_dict = self.low.exportJson(json_dict, 'low', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['low'] = child_dict
+        if self.high is not None:
+            child_dict = self.high.exportJson(json_dict, 'high', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['high'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6347,12 +7269,12 @@ class RelatedArtifact(Element):
     url -- A url for the artifact that can be followed to access the actual content.
     document -- The document being referenced, represented as an attachment. This is exclusive with the resource element.
     resource -- The related resource, such as a library, value set, profile, or other knowledge resource.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, type_=None, label=None, display=None, citation=None, url=None, document=None, resource=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, type_: 'RelatedArtifactType' = None, label: 'string' = None, display: 'string' = None, citation: 'markdown' = None, url: 'url' = None, document: 'Attachment' = None, resource: 'canonical' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6416,7 +7338,7 @@ class RelatedArtifact(Element):
         return self.resource
     def set_resource(self, resource):
         self.resource = resource
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.label is not None or
@@ -6425,7 +7347,7 @@ class RelatedArtifact(Element):
             self.url is not None or
             self.document is not None or
             self.resource is not None or
-            super(RelatedArtifact, self)._hasContent()
+            super(RelatedArtifact, self).has__content()
         ):
             return True
         else:
@@ -6446,7 +7368,7 @@ class RelatedArtifact(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='RelatedArtifact')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='RelatedArtifact', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6482,10 +7404,51 @@ class RelatedArtifact(Element):
         if self.resource is not None:
             namespaceprefix_ = self.resource_nsprefix_ + ':' if (UseCapturedNS_ and self.resource_nsprefix_) else ''
             self.resource.export(outfile, level, namespaceprefix_, namespacedef_='', name_='resource', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.label is not None:
+            child_dict = self.label.exportJson(json_dict, 'label', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['label'] = child_dict
+        if self.display is not None:
+            child_dict = self.display.exportJson(json_dict, 'display', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['display'] = child_dict
+        if self.citation is not None:
+            child_dict = self.citation.exportJson(json_dict, 'citation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['citation'] = child_dict
+        if self.url is not None:
+            child_dict = self.url.exportJson(json_dict, 'url', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['url'] = child_dict
+        if self.document is not None:
+            child_dict = self.document.exportJson(json_dict, 'document', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['document'] = child_dict
+        if self.resource is not None:
+            child_dict = self.resource.exportJson(json_dict, 'resource', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['resource'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6538,12 +7501,12 @@ class RelatedArtifact(Element):
 class RelatedArtifactType(Element):
     """RelatedArtifactType -- The type of relationship to the related artifact.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'RelatedArtifactType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6592,9 +7555,9 @@ class RelatedArtifactType(Element):
                     self.validate_RelatedArtifactType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_RelatedArtifactType_list_patterns_, ))
     validate_RelatedArtifactType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(RelatedArtifactType, self)._hasContent()
+            super(RelatedArtifactType, self).has__content()
         ):
             return True
         else:
@@ -6615,7 +7578,7 @@ class RelatedArtifactType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='RelatedArtifactType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='RelatedArtifactType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6629,10 +7592,25 @@ class RelatedArtifactType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='RelatedArtifactType', fromsubclass_=False, pretty_print=True):
         super(RelatedArtifactType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6660,12 +7638,12 @@ class Annotation(Element):
     The individual responsible for making the annotation.
     time -- Indicates when this particular annotation was made.
     text -- The text of the annotation in markdown format.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, authorReference=None, authorString=None, time=None, text=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, authorReference: 'Reference' = None, authorString: 'string' = None, time: 'dateTime' = None, text: 'markdown' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6711,13 +7689,13 @@ class Annotation(Element):
         return self.text
     def set_text(self, text):
         self.text = text
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.authorReference is not None or
             self.authorString is not None or
             self.time is not None or
             self.text is not None or
-            super(Annotation, self)._hasContent()
+            super(Annotation, self).has__content()
         ):
             return True
         else:
@@ -6738,7 +7716,7 @@ class Annotation(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Annotation')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Annotation', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6765,10 +7743,39 @@ class Annotation(Element):
         if self.text is not None:
             namespaceprefix_ = self.text_nsprefix_ + ':' if (UseCapturedNS_ and self.text_nsprefix_) else ''
             self.text.export(outfile, level, namespaceprefix_, namespacedef_='', name_='text', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.authorReference is not None:
+            child_dict = self.authorReference.exportJson(json_dict, 'authorReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['authorReference'] = child_dict
+        if self.authorString is not None:
+            child_dict = self.authorString.exportJson(json_dict, 'authorString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['authorString'] = child_dict
+        if self.time is not None:
+            child_dict = self.time.exportJson(json_dict, 'time', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['time'] = child_dict
+        if self.text is not None:
+            child_dict = self.text.exportJson(json_dict, 'text', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['text'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6808,12 +7815,12 @@ class ContactDetail(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     name -- The name of an individual to contact.
     telecom -- The contact details for the individual (if a name was provided) or the organization.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, name=None, telecom=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, name: 'string' = None, telecom: List_['ContactPoint'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6856,11 +7863,11 @@ class ContactDetail(Element):
         self.telecom.insert(index, value)
     def replace_telecom_at(self, index, value):
         self.telecom[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.name is not None or
             self.telecom or
-            super(ContactDetail, self)._hasContent()
+            super(ContactDetail, self).has__content()
         ):
             return True
         else:
@@ -6881,7 +7888,7 @@ class ContactDetail(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ContactDetail')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ContactDetail', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -6902,10 +7909,34 @@ class ContactDetail(Element):
         for telecom_ in self.telecom:
             namespaceprefix_ = self.telecom_nsprefix_ + ':' if (UseCapturedNS_ and self.telecom_nsprefix_) else ''
             telecom_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='telecom', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        child_list = []
+        for child in self.telecom:
+            child_dict = child.exportJson(json_dict, 'telecom', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['telecom'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -6935,12 +7966,12 @@ class UsageContext(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     A value that defines the context specified in this context of use. The interpretation of the value is defined by the code.
     code -- A code that identifies the type of context being specified by this usage context.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, code=None, valueCodeableConcept=None, valueQuantity=None, valueRange=None, valueReference=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, code: 'Coding' = None, valueCodeableConcept: 'CodeableConcept' = None, valueQuantity: 'Quantity' = None, valueRange: 'Range' = None, valueReference: 'Reference' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -6992,14 +8023,14 @@ class UsageContext(Element):
         return self.valueReference
     def set_valueReference(self, valueReference):
         self.valueReference = valueReference
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.valueCodeableConcept is not None or
             self.valueQuantity is not None or
             self.valueRange is not None or
             self.valueReference is not None or
-            super(UsageContext, self)._hasContent()
+            super(UsageContext, self).has__content()
         ):
             return True
         else:
@@ -7020,7 +8051,7 @@ class UsageContext(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='UsageContext')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='UsageContext', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7050,10 +8081,43 @@ class UsageContext(Element):
         if self.valueReference is not None:
             namespaceprefix_ = self.valueReference_nsprefix_ + ':' if (UseCapturedNS_ and self.valueReference_nsprefix_) else ''
             self.valueReference.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueReference', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.valueCodeableConcept is not None:
+            child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCodeableConcept'] = child_dict
+        if self.valueQuantity is not None:
+            child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueQuantity'] = child_dict
+        if self.valueRange is not None:
+            child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRange'] = child_dict
+        if self.valueReference is not None:
+            child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueReference'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7102,12 +8166,12 @@ class Expression(Element):
     language -- The media type of the language for the expression.
     expression -- An expression in the specified language that returns a value.
     reference -- A URI that defines where the expression is found.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, description=None, name=None, language=None, expression=None, reference=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, description: 'string' = None, name: 'id' = None, language: 'ExpressionLanguage' = None, expression: 'string' = None, reference: 'uri' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7159,14 +8223,14 @@ class Expression(Element):
         return self.reference
     def set_reference(self, reference):
         self.reference = reference
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.description is not None or
             self.name is not None or
             self.language is not None or
             self.expression is not None or
             self.reference is not None or
-            super(Expression, self)._hasContent()
+            super(Expression, self).has__content()
         ):
             return True
         else:
@@ -7187,7 +8251,7 @@ class Expression(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Expression')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Expression', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7217,10 +8281,43 @@ class Expression(Element):
         if self.reference is not None:
             namespaceprefix_ = self.reference_nsprefix_ + ':' if (UseCapturedNS_ and self.reference_nsprefix_) else ''
             self.reference.export(outfile, level, namespaceprefix_, namespacedef_='', name_='reference', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        if self.language is not None:
+            child_dict = self.language.exportJson(json_dict, 'language', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['language'] = child_dict
+        if self.expression is not None:
+            child_dict = self.expression.exportJson(json_dict, 'expression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['expression'] = child_dict
+        if self.reference is not None:
+            child_dict = self.reference.exportJson(json_dict, 'reference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['reference'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7263,12 +8360,12 @@ class Expression(Element):
 class ExpressionLanguage(Element):
     """ExpressionLanguage -- The media type of the expression language.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ExpressionLanguage_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7317,9 +8414,9 @@ class ExpressionLanguage(Element):
                     self.validate_ExpressionLanguage_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ExpressionLanguage_list_patterns_, ))
     validate_ExpressionLanguage_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ExpressionLanguage, self)._hasContent()
+            super(ExpressionLanguage, self).has__content()
         ):
             return True
         else:
@@ -7340,7 +8437,7 @@ class ExpressionLanguage(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ExpressionLanguage')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ExpressionLanguage', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7354,10 +8451,25 @@ class ExpressionLanguage(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ExpressionLanguage', fromsubclass_=False, pretty_print=True):
         super(ExpressionLanguage, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7389,12 +8501,12 @@ class Signature(Element):
     targetFormat -- A mime type that indicates the technical format of the target resources signed by the signature.
     sigFormat -- A mime type that indicates the technical format of the signature. Important mime types are application/signature+xml for X ML DigSig, application/jose for JWS, and image/* for a graphical image of a signature, etc.
     data -- The base64 encoding of the Signature content. When signature is not recorded electronically this element would be empty.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, type_=None, when=None, who=None, onBehalfOf=None, targetFormat=None, sigFormat=None, data=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, type_: List_['Coding'] = None, when: 'instant' = None, who: 'Reference' = None, onBehalfOf: 'Reference' = None, targetFormat: 'code' = None, sigFormat: 'code' = None, data: 'base64Binary' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7467,7 +8579,7 @@ class Signature(Element):
         return self.data
     def set_data(self, data):
         self.data = data
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ or
             self.when is not None or
@@ -7476,7 +8588,7 @@ class Signature(Element):
             self.targetFormat is not None or
             self.sigFormat is not None or
             self.data is not None or
-            super(Signature, self)._hasContent()
+            super(Signature, self).has__content()
         ):
             return True
         else:
@@ -7497,7 +8609,7 @@ class Signature(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Signature')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Signature', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7533,10 +8645,54 @@ class Signature(Element):
         if self.data is not None:
             namespaceprefix_ = self.data_nsprefix_ + ':' if (UseCapturedNS_ and self.data_nsprefix_) else ''
             self.data.export(outfile, level, namespaceprefix_, namespacedef_='', name_='data', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.type_:
+            child_dict = child.exportJson(json_dict, 'type', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['type'] = child_list
+        if self.when is not None:
+            child_dict = self.when.exportJson(json_dict, 'when', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['when'] = child_dict
+        if self.who is not None:
+            child_dict = self.who.exportJson(json_dict, 'who', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['who'] = child_dict
+        if self.onBehalfOf is not None:
+            child_dict = self.onBehalfOf.exportJson(json_dict, 'onBehalfOf', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['onBehalfOf'] = child_dict
+        if self.targetFormat is not None:
+            child_dict = self.targetFormat.exportJson(json_dict, 'targetFormat', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['targetFormat'] = child_dict
+        if self.sigFormat is not None:
+            child_dict = self.sigFormat.exportJson(json_dict, 'sigFormat', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['sigFormat'] = child_dict
+        if self.data is not None:
+            child_dict = self.data.exportJson(json_dict, 'data', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['data'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7589,12 +8745,12 @@ class Signature(Element):
 class UnitsOfTime(Element):
     """UnitsOfTime -- A unit of time (units from UCUM).
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'UnitsOfTime_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7643,9 +8799,9 @@ class UnitsOfTime(Element):
                     self.validate_UnitsOfTime_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_UnitsOfTime_list_patterns_, ))
     validate_UnitsOfTime_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(UnitsOfTime, self)._hasContent()
+            super(UnitsOfTime, self).has__content()
         ):
             return True
         else:
@@ -7666,7 +8822,7 @@ class UnitsOfTime(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='UnitsOfTime')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='UnitsOfTime', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7680,10 +8836,25 @@ class UnitsOfTime(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='UnitsOfTime', fromsubclass_=False, pretty_print=True):
         super(UnitsOfTime, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7708,12 +8879,12 @@ class UnitsOfTime(Element):
 class EventTiming(Element):
     """EventTiming -- Real world event relating to the schedule.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'EventTiming_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7762,9 +8933,9 @@ class EventTiming(Element):
                     self.validate_EventTiming_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_EventTiming_list_patterns_, ))
     validate_EventTiming_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(EventTiming, self)._hasContent()
+            super(EventTiming, self).has__content()
         ):
             return True
         else:
@@ -7785,7 +8956,7 @@ class EventTiming(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='EventTiming')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='EventTiming', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7799,10 +8970,25 @@ class EventTiming(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='EventTiming', fromsubclass_=False, pretty_print=True):
         super(EventTiming, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7829,12 +9015,12 @@ class CodeableConcept(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     coding -- A reference to a code defined by a terminology system.
     text -- A human language representation of the concept as seen/selected/uttered by the user who entered the data and/or which represents the intended meaning of the user.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, coding=None, text=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, coding: List_['Coding'] = None, text: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -7877,11 +9063,11 @@ class CodeableConcept(Element):
         return self.text
     def set_text(self, text):
         self.text = text
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.coding or
             self.text is not None or
-            super(CodeableConcept, self)._hasContent()
+            super(CodeableConcept, self).has__content()
         ):
             return True
         else:
@@ -7902,7 +9088,7 @@ class CodeableConcept(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeableConcept')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeableConcept', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -7923,10 +9109,34 @@ class CodeableConcept(Element):
         if self.text is not None:
             namespaceprefix_ = self.text_nsprefix_ + ':' if (UseCapturedNS_ and self.text_nsprefix_) else ''
             self.text.export(outfile, level, namespaceprefix_, namespacedef_='', name_='text', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.coding:
+            child_dict = child.exportJson(json_dict, 'coding', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['coding'] = child_list
+        if self.text is not None:
+            child_dict = self.text.exportJson(json_dict, 'text', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['text'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -7961,12 +9171,12 @@ class ParameterDefinition(Element):
     documentation -- A brief discussion of what the parameter is for and how it is used by the module.
     type -- The type of the parameter.
     profile -- If specified, this indicates a profile that the input data must conform to, or that the output data will conform to.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, name=None, use=None, min=None, max=None, documentation=None, type_=None, profile=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, name: 'code' = None, use: 'code' = None, min: 'integer' = None, max: 'string' = None, documentation: 'string' = None, type_: 'code' = None, profile: 'canonical' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8030,7 +9240,7 @@ class ParameterDefinition(Element):
         return self.profile
     def set_profile(self, profile):
         self.profile = profile
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.name is not None or
             self.use is not None or
@@ -8039,7 +9249,7 @@ class ParameterDefinition(Element):
             self.documentation is not None or
             self.type_ is not None or
             self.profile is not None or
-            super(ParameterDefinition, self)._hasContent()
+            super(ParameterDefinition, self).has__content()
         ):
             return True
         else:
@@ -8060,7 +9270,7 @@ class ParameterDefinition(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ParameterDefinition')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ParameterDefinition', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8096,10 +9306,51 @@ class ParameterDefinition(Element):
         if self.profile is not None:
             namespaceprefix_ = self.profile_nsprefix_ + ':' if (UseCapturedNS_ and self.profile_nsprefix_) else ''
             self.profile.export(outfile, level, namespaceprefix_, namespacedef_='', name_='profile', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.min is not None:
+            child_dict = self.min.exportJson(json_dict, 'min', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['min'] = child_dict
+        if self.max is not None:
+            child_dict = self.max.exportJson(json_dict, 'max', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['max'] = child_dict
+        if self.documentation is not None:
+            child_dict = self.documentation.exportJson(json_dict, 'documentation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['documentation'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.profile is not None:
+            child_dict = self.profile.exportJson(json_dict, 'profile', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['profile'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8153,12 +9404,12 @@ class PropertyRepresentation(Element):
     """PropertyRepresentation -- How a property
     is represented when serialized.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'PropertyRepresentation_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8207,9 +9458,9 @@ class PropertyRepresentation(Element):
                     self.validate_PropertyRepresentation_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_PropertyRepresentation_list_patterns_, ))
     validate_PropertyRepresentation_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(PropertyRepresentation, self)._hasContent()
+            super(PropertyRepresentation, self).has__content()
         ):
             return True
         else:
@@ -8230,7 +9481,7 @@ class PropertyRepresentation(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='PropertyRepresentation')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='PropertyRepresentation', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8244,10 +9495,25 @@ class PropertyRepresentation(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='PropertyRepresentation', fromsubclass_=False, pretty_print=True):
         super(PropertyRepresentation, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8272,12 +9538,12 @@ class PropertyRepresentation(Element):
 class ConstraintSeverity(Element):
     """ConstraintSeverity -- SHALL applications comply with this constraint?
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ConstraintSeverity_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8326,9 +9592,9 @@ class ConstraintSeverity(Element):
                     self.validate_ConstraintSeverity_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ConstraintSeverity_list_patterns_, ))
     validate_ConstraintSeverity_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ConstraintSeverity, self)._hasContent()
+            super(ConstraintSeverity, self).has__content()
         ):
             return True
         else:
@@ -8349,7 +9615,7 @@ class ConstraintSeverity(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ConstraintSeverity')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ConstraintSeverity', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8363,10 +9629,25 @@ class ConstraintSeverity(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ConstraintSeverity', fromsubclass_=False, pretty_print=True):
         super(ConstraintSeverity, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8391,12 +9672,12 @@ class ConstraintSeverity(Element):
 class AggregationMode(Element):
     """AggregationMode -- How resource references can be aggregated.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'AggregationMode_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8445,9 +9726,9 @@ class AggregationMode(Element):
                     self.validate_AggregationMode_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_AggregationMode_list_patterns_, ))
     validate_AggregationMode_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(AggregationMode, self)._hasContent()
+            super(AggregationMode, self).has__content()
         ):
             return True
         else:
@@ -8468,7 +9749,7 @@ class AggregationMode(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='AggregationMode')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='AggregationMode', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8482,10 +9763,25 @@ class AggregationMode(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='AggregationMode', fromsubclass_=False, pretty_print=True):
         super(AggregationMode, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8510,12 +9806,12 @@ class AggregationMode(Element):
 class ReferenceVersionRules(Element):
     """ReferenceVersionRules -- Whether a reference needs to be version specific or version independent, or whether either can be used.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ReferenceVersionRules_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8564,9 +9860,9 @@ class ReferenceVersionRules(Element):
                     self.validate_ReferenceVersionRules_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ReferenceVersionRules_list_patterns_, ))
     validate_ReferenceVersionRules_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ReferenceVersionRules, self)._hasContent()
+            super(ReferenceVersionRules, self).has__content()
         ):
             return True
         else:
@@ -8587,7 +9883,7 @@ class ReferenceVersionRules(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ReferenceVersionRules')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ReferenceVersionRules', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8601,10 +9897,25 @@ class ReferenceVersionRules(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ReferenceVersionRules', fromsubclass_=False, pretty_print=True):
         super(ReferenceVersionRules, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8629,12 +9940,12 @@ class ReferenceVersionRules(Element):
 class SlicingRules(Element):
     """SlicingRules -- How slices are interpreted when evaluating an instance.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'SlicingRules_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8683,9 +9994,9 @@ class SlicingRules(Element):
                     self.validate_SlicingRules_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_SlicingRules_list_patterns_, ))
     validate_SlicingRules_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(SlicingRules, self)._hasContent()
+            super(SlicingRules, self).has__content()
         ):
             return True
         else:
@@ -8706,7 +10017,7 @@ class SlicingRules(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SlicingRules')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SlicingRules', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8720,10 +10031,25 @@ class SlicingRules(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='SlicingRules', fromsubclass_=False, pretty_print=True):
         super(SlicingRules, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8748,12 +10074,12 @@ class SlicingRules(Element):
 class BindingStrength(Element):
     """BindingStrength -- Indication of the degree of conformance expectations associated with a binding.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'BindingStrength_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8802,9 +10128,9 @@ class BindingStrength(Element):
                     self.validate_BindingStrength_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_BindingStrength_list_patterns_, ))
     validate_BindingStrength_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(BindingStrength, self)._hasContent()
+            super(BindingStrength, self).has__content()
         ):
             return True
         else:
@@ -8825,7 +10151,7 @@ class BindingStrength(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='BindingStrength')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='BindingStrength', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8839,10 +10165,25 @@ class BindingStrength(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='BindingStrength', fromsubclass_=False, pretty_print=True):
         super(BindingStrength, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8867,12 +10208,12 @@ class BindingStrength(Element):
 class DiscriminatorType(Element):
     """DiscriminatorType -- How an element value is interpreted when discrimination is evaluated.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'DiscriminatorType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -8921,9 +10262,9 @@ class DiscriminatorType(Element):
                     self.validate_DiscriminatorType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_DiscriminatorType_list_patterns_, ))
     validate_DiscriminatorType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(DiscriminatorType, self)._hasContent()
+            super(DiscriminatorType, self).has__content()
         ):
             return True
         else:
@@ -8944,7 +10285,7 @@ class DiscriminatorType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DiscriminatorType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DiscriminatorType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -8958,10 +10299,25 @@ class DiscriminatorType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='DiscriminatorType', fromsubclass_=False, pretty_print=True):
         super(DiscriminatorType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -8989,12 +10345,12 @@ class Resource(GeneratedsSuper):
     meta -- The metadata about the resource. This is content that is maintained by the infrastructure. Changes to the content might not always be associated with version changes to the resource.
     implicitRules -- A reference to a set of rules that were followed when the resource was constructed, and which must be understood when processing the content. Often, this is a reference to an implementation guide that defines the special rules along with other profiles etc.
     language -- The base language in which the resource is written.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = None
-    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'id' = None, meta: 'Meta' = None, implicitRules: 'uri' = None, language: 'code' = None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9042,7 +10398,7 @@ class Resource(GeneratedsSuper):
         self.language = language
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.id is not None or
             self.meta is not None or
@@ -9068,7 +10424,7 @@ class Resource(GeneratedsSuper):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Resource')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Resource', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9102,10 +10458,38 @@ class Resource(GeneratedsSuper):
         if self.language is not None:
             namespaceprefix_ = self.language_nsprefix_ + ':' if (UseCapturedNS_ and self.language_nsprefix_) else ''
             self.language.export(outfile, level, namespaceprefix_, namespacedef_='', name_='language', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return json_dict
+    def exportJsonAttributes(self, json_dict):
+        pass
+    def exportJsonChildren(self, json_dict):
+        if self.id is not None:
+            child_dict = self.id.exportJson(json_dict, 'id', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['id'] = child_dict
+        if self.meta is not None:
+            child_dict = self.meta.exportJson(json_dict, 'meta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['meta'] = child_dict
+        if self.implicitRules is not None:
+            child_dict = self.implicitRules.exportJson(json_dict, 'implicitRules', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['implicitRules'] = child_dict
+        if self.language is not None:
+            child_dict = self.language.exportJson(json_dict, 'language', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['language'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9144,12 +10528,12 @@ class Resource(GeneratedsSuper):
 
 class PublicationStatus(Element):
     """PublicationStatus -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'PublicationStatus_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9198,9 +10582,9 @@ class PublicationStatus(Element):
                     self.validate_PublicationStatus_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_PublicationStatus_list_patterns_, ))
     validate_PublicationStatus_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(PublicationStatus, self)._hasContent()
+            super(PublicationStatus, self).has__content()
         ):
             return True
         else:
@@ -9221,7 +10605,7 @@ class PublicationStatus(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='PublicationStatus')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='PublicationStatus', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9235,10 +10619,25 @@ class PublicationStatus(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='PublicationStatus', fromsubclass_=False, pretty_print=True):
         super(PublicationStatus, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9262,12 +10661,12 @@ class PublicationStatus(Element):
 
 class SearchParamType(Element):
     """SearchParamType -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'SearchParamType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9316,9 +10715,9 @@ class SearchParamType(Element):
                     self.validate_SearchParamType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_SearchParamType_list_patterns_, ))
     validate_SearchParamType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(SearchParamType, self)._hasContent()
+            super(SearchParamType, self).has__content()
         ):
             return True
         else:
@@ -9339,7 +10738,7 @@ class SearchParamType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SearchParamType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SearchParamType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9353,10 +10752,25 @@ class SearchParamType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='SearchParamType', fromsubclass_=False, pretty_print=True):
         super(SearchParamType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9380,12 +10794,12 @@ class SearchParamType(Element):
 
 class AdministrativeGender(Element):
     """AdministrativeGender -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'AdministrativeGender_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9434,9 +10848,9 @@ class AdministrativeGender(Element):
                     self.validate_AdministrativeGender_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_AdministrativeGender_list_patterns_, ))
     validate_AdministrativeGender_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(AdministrativeGender, self)._hasContent()
+            super(AdministrativeGender, self).has__content()
         ):
             return True
         else:
@@ -9457,7 +10871,7 @@ class AdministrativeGender(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='AdministrativeGender')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='AdministrativeGender', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9471,10 +10885,25 @@ class AdministrativeGender(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='AdministrativeGender', fromsubclass_=False, pretty_print=True):
         super(AdministrativeGender, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9498,12 +10927,12 @@ class AdministrativeGender(Element):
 
 class FHIRVersion(Element):
     """FHIRVersion -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'FHIRVersion_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9552,9 +10981,9 @@ class FHIRVersion(Element):
                     self.validate_FHIRVersion_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_FHIRVersion_list_patterns_, ))
     validate_FHIRVersion_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(FHIRVersion, self)._hasContent()
+            super(FHIRVersion, self).has__content()
         ):
             return True
         else:
@@ -9575,7 +11004,7 @@ class FHIRVersion(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='FHIRVersion')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='FHIRVersion', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9589,10 +11018,25 @@ class FHIRVersion(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='FHIRVersion', fromsubclass_=False, pretty_print=True):
         super(FHIRVersion, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9616,12 +11060,12 @@ class FHIRVersion(Element):
 
 class NoteType(Element):
     """NoteType -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'NoteType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9670,9 +11114,9 @@ class NoteType(Element):
                     self.validate_NoteType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_NoteType_list_patterns_, ))
     validate_NoteType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(NoteType, self)._hasContent()
+            super(NoteType, self).has__content()
         ):
             return True
         else:
@@ -9693,7 +11137,7 @@ class NoteType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='NoteType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='NoteType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9707,10 +11151,25 @@ class NoteType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='NoteType', fromsubclass_=False, pretty_print=True):
         super(NoteType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9734,12 +11193,12 @@ class NoteType(Element):
 
 class RemittanceOutcome(Element):
     """RemittanceOutcome -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'RemittanceOutcome_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9788,9 +11247,9 @@ class RemittanceOutcome(Element):
                     self.validate_RemittanceOutcome_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_RemittanceOutcome_list_patterns_, ))
     validate_RemittanceOutcome_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(RemittanceOutcome, self)._hasContent()
+            super(RemittanceOutcome, self).has__content()
         ):
             return True
         else:
@@ -9811,7 +11270,7 @@ class RemittanceOutcome(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='RemittanceOutcome')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='RemittanceOutcome', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9825,10 +11284,25 @@ class RemittanceOutcome(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='RemittanceOutcome', fromsubclass_=False, pretty_print=True):
         super(RemittanceOutcome, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9852,12 +11326,12 @@ class RemittanceOutcome(Element):
 
 class ConceptMapEquivalence(Element):
     """ConceptMapEquivalence -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'ConceptMapEquivalence_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -9906,9 +11380,9 @@ class ConceptMapEquivalence(Element):
                     self.validate_ConceptMapEquivalence_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_ConceptMapEquivalence_list_patterns_, ))
     validate_ConceptMapEquivalence_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(ConceptMapEquivalence, self)._hasContent()
+            super(ConceptMapEquivalence, self).has__content()
         ):
             return True
         else:
@@ -9929,7 +11403,7 @@ class ConceptMapEquivalence(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ConceptMapEquivalence')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ConceptMapEquivalence', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -9943,10 +11417,25 @@ class ConceptMapEquivalence(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='ConceptMapEquivalence', fromsubclass_=False, pretty_print=True):
         super(ConceptMapEquivalence, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -9970,12 +11459,12 @@ class ConceptMapEquivalence(Element):
 
 class DocumentReferenceStatus(Element):
     """DocumentReferenceStatus -- If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'DocumentReferenceStatus_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10024,9 +11513,9 @@ class DocumentReferenceStatus(Element):
                     self.validate_DocumentReferenceStatus_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_DocumentReferenceStatus_list_patterns_, ))
     validate_DocumentReferenceStatus_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(DocumentReferenceStatus, self)._hasContent()
+            super(DocumentReferenceStatus, self).has__content()
         ):
             return True
         else:
@@ -10047,7 +11536,7 @@ class DocumentReferenceStatus(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DocumentReferenceStatus')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DocumentReferenceStatus', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10061,10 +11550,25 @@ class DocumentReferenceStatus(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='DocumentReferenceStatus', fromsubclass_=False, pretty_print=True):
         super(DocumentReferenceStatus, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10091,12 +11595,12 @@ class DomainResource(Resource):
     extension -- May be used to represent additional information that is not part of the basic definition of the resource. To make the use of extensions safe and manageable, there is a strict set of governance  applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension.
     modifierExtension -- May be used to represent additional information that is not part of the basic definition of the resource and that modifies the understanding of the element that contains it and/or the understanding of the containing element's descendants. Usually modifier elements provide negation or qualification. To make the use of extensions safe and manageable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer is allowed to define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension. Applications processing a resource are required to check for modifier extensions.
     Modifier extensions SHALL NOT change the meaning of any elements on Resource or DomainResource (including cannot change the meaning of modifierExtension itself).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Resource
-    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'id' = None, meta: 'Meta' = None, implicitRules: 'uri' = None, language: 'code' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10151,11 +11655,11 @@ class DomainResource(Resource):
         self.modifierExtension[index] = value
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.extension or
             self.modifierExtension or
-            super(DomainResource, self)._hasContent()
+            super(DomainResource, self).has__content()
         ):
             return True
         else:
@@ -10176,7 +11680,7 @@ class DomainResource(Resource):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DomainResource')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DomainResource', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10205,10 +11709,37 @@ class DomainResource(Resource):
         for modifierExtension_ in self.modifierExtension:
             namespaceprefix_ = self.modifierExtension_nsprefix_ + ':' if (UseCapturedNS_ and self.modifierExtension_nsprefix_) else ''
             modifierExtension_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modifierExtension', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.extension:
+            child_dict = child.exportJson(json_dict, 'extension', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['extension'] = child_list
+        child_list = []
+        for child in self.modifierExtension:
+            child_dict = child.exportJson(json_dict, 'modifierExtension', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['modifierExtension'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10240,12 +11771,12 @@ class DomainResource(Resource):
 class Age(Quantity):
     """Age -- A duration of time during which an organism (or a process) has existed.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Quantity
-    def __init__(self, id=None, extension=None, value=None, comparator=None, unit=None, system=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, comparator: 'QuantityComparator' = None, unit: 'string' = None, system: 'uri' = None, code: 'code' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10267,9 +11798,9 @@ class Age(Quantity):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(Age, self)._hasContent()
+            super(Age, self).has__content()
         ):
             return True
         else:
@@ -10290,7 +11821,7 @@ class Age(Quantity):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Age')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Age', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10301,10 +11832,23 @@ class Age(Quantity):
         super(Age, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Age')
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='Age', fromsubclass_=False, pretty_print=True):
         super(Age, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10323,12 +11867,12 @@ class Age(Quantity):
 class Distance(Quantity):
     """Distance -- A length - a value with a unit that is a physical distance.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Quantity
-    def __init__(self, id=None, extension=None, value=None, comparator=None, unit=None, system=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, comparator: 'QuantityComparator' = None, unit: 'string' = None, system: 'uri' = None, code: 'code' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10350,9 +11894,9 @@ class Distance(Quantity):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(Distance, self)._hasContent()
+            super(Distance, self).has__content()
         ):
             return True
         else:
@@ -10373,7 +11917,7 @@ class Distance(Quantity):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Distance')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Distance', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10384,10 +11928,23 @@ class Distance(Quantity):
         super(Distance, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Distance')
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='Distance', fromsubclass_=False, pretty_print=True):
         super(Distance, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10406,12 +11963,12 @@ class Distance(Quantity):
 class Count(Quantity):
     """Count -- A measured amount (or an amount that can potentially be measured). Note that measured amounts include amounts that are not precisely quantified, including amounts involving arbitrary units and floating currencies.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Quantity
-    def __init__(self, id=None, extension=None, value=None, comparator=None, unit=None, system=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal' = None, comparator: 'QuantityComparator' = None, unit: 'string' = None, system: 'uri' = None, code: 'code' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10433,9 +11990,9 @@ class Count(Quantity):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(Count, self)._hasContent()
+            super(Count, self).has__content()
         ):
             return True
         else:
@@ -10456,7 +12013,7 @@ class Count(Quantity):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Count')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Count', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10467,10 +12024,23 @@ class Count(Quantity):
         super(Count, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Count')
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='Count', fromsubclass_=False, pretty_print=True):
         super(Count, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10491,12 +12061,12 @@ class BackboneElement(Element):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     modifierExtension -- May be used to represent additional information that is not part of the basic definition of the element and that modifies the understanding of the element in which it is contained and/or the understanding of the containing element's descendants. Usually modifier elements provide negation or qualification. To make the use of extensions safe and manageable, there is a strict set of governance applied to the definition and use of extensions. Though any implementer can define an extension, there is a set of requirements that SHALL be met as part of the definition of the extension. Applications processing a resource are required to check for modifier extensions.
     Modifier extensions SHALL NOT change the meaning of any elements on Resource or DomainResource (including cannot change the meaning of modifierExtension itself).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, modifierExtension=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10536,10 +12106,10 @@ class BackboneElement(Element):
         self.modifierExtension[index] = value
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.modifierExtension or
-            super(BackboneElement, self)._hasContent()
+            super(BackboneElement, self).has__content()
         ):
             return True
         else:
@@ -10560,7 +12130,7 @@ class BackboneElement(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='BackboneElement')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='BackboneElement', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -10586,10 +12156,30 @@ class BackboneElement(Element):
         for modifierExtension_ in self.modifierExtension:
             namespaceprefix_ = self.modifierExtension_nsprefix_ + ':' if (UseCapturedNS_ and self.modifierExtension_nsprefix_) else ''
             modifierExtension_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modifierExtension', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.modifierExtension:
+            child_dict = child.exportJson(json_dict, 'modifierExtension', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['modifierExtension'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -10617,12 +12207,12 @@ class Extension(Element):
     """Extension -- Optional Extension Element - found in all resources.
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     Value of extension - must be one of a constrained set of the data types (see [Extensibility](extensibility.html) for a list).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, url=None, valueBase64Binary=None, valueBoolean=None, valueCanonical=None, valueCode=None, valueDate=None, valueDateTime=None, valueDecimal=None, valueId=None, valueInstant=None, valueInteger=None, valueMarkdown=None, valueOid=None, valuePositiveInt=None, valueString=None, valueTime=None, valueUnsignedInt=None, valueUri=None, valueUrl=None, valueUuid=None, valueAddress=None, valueAge=None, valueAnnotation=None, valueAttachment=None, valueCodeableConcept=None, valueCoding=None, valueContactPoint=None, valueCount=None, valueDistance=None, valueDuration=None, valueHumanName=None, valueIdentifier=None, valueMoney=None, valuePeriod=None, valueQuantity=None, valueRange=None, valueRatio=None, valueReference=None, valueSampledData=None, valueSignature=None, valueTiming=None, valueContactDetail=None, valueContributor=None, valueDataRequirement=None, valueExpression=None, valueParameterDefinition=None, valueRelatedArtifact=None, valueTriggerDefinition=None, valueUsageContext=None, valueDosage=None, valueMeta=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, url: 'uri_primitive' = None, valueBase64Binary: 'base64Binary' = None, valueBoolean: 'boolean' = None, valueCanonical: 'canonical' = None, valueCode: 'code' = None, valueDate: 'date' = None, valueDateTime: 'dateTime' = None, valueDecimal: 'decimal' = None, valueId: 'id' = None, valueInstant: 'instant' = None, valueInteger: 'integer' = None, valueMarkdown: 'markdown' = None, valueOid: 'oid' = None, valuePositiveInt: 'positiveInt' = None, valueString: 'string' = None, valueTime: 'time' = None, valueUnsignedInt: 'unsignedInt' = None, valueUri: 'uri' = None, valueUrl: 'url' = None, valueUuid: 'uuid' = None, valueAddress: 'Address' = None, valueAge: 'Age' = None, valueAnnotation: 'Annotation' = None, valueAttachment: 'Attachment' = None, valueCodeableConcept: 'CodeableConcept' = None, valueCoding: 'Coding' = None, valueContactPoint: 'ContactPoint' = None, valueCount: 'Count' = None, valueDistance: 'Distance' = None, valueDuration: 'Duration' = None, valueHumanName: 'HumanName' = None, valueIdentifier: 'Identifier' = None, valueMoney: 'Money' = None, valuePeriod: 'Period' = None, valueQuantity: 'Quantity' = None, valueRange: 'Range' = None, valueRatio: 'Ratio' = None, valueReference: 'Reference' = None, valueSampledData: 'SampledData' = None, valueSignature: 'Signature' = None, valueTiming: 'Timing' = None, valueContactDetail: 'ContactDetail' = None, valueContributor: 'Contributor' = None, valueDataRequirement: 'DataRequirement' = None, valueExpression: 'Expression' = None, valueParameterDefinition: 'ParameterDefinition' = None, valueRelatedArtifact: 'RelatedArtifact' = None, valueTriggerDefinition: 'TriggerDefinition' = None, valueUsageContext: 'UsageContext' = None, valueDosage: 'Dosage' = None, valueMeta: 'Meta' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -10961,7 +12551,7 @@ class Extension(Element):
                     self.validate_uri_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_uri_primitive_patterns_, ))
     validate_uri_primitive_patterns_ = [['^(\\S*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.valueBase64Binary is not None or
             self.valueBoolean is not None or
@@ -11013,7 +12603,7 @@ class Extension(Element):
             self.valueUsageContext is not None or
             self.valueDosage is not None or
             self.valueMeta is not None or
-            super(Extension, self)._hasContent()
+            super(Extension, self).has__content()
         ):
             return True
         else:
@@ -11034,7 +12624,7 @@ class Extension(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Extension')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Extension', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -11202,10 +12792,225 @@ class Extension(Element):
         if self.valueMeta is not None:
             namespaceprefix_ = self.valueMeta_nsprefix_ + ':' if (UseCapturedNS_ and self.valueMeta_nsprefix_) else ''
             self.valueMeta.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueMeta', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['url']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.url is not None:
+            json_dict['url'] = self.url
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.valueBase64Binary is not None:
+            child_dict = self.valueBase64Binary.exportJson(json_dict, 'valueBase64Binary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueBase64Binary'] = child_dict
+        if self.valueBoolean is not None:
+            child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueBoolean'] = child_dict
+        if self.valueCanonical is not None:
+            child_dict = self.valueCanonical.exportJson(json_dict, 'valueCanonical', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCanonical'] = child_dict
+        if self.valueCode is not None:
+            child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCode'] = child_dict
+        if self.valueDate is not None:
+            child_dict = self.valueDate.exportJson(json_dict, 'valueDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDate'] = child_dict
+        if self.valueDateTime is not None:
+            child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDateTime'] = child_dict
+        if self.valueDecimal is not None:
+            child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDecimal'] = child_dict
+        if self.valueId is not None:
+            child_dict = self.valueId.exportJson(json_dict, 'valueId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueId'] = child_dict
+        if self.valueInstant is not None:
+            child_dict = self.valueInstant.exportJson(json_dict, 'valueInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueInstant'] = child_dict
+        if self.valueInteger is not None:
+            child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueInteger'] = child_dict
+        if self.valueMarkdown is not None:
+            child_dict = self.valueMarkdown.exportJson(json_dict, 'valueMarkdown', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMarkdown'] = child_dict
+        if self.valueOid is not None:
+            child_dict = self.valueOid.exportJson(json_dict, 'valueOid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueOid'] = child_dict
+        if self.valuePositiveInt is not None:
+            child_dict = self.valuePositiveInt.exportJson(json_dict, 'valuePositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valuePositiveInt'] = child_dict
+        if self.valueString is not None:
+            child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueString'] = child_dict
+        if self.valueTime is not None:
+            child_dict = self.valueTime.exportJson(json_dict, 'valueTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTime'] = child_dict
+        if self.valueUnsignedInt is not None:
+            child_dict = self.valueUnsignedInt.exportJson(json_dict, 'valueUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUnsignedInt'] = child_dict
+        if self.valueUri is not None:
+            child_dict = self.valueUri.exportJson(json_dict, 'valueUri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUri'] = child_dict
+        if self.valueUrl is not None:
+            child_dict = self.valueUrl.exportJson(json_dict, 'valueUrl', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUrl'] = child_dict
+        if self.valueUuid is not None:
+            child_dict = self.valueUuid.exportJson(json_dict, 'valueUuid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUuid'] = child_dict
+        if self.valueAddress is not None:
+            child_dict = self.valueAddress.exportJson(json_dict, 'valueAddress', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAddress'] = child_dict
+        if self.valueAge is not None:
+            child_dict = self.valueAge.exportJson(json_dict, 'valueAge', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAge'] = child_dict
+        if self.valueAnnotation is not None:
+            child_dict = self.valueAnnotation.exportJson(json_dict, 'valueAnnotation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAnnotation'] = child_dict
+        if self.valueAttachment is not None:
+            child_dict = self.valueAttachment.exportJson(json_dict, 'valueAttachment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAttachment'] = child_dict
+        if self.valueCodeableConcept is not None:
+            child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCodeableConcept'] = child_dict
+        if self.valueCoding is not None:
+            child_dict = self.valueCoding.exportJson(json_dict, 'valueCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCoding'] = child_dict
+        if self.valueContactPoint is not None:
+            child_dict = self.valueContactPoint.exportJson(json_dict, 'valueContactPoint', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContactPoint'] = child_dict
+        if self.valueCount is not None:
+            child_dict = self.valueCount.exportJson(json_dict, 'valueCount', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCount'] = child_dict
+        if self.valueDistance is not None:
+            child_dict = self.valueDistance.exportJson(json_dict, 'valueDistance', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDistance'] = child_dict
+        if self.valueDuration is not None:
+            child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDuration'] = child_dict
+        if self.valueHumanName is not None:
+            child_dict = self.valueHumanName.exportJson(json_dict, 'valueHumanName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueHumanName'] = child_dict
+        if self.valueIdentifier is not None:
+            child_dict = self.valueIdentifier.exportJson(json_dict, 'valueIdentifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueIdentifier'] = child_dict
+        if self.valueMoney is not None:
+            child_dict = self.valueMoney.exportJson(json_dict, 'valueMoney', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMoney'] = child_dict
+        if self.valuePeriod is not None:
+            child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valuePeriod'] = child_dict
+        if self.valueQuantity is not None:
+            child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueQuantity'] = child_dict
+        if self.valueRange is not None:
+            child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRange'] = child_dict
+        if self.valueRatio is not None:
+            child_dict = self.valueRatio.exportJson(json_dict, 'valueRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRatio'] = child_dict
+        if self.valueReference is not None:
+            child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueReference'] = child_dict
+        if self.valueSampledData is not None:
+            child_dict = self.valueSampledData.exportJson(json_dict, 'valueSampledData', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSampledData'] = child_dict
+        if self.valueSignature is not None:
+            child_dict = self.valueSignature.exportJson(json_dict, 'valueSignature', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSignature'] = child_dict
+        if self.valueTiming is not None:
+            child_dict = self.valueTiming.exportJson(json_dict, 'valueTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTiming'] = child_dict
+        if self.valueContactDetail is not None:
+            child_dict = self.valueContactDetail.exportJson(json_dict, 'valueContactDetail', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContactDetail'] = child_dict
+        if self.valueContributor is not None:
+            child_dict = self.valueContributor.exportJson(json_dict, 'valueContributor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContributor'] = child_dict
+        if self.valueDataRequirement is not None:
+            child_dict = self.valueDataRequirement.exportJson(json_dict, 'valueDataRequirement', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDataRequirement'] = child_dict
+        if self.valueExpression is not None:
+            child_dict = self.valueExpression.exportJson(json_dict, 'valueExpression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueExpression'] = child_dict
+        if self.valueParameterDefinition is not None:
+            child_dict = self.valueParameterDefinition.exportJson(json_dict, 'valueParameterDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueParameterDefinition'] = child_dict
+        if self.valueRelatedArtifact is not None:
+            child_dict = self.valueRelatedArtifact.exportJson(json_dict, 'valueRelatedArtifact', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRelatedArtifact'] = child_dict
+        if self.valueTriggerDefinition is not None:
+            child_dict = self.valueTriggerDefinition.exportJson(json_dict, 'valueTriggerDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTriggerDefinition'] = child_dict
+        if self.valueUsageContext is not None:
+            child_dict = self.valueUsageContext.exportJson(json_dict, 'valueUsageContext', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUsageContext'] = child_dict
+        if self.valueDosage is not None:
+            child_dict = self.valueDosage.exportJson(json_dict, 'valueDosage', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDosage'] = child_dict
+        if self.valueMeta is not None:
+            child_dict = self.valueMeta.exportJson(json_dict, 'valueMeta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMeta'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -11480,12 +13285,12 @@ class decimal(Element):
     """decimal -- A rational number with implicit precision
     Do not use an IEEE type floating point type, instead use something that works like a true decimal, with inbuilt precision (e.g. Java BigInteger)
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'decimal_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -11517,9 +13322,9 @@ class decimal(Element):
     def validate_decimal_primitive(self, value):
         # Validate type decimal-primitive, a restriction on None.
         pass
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(decimal, self)._hasContent()
+            super(decimal, self).has__content()
         ):
             return True
         else:
@@ -11540,7 +13345,7 @@ class decimal(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='decimal')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='decimal', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -11554,10 +13359,25 @@ class decimal(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='decimal', fromsubclass_=False, pretty_print=True):
         super(decimal, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -11583,12 +13403,12 @@ class positiveInt(Element):
     >
     0)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'positiveInt_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -11627,9 +13447,9 @@ class positiveInt(Element):
                     self.validate_positiveInt_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_positiveInt_primitive_patterns_, ))
     validate_positiveInt_primitive_patterns_ = [['^([1-9][0-9]*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(positiveInt, self)._hasContent()
+            super(positiveInt, self).has__content()
         ):
             return True
         else:
@@ -11650,7 +13470,7 @@ class positiveInt(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='positiveInt')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='positiveInt', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -11664,10 +13484,25 @@ class positiveInt(Element):
             outfile.write(' value="%s"' % self.gds_format_integer(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='positiveInt', fromsubclass_=False, pretty_print=True):
         super(positiveInt, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -11694,12 +13529,12 @@ class id(Element):
     """id -- Any combination of letters, numerals, "-" and ".", with a length limit of 64 characters.  (This might be an integer, an unprefixed OID, UUID or any other identifier pattern that meets these constraints.)  Ids are case-insensitive.
     RFC 4122
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'id_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -11746,9 +13581,9 @@ class id(Element):
                     self.validate_id_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_id_primitive_patterns_, ))
     validate_id_primitive_patterns_ = [['^([A-Za-z0-9\\-\\.]{1,64})$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(id, self)._hasContent()
+            super(id, self).has__content()
         ):
             return True
         else:
@@ -11769,7 +13604,7 @@ class id(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='id')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='id', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -11783,10 +13618,25 @@ class id(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='id', fromsubclass_=False, pretty_print=True):
         super(id, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -11810,12 +13660,12 @@ class id(Element):
 class time(Element):
     """time -- A time during the day, with no date specified
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'time_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -11856,9 +13706,9 @@ class time(Element):
                     self.validate_time_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_time_primitive_patterns_, ))
     validate_time_primitive_patterns_ = [['^(([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(time, self)._hasContent()
+            super(time, self).has__content()
         ):
             return True
         else:
@@ -11879,7 +13729,7 @@ class time(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='time')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='time', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -11893,10 +13743,25 @@ class time(Element):
             outfile.write(' value="%s"' % self.gds_format_time(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='time', fromsubclass_=False, pretty_print=True):
         super(time, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value.isoformat()
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -11924,12 +13789,12 @@ class markdown(Element):
     """markdown -- A string that may contain Github Flavored Markdown syntax for optional processing by a mark down presentation engine
     Systems are not required to have markdown support, so the text should be readable without markdown processing. The markdown syntax is GFM - see https://github.github.com/gfm/
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'markdown_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -11972,9 +13837,9 @@ class markdown(Element):
                     self.validate_markdown_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_markdown_primitive_patterns_, ))
     validate_markdown_primitive_patterns_ = [['^([ \\r\\n\\t\\S]+)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(markdown, self)._hasContent()
+            super(markdown, self).has__content()
         ):
             return True
         else:
@@ -11995,7 +13860,7 @@ class markdown(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='markdown')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='markdown', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12009,10 +13874,25 @@ class markdown(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='markdown', fromsubclass_=False, pretty_print=True):
         super(markdown, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12038,12 +13918,12 @@ class unsignedInt(Element):
     >
     = 0)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'unsignedInt_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12083,9 +13963,9 @@ class unsignedInt(Element):
                     self.validate_unsignedInt_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_unsignedInt_primitive_patterns_, ))
     validate_unsignedInt_primitive_patterns_ = [['^([0]|([1-9][0-9]*))$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(unsignedInt, self)._hasContent()
+            super(unsignedInt, self).has__content()
         ):
             return True
         else:
@@ -12106,7 +13986,7 @@ class unsignedInt(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='unsignedInt')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='unsignedInt', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12120,10 +14000,25 @@ class unsignedInt(Element):
             outfile.write(' value="%s"' % self.gds_format_integer(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='unsignedInt', fromsubclass_=False, pretty_print=True):
         super(unsignedInt, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12150,12 +14045,12 @@ class base64Binary(Element):
     """base64Binary -- A stream of bytes
     A stream of bytes, base64 encoded
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'base64Binary_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12191,9 +14086,9 @@ class base64Binary(Element):
                     self.validate_base64Binary_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_base64Binary_primitive_patterns_, ))
     validate_base64Binary_primitive_patterns_ = [['^((\\s*([0-9a-zA-Z\\+/=]){4}\\s*)+)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(base64Binary, self)._hasContent()
+            super(base64Binary, self).has__content()
         ):
             return True
         else:
@@ -12214,7 +14109,7 @@ class base64Binary(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='base64Binary')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='base64Binary', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12228,10 +14123,25 @@ class base64Binary(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='base64Binary', fromsubclass_=False, pretty_print=True):
         super(base64Binary, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12255,12 +14165,12 @@ class base64Binary(Element):
 class boolean(Element):
     """boolean -- Value of "true" or "false"
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'boolean_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12296,9 +14206,9 @@ class boolean(Element):
                     self.validate_boolean_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_boolean_primitive_patterns_, ))
     validate_boolean_primitive_patterns_ = [['^(true|false)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(boolean, self)._hasContent()
+            super(boolean, self).has__content()
         ):
             return True
         else:
@@ -12319,7 +14229,7 @@ class boolean(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='boolean')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='boolean', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12333,10 +14243,25 @@ class boolean(Element):
             outfile.write(' value="%s"' % self.gds_format_boolean(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='boolean', fromsubclass_=False, pretty_print=True):
         super(boolean, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12366,12 +14291,12 @@ class instant(Element):
     """instant -- An instant in time - known at least to the second
     Note: This is intended for where precisely observed times are required, typically system logs etc., and not human-reported times - for them, see date and dateTime (which can be as precise as instant, but is not required to be) below. Time zone is always required
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'instant_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12411,9 +14336,9 @@ class instant(Element):
                     self.validate_instant_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_instant_primitive_patterns_, ))
     validate_instant_primitive_patterns_ = [['^(([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(instant, self)._hasContent()
+            super(instant, self).has__content()
         ):
             return True
         else:
@@ -12434,7 +14359,7 @@ class instant(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='instant')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='instant', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12448,10 +14373,25 @@ class instant(Element):
             outfile.write(' value="%s"' % self.gds_format_datetime(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='instant', fromsubclass_=False, pretty_print=True):
         super(instant, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value.isoformat()
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12478,12 +14418,12 @@ class instant(Element):
 class url(Element):
     """url -- A URI that is a literal reference
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'url_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12526,9 +14466,9 @@ class url(Element):
                     self.validate_url_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_url_primitive_patterns_, ))
     validate_url_primitive_patterns_ = [['^(\\S*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(url, self)._hasContent()
+            super(url, self).has__content()
         ):
             return True
         else:
@@ -12549,7 +14489,7 @@ class url(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='url')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='url', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12563,10 +14503,25 @@ class url(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='url', fromsubclass_=False, pretty_print=True):
         super(url, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12591,12 +14546,12 @@ class uuid(Element):
     """uuid -- A UUID, represented as a URI
     See The Open Group, CDE 1.1 Remote Procedure Call specification, Appendix A.
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'uuid_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12639,9 +14594,9 @@ class uuid(Element):
                     self.validate_uuid_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_uuid_primitive_patterns_, ))
     validate_uuid_primitive_patterns_ = [['^(urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(uuid, self)._hasContent()
+            super(uuid, self).has__content()
         ):
             return True
         else:
@@ -12662,7 +14617,7 @@ class uuid(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='uuid')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='uuid', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12676,10 +14631,25 @@ class uuid(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='uuid', fromsubclass_=False, pretty_print=True):
         super(uuid, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12704,12 +14674,12 @@ class uri(Element):
     """uri -- String of characters used to identify a name or a resource
     see http://en.wikipedia.org/wiki/Uniform_resource_identifier
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'uri_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12748,9 +14718,9 @@ class uri(Element):
                     self.validate_uri_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_uri_primitive_patterns_, ))
     validate_uri_primitive_patterns_ = [['^(\\S*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(uri, self)._hasContent()
+            super(uri, self).has__content()
         ):
             return True
         else:
@@ -12771,7 +14741,7 @@ class uri(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='uri')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='uri', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12785,10 +14755,25 @@ class uri(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='uri', fromsubclass_=False, pretty_print=True):
         super(uri, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12813,12 +14798,12 @@ class canonical(Element):
     """canonical -- A URI that is a reference to a canonical URL on a FHIR resource
     see [Canonical References](references.html#canonical)
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'canonical_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12861,9 +14846,9 @@ class canonical(Element):
                     self.validate_canonical_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_canonical_primitive_patterns_, ))
     validate_canonical_primitive_patterns_ = [['^(\\S*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(canonical, self)._hasContent()
+            super(canonical, self).has__content()
         ):
             return True
         else:
@@ -12884,7 +14869,7 @@ class canonical(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='canonical')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='canonical', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -12898,10 +14883,25 @@ class canonical(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='canonical', fromsubclass_=False, pretty_print=True):
         super(canonical, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -12927,12 +14927,12 @@ class oid(Element):
     RFC 3001. See also ISO/IEC 8824:1990
     €
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'oid_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -12975,9 +14975,9 @@ class oid(Element):
                     self.validate_oid_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_oid_primitive_patterns_, ))
     validate_oid_primitive_patterns_ = [['^(urn:oid:[0-2](\\.(0|[1-9][0-9]*))+)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(oid, self)._hasContent()
+            super(oid, self).has__content()
         ):
             return True
         else:
@@ -12998,7 +14998,7 @@ class oid(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='oid')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='oid', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13012,10 +15012,25 @@ class oid(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='oid', fromsubclass_=False, pretty_print=True):
         super(oid, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13040,12 +15055,12 @@ class integer(Element):
     """integer -- A whole number
     32 bit number; for values larger than this, use decimal
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'integer_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13085,9 +15100,9 @@ class integer(Element):
                     self.validate_integer_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_integer_primitive_patterns_, ))
     validate_integer_primitive_patterns_ = [['^(-?([0]|([1-9][0-9]*)))$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(integer, self)._hasContent()
+            super(integer, self).has__content()
         ):
             return True
         else:
@@ -13108,7 +15123,7 @@ class integer(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='integer')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='integer', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13122,10 +15137,25 @@ class integer(Element):
             outfile.write(' value="%s"' % self.gds_format_integer(self.value, input_name='value'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='integer', fromsubclass_=False, pretty_print=True):
         super(integer, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13150,12 +15180,12 @@ class string(Element):
     """string -- A sequence of Unicode characters
     Note that FHIR strings SHALL NOT exceed 1MB in size
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'string_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13195,9 +15225,9 @@ class string(Element):
                 lineno = self.gds_get_node_lineno_()
                 self.gds_collector_.add_message('Value "%(value)s"%(lineno)s does not match xsd minLength restriction on string-primitive' % {"value" : encode_str_2_3(value), "lineno": lineno} )
                 result = False
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(string, self)._hasContent()
+            super(string, self).has__content()
         ):
             return True
         else:
@@ -13218,7 +15248,7 @@ class string(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='string')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='string', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13232,10 +15262,25 @@ class string(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='string', fromsubclass_=False, pretty_print=True):
         super(string, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13259,12 +15304,12 @@ class string(Element):
 class code(Element):
     """code -- A string which has at least one character and no leading or trailing whitespace and where there is no whitespace other than single spaces in the contents
     If the element is present, it must have either a @value, an @id referenced from the Narrative, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'code_primitive' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13307,9 +15352,9 @@ class code(Element):
                     self.validate_code_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_code_primitive_patterns_, ))
     validate_code_primitive_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(code, self)._hasContent()
+            super(code, self).has__content()
         ):
             return True
         else:
@@ -13330,7 +15375,7 @@ class code(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='code')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='code', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13344,10 +15389,25 @@ class code(Element):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='code', fromsubclass_=False, pretty_print=True):
         super(code, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13372,12 +15432,12 @@ class code(Element):
 class dateTime(Element):
     """dateTime -- A date, date-time or partial date (e.g. just year or year + month).  If hours and minutes are specified, a time zone SHALL be populated. The format is a union of the schema types gYear, gYearMonth, date and dateTime. Seconds must be provided due to schema type constraints but may be zero-filled and may be ignored.                 Dates SHALL be valid dates.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'dateTime_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13413,9 +15473,9 @@ class dateTime(Element):
                     self.validate_dateTime_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_dateTime_primitive_patterns_, ))
     validate_dateTime_primitive_patterns_ = [['^(([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(dateTime, self)._hasContent()
+            super(dateTime, self).has__content()
         ):
             return True
         else:
@@ -13436,7 +15496,7 @@ class dateTime(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='dateTime')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='dateTime', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13450,10 +15510,25 @@ class dateTime(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='dateTime', fromsubclass_=False, pretty_print=True):
         super(dateTime, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13477,12 +15552,12 @@ class dateTime(Element):
 class date(Element):
     """date -- A date or partial date (e.g. just year or year + month). There is no time zone. The format is a union of the schema types gYear, gYearMonth and date.  Dates SHALL be valid dates.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, valueOf_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'date_primitive' = None, valueOf_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13518,9 +15593,9 @@ class date(Element):
                     self.validate_date_primitive_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_date_primitive_patterns_, ))
     validate_date_primitive_patterns_ = [['^(([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1]))?)?)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(date, self)._hasContent()
+            super(date, self).has__content()
         ):
             return True
         else:
@@ -13541,7 +15616,7 @@ class date(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='date')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='date', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13555,10 +15630,25 @@ class date(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='date', fromsubclass_=False, pretty_print=True):
         super(date, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13582,12 +15672,12 @@ class date(Element):
 class CodeSystemContentMode(Element):
     """CodeSystemContentMode -- The extent of the content of the code system (the concepts and codes it defines) are represented in a code system resource.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'CodeSystemContentMode_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13636,9 +15726,9 @@ class CodeSystemContentMode(Element):
                     self.validate_CodeSystemContentMode_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_CodeSystemContentMode_list_patterns_, ))
     validate_CodeSystemContentMode_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(CodeSystemContentMode, self)._hasContent()
+            super(CodeSystemContentMode, self).has__content()
         ):
             return True
         else:
@@ -13659,7 +15749,7 @@ class CodeSystemContentMode(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystemContentMode')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystemContentMode', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13673,10 +15763,25 @@ class CodeSystemContentMode(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='CodeSystemContentMode', fromsubclass_=False, pretty_print=True):
         super(CodeSystemContentMode, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13701,12 +15806,12 @@ class CodeSystemContentMode(Element):
 class CodeSystemHierarchyMeaning(Element):
     """CodeSystemHierarchyMeaning -- The meaning of the hierarchy of concepts in a code system.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'CodeSystemHierarchyMeaning_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13755,9 +15860,9 @@ class CodeSystemHierarchyMeaning(Element):
                     self.validate_CodeSystemHierarchyMeaning_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_CodeSystemHierarchyMeaning_list_patterns_, ))
     validate_CodeSystemHierarchyMeaning_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(CodeSystemHierarchyMeaning, self)._hasContent()
+            super(CodeSystemHierarchyMeaning, self).has__content()
         ):
             return True
         else:
@@ -13778,7 +15883,7 @@ class CodeSystemHierarchyMeaning(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystemHierarchyMeaning')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystemHierarchyMeaning', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13792,10 +15897,25 @@ class CodeSystemHierarchyMeaning(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='CodeSystemHierarchyMeaning', fromsubclass_=False, pretty_print=True):
         super(CodeSystemHierarchyMeaning, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13820,12 +15940,12 @@ class CodeSystemHierarchyMeaning(Element):
 class PropertyType(Element):
     """PropertyType -- The type of a property value.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'PropertyType_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13874,9 +15994,9 @@ class PropertyType(Element):
                     self.validate_PropertyType_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_PropertyType_list_patterns_, ))
     validate_PropertyType_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(PropertyType, self)._hasContent()
+            super(PropertyType, self).has__content()
         ):
             return True
         else:
@@ -13897,7 +16017,7 @@ class PropertyType(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='PropertyType')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='PropertyType', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -13911,10 +16031,25 @@ class PropertyType(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='PropertyType', fromsubclass_=False, pretty_print=True):
         super(PropertyType, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -13939,12 +16074,12 @@ class PropertyType(Element):
 class FilterOperator(Element):
     """FilterOperator -- The kind of operation to perform as a part of a property based filter.
     If the element is present, it must have either a @value, an @id, or extensions
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = Element
-    def __init__(self, id=None, extension=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, value: 'FilterOperator_list' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -13993,9 +16128,9 @@ class FilterOperator(Element):
                     self.validate_FilterOperator_list_patterns_, value):
                 self.gds_collector_.add_message('Value "%s" does not match xsd pattern restrictions: %s' % (encode_str_2_3(value), self.validate_FilterOperator_list_patterns_, ))
     validate_FilterOperator_list_patterns_ = [['^([^\\s]+(\\s[^\\s]+)*)$']]
-    def _hasContent(self):
+    def has__content(self):
         if (
-            super(FilterOperator, self)._hasContent()
+            super(FilterOperator, self).has__content()
         ):
             return True
         else:
@@ -14016,7 +16151,7 @@ class FilterOperator(Element):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='FilterOperator')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='FilterOperator', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14030,10 +16165,25 @@ class FilterOperator(Element):
             outfile.write(' value=%s' % (quote_attrib(self.value), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='', name_='FilterOperator', fromsubclass_=False, pretty_print=True):
         super(FilterOperator, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=['value']):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+        if self.value is not None:
+            json_dict['value'] = self.value
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14059,12 +16209,12 @@ class CodeSystem_Property1(BackboneElement):
     """CodeSystem.Property1 -- The CodeSystem resource is used to declare the existence of and describe a code system or code system supplement and its key properties, and optionally define a part or all of its content.
     The value of this property.
     code -- A code that is a reference to CodeSystem.property.code.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, code=None, valueCode=None, valueCoding=None, valueString=None, valueInteger=None, valueBoolean=None, valueDateTime=None, valueDecimal=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, code: 'code' = None, valueCode: 'code' = None, valueCoding: 'Coding' = None, valueString: 'string' = None, valueInteger: 'integer' = None, valueBoolean: 'boolean' = None, valueDateTime: 'dateTime' = None, valueDecimal: 'decimal' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -14134,7 +16284,7 @@ class CodeSystem_Property1(BackboneElement):
         return self.valueDecimal
     def set_valueDecimal(self, valueDecimal):
         self.valueDecimal = valueDecimal
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.valueCode is not None or
@@ -14144,7 +16294,7 @@ class CodeSystem_Property1(BackboneElement):
             self.valueBoolean is not None or
             self.valueDateTime is not None or
             self.valueDecimal is not None or
-            super(CodeSystem_Property1, self)._hasContent()
+            super(CodeSystem_Property1, self).has__content()
         ):
             return True
         else:
@@ -14165,7 +16315,7 @@ class CodeSystem_Property1(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem.Property1')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem.Property1', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14204,10 +16354,55 @@ class CodeSystem_Property1(BackboneElement):
         if self.valueDecimal is not None:
             namespaceprefix_ = self.valueDecimal_nsprefix_ + ':' if (UseCapturedNS_ and self.valueDecimal_nsprefix_) else ''
             self.valueDecimal.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueDecimal', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.valueCode is not None:
+            child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCode'] = child_dict
+        if self.valueCoding is not None:
+            child_dict = self.valueCoding.exportJson(json_dict, 'valueCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCoding'] = child_dict
+        if self.valueString is not None:
+            child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueString'] = child_dict
+        if self.valueInteger is not None:
+            child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueInteger'] = child_dict
+        if self.valueBoolean is not None:
+            child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueBoolean'] = child_dict
+        if self.valueDateTime is not None:
+            child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDateTime'] = child_dict
+        if self.valueDecimal is not None:
+            child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDecimal'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14267,12 +16462,12 @@ class CodeSystem_Designation(BackboneElement):
     language -- The language this designation is defined for.
     use -- A code that details how this designation would be used.
     value -- The text value for this designation.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, language=None, use=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, language: 'code' = None, use: 'Coding' = None, value: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -14312,12 +16507,12 @@ class CodeSystem_Designation(BackboneElement):
         return self.value
     def set_value(self, value):
         self.value = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.language is not None or
             self.use is not None or
             self.value is not None or
-            super(CodeSystem_Designation, self)._hasContent()
+            super(CodeSystem_Designation, self).has__content()
         ):
             return True
         else:
@@ -14338,7 +16533,7 @@ class CodeSystem_Designation(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem.Designation')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem.Designation', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14362,10 +16557,35 @@ class CodeSystem_Designation(BackboneElement):
         if self.value is not None:
             namespaceprefix_ = self.value_nsprefix_ + ':' if (UseCapturedNS_ and self.value_nsprefix_) else ''
             self.value.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.language is not None:
+            child_dict = self.language.exportJson(json_dict, 'language', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['language'] = child_dict
+        if self.use is not None:
+            child_dict = self.use.exportJson(json_dict, 'use', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['use'] = child_dict
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14403,12 +16623,12 @@ class CodeSystem_Concept(BackboneElement):
     designation -- Additional representations for the concept - other languages, aliases, specialized purposes, used for particular purposes, etc.
     property -- A property value for this concept.
     concept -- Defines children of a concept to produce a hierarchy of concepts. The nature of the relationships is variable (is-a/contains/categorizes) - see hierarchyMeaning.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, code=None, display=None, definition=None, designation=None, property=None, concept=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, code: 'code' = None, display: 'string' = None, definition: 'string' = None, designation: List_['CodeSystem.Designation'] = None, property: List_['CodeSystem.Property1'] = None, concept: List_['CodeSystem.Concept'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -14493,7 +16713,7 @@ class CodeSystem_Concept(BackboneElement):
         self.concept.insert(index, value)
     def replace_concept_at(self, index, value):
         self.concept[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.display is not None or
@@ -14501,7 +16721,7 @@ class CodeSystem_Concept(BackboneElement):
             self.designation or
             self.property or
             self.concept or
-            super(CodeSystem_Concept, self)._hasContent()
+            super(CodeSystem_Concept, self).has__content()
         ):
             return True
         else:
@@ -14522,7 +16742,7 @@ class CodeSystem_Concept(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem.Concept')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem.Concept', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14555,10 +16775,56 @@ class CodeSystem_Concept(BackboneElement):
         for concept_ in self.concept:
             namespaceprefix_ = self.concept_nsprefix_ + ':' if (UseCapturedNS_ and self.concept_nsprefix_) else ''
             concept_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='concept', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.display is not None:
+            child_dict = self.display.exportJson(json_dict, 'display', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['display'] = child_dict
+        if self.definition is not None:
+            child_dict = self.definition.exportJson(json_dict, 'definition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['definition'] = child_dict
+        child_list = []
+        for child in self.designation:
+            child_dict = child.exportJson(json_dict, 'designation', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['designation'] = child_list
+        child_list = []
+        for child in self.property:
+            child_dict = child.exportJson(json_dict, 'property', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['property'] = child_list
+        child_list = []
+        for child in self.concept:
+            child_dict = child.exportJson(json_dict, 'concept', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['concept'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14609,12 +16875,12 @@ class CodeSystem_Property(BackboneElement):
     uri -- Reference to the formal meaning of the property. One possible source of meaning is the [Concept Properties](codesystem-concept-properties.html) code system.
     description -- A description of the property- why it is defined, and how its value might be used.
     type -- The type of the property value. Properties of type "code" contain a code defined by the code system (e.g. a reference to another defined concept).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, code=None, uri=None, description=None, type_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, code: 'code' = None, uri: 'uri' = None, description: 'string' = None, type_: 'PropertyType' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -14660,13 +16926,13 @@ class CodeSystem_Property(BackboneElement):
         return self.type_
     def set_type(self, type_):
         self.type_ = type_
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.uri is not None or
             self.description is not None or
             self.type_ is not None or
-            super(CodeSystem_Property, self)._hasContent()
+            super(CodeSystem_Property, self).has__content()
         ):
             return True
         else:
@@ -14687,7 +16953,7 @@ class CodeSystem_Property(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem.Property')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem.Property', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14714,10 +16980,39 @@ class CodeSystem_Property(BackboneElement):
         if self.type_ is not None:
             namespaceprefix_ = self.type__nsprefix_ + ':' if (UseCapturedNS_ and self.type__nsprefix_) else ''
             self.type_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='type', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.uri is not None:
+            child_dict = self.uri.exportJson(json_dict, 'uri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['uri'] = child_dict
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14758,12 +17053,12 @@ class CodeSystem_Filter(BackboneElement):
     description -- A description of how or why the filter is used.
     operator -- A list of operators that can be used with the filter.
     value -- A description of what the value for the filter should be.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, code=None, description=None, operator=None, value=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, code: 'code' = None, description: 'string' = None, operator: List_['FilterOperator'] = None, value: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -14818,13 +17113,13 @@ class CodeSystem_Filter(BackboneElement):
         return self.value
     def set_value(self, value):
         self.value = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.description is not None or
             self.operator or
             self.value is not None or
-            super(CodeSystem_Filter, self)._hasContent()
+            super(CodeSystem_Filter, self).has__content()
         ):
             return True
         else:
@@ -14845,7 +17140,7 @@ class CodeSystem_Filter(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem.Filter')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem.Filter', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -14872,10 +17167,42 @@ class CodeSystem_Filter(BackboneElement):
         if self.value is not None:
             namespaceprefix_ = self.value_nsprefix_ + ':' if (UseCapturedNS_ and self.value_nsprefix_) else ''
             self.value.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        child_list = []
+        for child in self.operator:
+            child_dict = child.exportJson(json_dict, 'operator', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['operator'] = child_list
+        if self.value is not None:
+            child_dict = self.value.exportJson(json_dict, 'value', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['value'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -14939,12 +17266,12 @@ class CodeSystem(DomainResource):
     filter -- A filter that can be used in a value set compose statement when selecting concepts using a filter.
     property -- A property defines an additional slot through which additional information can be provided about a concept.
     concept -- Concepts that are in the code system. The concept definitions are inherently hierarchical, but the definitions must be consulted to determine what the meanings of the hierarchical relationships are.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = DomainResource
-    def __init__(self, id=None, meta=None, implicitRules=None, language=None, extension=None, modifierExtension=None, url=None, identifier=None, version=None, name=None, title=None, status=None, experimental=None, date=None, publisher=None, contact=None, description=None, useContext=None, jurisdiction=None, purpose=None, copyright=None, caseSensitive=None, valueSet=None, hierarchyMeaning=None, compositional=None, versionNeeded=None, content=None, supplements=None, count=None, filter=None, property=None, concept=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'id' = None, meta: 'Meta' = None, implicitRules: 'uri' = None, language: 'code' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, url: 'uri' = None, identifier: List_['Identifier'] = None, version: 'string' = None, name: 'string' = None, title: 'string' = None, status: 'PublicationStatus' = None, experimental: 'boolean' = None, date: 'dateTime' = None, publisher: 'string' = None, contact: List_['ContactDetail'] = None, description: 'markdown' = None, useContext: List_['UsageContext'] = None, jurisdiction: List_['CodeableConcept'] = None, purpose: 'markdown' = None, copyright: 'markdown' = None, caseSensitive: 'boolean' = None, valueSet: 'canonical' = None, hierarchyMeaning: 'CodeSystemHierarchyMeaning' = None, compositional: 'boolean' = None, versionNeeded: 'boolean' = None, content: 'CodeSystemContentMode' = None, supplements: 'canonical' = None, count: 'unsignedInt' = None, filter: List_['CodeSystem.Filter'] = None, property: List_['CodeSystem.Property'] = None, concept: List_['CodeSystem.Concept'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -15185,7 +17512,7 @@ class CodeSystem(DomainResource):
         self.concept.insert(index, value)
     def replace_concept_at(self, index, value):
         self.concept[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.url is not None or
             self.identifier or
@@ -15213,7 +17540,7 @@ class CodeSystem(DomainResource):
             self.filter or
             self.property or
             self.concept or
-            super(CodeSystem, self)._hasContent()
+            super(CodeSystem, self).has__content()
         ):
             return True
         else:
@@ -15234,7 +17561,7 @@ class CodeSystem(DomainResource):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='CodeSystem')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='CodeSystem', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -15327,10 +17654,148 @@ class CodeSystem(DomainResource):
         for concept_ in self.concept:
             namespaceprefix_ = self.concept_nsprefix_ + ':' if (UseCapturedNS_ and self.concept_nsprefix_) else ''
             concept_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='concept', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.url is not None:
+            child_dict = self.url.exportJson(json_dict, 'url', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['url'] = child_dict
+        child_list = []
+        for child in self.identifier:
+            child_dict = child.exportJson(json_dict, 'identifier', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['identifier'] = child_list
+        if self.version is not None:
+            child_dict = self.version.exportJson(json_dict, 'version', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['version'] = child_dict
+        if self.name is not None:
+            child_dict = self.name.exportJson(json_dict, 'name', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['name'] = child_dict
+        if self.title is not None:
+            child_dict = self.title.exportJson(json_dict, 'title', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['title'] = child_dict
+        if self.status is not None:
+            child_dict = self.status.exportJson(json_dict, 'status', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['status'] = child_dict
+        if self.experimental is not None:
+            child_dict = self.experimental.exportJson(json_dict, 'experimental', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['experimental'] = child_dict
+        if self.date is not None:
+            child_dict = self.date.exportJson(json_dict, 'date', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['date'] = child_dict
+        if self.publisher is not None:
+            child_dict = self.publisher.exportJson(json_dict, 'publisher', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['publisher'] = child_dict
+        child_list = []
+        for child in self.contact:
+            child_dict = child.exportJson(json_dict, 'contact', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['contact'] = child_list
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        child_list = []
+        for child in self.useContext:
+            child_dict = child.exportJson(json_dict, 'useContext', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['useContext'] = child_list
+        child_list = []
+        for child in self.jurisdiction:
+            child_dict = child.exportJson(json_dict, 'jurisdiction', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['jurisdiction'] = child_list
+        if self.purpose is not None:
+            child_dict = self.purpose.exportJson(json_dict, 'purpose', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['purpose'] = child_dict
+        if self.copyright is not None:
+            child_dict = self.copyright.exportJson(json_dict, 'copyright', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['copyright'] = child_dict
+        if self.caseSensitive is not None:
+            child_dict = self.caseSensitive.exportJson(json_dict, 'caseSensitive', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['caseSensitive'] = child_dict
+        if self.valueSet is not None:
+            child_dict = self.valueSet.exportJson(json_dict, 'valueSet', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSet'] = child_dict
+        if self.hierarchyMeaning is not None:
+            child_dict = self.hierarchyMeaning.exportJson(json_dict, 'hierarchyMeaning', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['hierarchyMeaning'] = child_dict
+        if self.compositional is not None:
+            child_dict = self.compositional.exportJson(json_dict, 'compositional', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['compositional'] = child_dict
+        if self.versionNeeded is not None:
+            child_dict = self.versionNeeded.exportJson(json_dict, 'versionNeeded', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['versionNeeded'] = child_dict
+        if self.content is not None:
+            child_dict = self.content.exportJson(json_dict, 'content', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['content'] = child_dict
+        if self.supplements is not None:
+            child_dict = self.supplements.exportJson(json_dict, 'supplements', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['supplements'] = child_dict
+        if self.count is not None:
+            child_dict = self.count.exportJson(json_dict, 'count', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['count'] = child_dict
+        child_list = []
+        for child in self.filter:
+            child_dict = child.exportJson(json_dict, 'filter', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['filter'] = child_list
+        child_list = []
+        for child in self.property:
+            child_dict = child.exportJson(json_dict, 'property', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['property'] = child_list
+        child_list = []
+        for child in self.concept:
+            child_dict = child.exportJson(json_dict, 'concept', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['concept'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -15480,12 +17945,12 @@ class ElementDefinition_Discriminator(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     type -- How the element value is interpreted when discrimination is evaluated.
     path -- A FHIRPath expression, using [the simple subset of FHIRPath](fhirpath.html#simple), that is used to identify the element on which discrimination is based.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, type_=None, path=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, type_: 'DiscriminatorType' = None, path: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -15519,11 +17984,11 @@ class ElementDefinition_Discriminator(BackboneElement):
         return self.path
     def set_path(self, path):
         self.path = path
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.path is not None or
-            super(ElementDefinition_Discriminator, self)._hasContent()
+            super(ElementDefinition_Discriminator, self).has__content()
         ):
             return True
         else:
@@ -15544,7 +18009,7 @@ class ElementDefinition_Discriminator(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Discriminator')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Discriminator', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -15565,10 +18030,31 @@ class ElementDefinition_Discriminator(BackboneElement):
         if self.path is not None:
             namespaceprefix_ = self.path_nsprefix_ + ':' if (UseCapturedNS_ and self.path_nsprefix_) else ''
             self.path.export(outfile, level, namespaceprefix_, namespacedef_='', name_='path', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -15599,12 +18085,12 @@ class ElementDefinition_Binding(BackboneElement):
     strength -- Indicates the degree of conformance expectations associated with this binding - that is, the degree to which the provided value set must be adhered to in the instances.
     description -- Describes the intended use of this particular set of codes.
     valueSet -- Refers to the value set that identifies the set of codes the binding refers to.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, strength=None, description=None, valueSet=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, strength: 'BindingStrength' = None, description: 'string' = None, valueSet: 'canonical' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -15644,12 +18130,12 @@ class ElementDefinition_Binding(BackboneElement):
         return self.valueSet
     def set_valueSet(self, valueSet):
         self.valueSet = valueSet
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.strength is not None or
             self.description is not None or
             self.valueSet is not None or
-            super(ElementDefinition_Binding, self)._hasContent()
+            super(ElementDefinition_Binding, self).has__content()
         ):
             return True
         else:
@@ -15670,7 +18156,7 @@ class ElementDefinition_Binding(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Binding')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Binding', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -15694,10 +18180,35 @@ class ElementDefinition_Binding(BackboneElement):
         if self.valueSet is not None:
             namespaceprefix_ = self.valueSet_nsprefix_ + ':' if (UseCapturedNS_ and self.valueSet_nsprefix_) else ''
             self.valueSet.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueSet', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.strength is not None:
+            child_dict = self.strength.exportJson(json_dict, 'strength', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['strength'] = child_dict
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        if self.valueSet is not None:
+            child_dict = self.valueSet.exportJson(json_dict, 'valueSet', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSet'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -15734,12 +18245,12 @@ class ElementDefinition_Slicing(BackboneElement):
     description -- A human-readable text description of how the slicing works. If there is no discriminator, this is required to be present to provide whatever information is possible about how the slices can be differentiated.
     ordered -- If the matching elements have to occur in the same order as defined in the profile.
     rules -- Whether additional slices are allowed or not. When the slices are ordered, profile authors can also say that additional slices are only allowed at the end.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, discriminator=None, description=None, ordered=None, rules=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, discriminator: List_['ElementDefinition.Discriminator'] = None, description: 'string' = None, ordered: 'boolean' = None, rules: 'SlicingRules' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -15794,13 +18305,13 @@ class ElementDefinition_Slicing(BackboneElement):
         return self.rules
     def set_rules(self, rules):
         self.rules = rules
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.discriminator or
             self.description is not None or
             self.ordered is not None or
             self.rules is not None or
-            super(ElementDefinition_Slicing, self)._hasContent()
+            super(ElementDefinition_Slicing, self).has__content()
         ):
             return True
         else:
@@ -15821,7 +18332,7 @@ class ElementDefinition_Slicing(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Slicing')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Slicing', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -15848,10 +18359,42 @@ class ElementDefinition_Slicing(BackboneElement):
         if self.rules is not None:
             namespaceprefix_ = self.rules_nsprefix_ + ':' if (UseCapturedNS_ and self.rules_nsprefix_) else ''
             self.rules.export(outfile, level, namespaceprefix_, namespacedef_='', name_='rules', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.discriminator:
+            child_dict = child.exportJson(json_dict, 'discriminator', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['discriminator'] = child_list
+        if self.description is not None:
+            child_dict = self.description.exportJson(json_dict, 'description', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['description'] = child_dict
+        if self.ordered is not None:
+            child_dict = self.ordered.exportJson(json_dict, 'ordered', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['ordered'] = child_dict
+        if self.rules is not None:
+            child_dict = self.rules.exportJson(json_dict, 'rules', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['rules'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -15891,12 +18434,12 @@ class ElementDefinition_Example(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     The actual value for the element, which must be one of the types allowed for this element.
     label -- Describes the purpose of this example amoung the set of examples.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, label=None, valueBase64Binary=None, valueBoolean=None, valueCanonical=None, valueCode=None, valueDate=None, valueDateTime=None, valueDecimal=None, valueId=None, valueInstant=None, valueInteger=None, valueMarkdown=None, valueOid=None, valuePositiveInt=None, valueString=None, valueTime=None, valueUnsignedInt=None, valueUri=None, valueUrl=None, valueUuid=None, valueAddress=None, valueAge=None, valueAnnotation=None, valueAttachment=None, valueCodeableConcept=None, valueCoding=None, valueContactPoint=None, valueCount=None, valueDistance=None, valueDuration=None, valueHumanName=None, valueIdentifier=None, valueMoney=None, valuePeriod=None, valueQuantity=None, valueRange=None, valueRatio=None, valueReference=None, valueSampledData=None, valueSignature=None, valueTiming=None, valueContactDetail=None, valueContributor=None, valueDataRequirement=None, valueExpression=None, valueParameterDefinition=None, valueRelatedArtifact=None, valueTriggerDefinition=None, valueUsageContext=None, valueDosage=None, valueMeta=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, label: 'string' = None, valueBase64Binary: 'base64Binary' = None, valueBoolean: 'boolean' = None, valueCanonical: 'canonical' = None, valueCode: 'code' = None, valueDate: 'date' = None, valueDateTime: 'dateTime' = None, valueDecimal: 'decimal' = None, valueId: 'id' = None, valueInstant: 'instant' = None, valueInteger: 'integer' = None, valueMarkdown: 'markdown' = None, valueOid: 'oid' = None, valuePositiveInt: 'positiveInt' = None, valueString: 'string' = None, valueTime: 'time' = None, valueUnsignedInt: 'unsignedInt' = None, valueUri: 'uri' = None, valueUrl: 'url' = None, valueUuid: 'uuid' = None, valueAddress: 'Address' = None, valueAge: 'Age' = None, valueAnnotation: 'Annotation' = None, valueAttachment: 'Attachment' = None, valueCodeableConcept: 'CodeableConcept' = None, valueCoding: 'Coding' = None, valueContactPoint: 'ContactPoint' = None, valueCount: 'Count' = None, valueDistance: 'Distance' = None, valueDuration: 'Duration' = None, valueHumanName: 'HumanName' = None, valueIdentifier: 'Identifier' = None, valueMoney: 'Money' = None, valuePeriod: 'Period' = None, valueQuantity: 'Quantity' = None, valueRange: 'Range' = None, valueRatio: 'Ratio' = None, valueReference: 'Reference' = None, valueSampledData: 'SampledData' = None, valueSignature: 'Signature' = None, valueTiming: 'Timing' = None, valueContactDetail: 'ContactDetail' = None, valueContributor: 'Contributor' = None, valueDataRequirement: 'DataRequirement' = None, valueExpression: 'Expression' = None, valueParameterDefinition: 'ParameterDefinition' = None, valueRelatedArtifact: 'RelatedArtifact' = None, valueTriggerDefinition: 'TriggerDefinition' = None, valueUsageContext: 'UsageContext' = None, valueDosage: 'Dosage' = None, valueMeta: 'Meta' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -16224,7 +18767,7 @@ class ElementDefinition_Example(BackboneElement):
         return self.valueMeta
     def set_valueMeta(self, valueMeta):
         self.valueMeta = valueMeta
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.label is not None or
             self.valueBase64Binary is not None or
@@ -16277,7 +18820,7 @@ class ElementDefinition_Example(BackboneElement):
             self.valueUsageContext is not None or
             self.valueDosage is not None or
             self.valueMeta is not None or
-            super(ElementDefinition_Example, self)._hasContent()
+            super(ElementDefinition_Example, self).has__content()
         ):
             return True
         else:
@@ -16298,7 +18841,7 @@ class ElementDefinition_Example(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Example')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Example', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -16466,10 +19009,227 @@ class ElementDefinition_Example(BackboneElement):
         if self.valueMeta is not None:
             namespaceprefix_ = self.valueMeta_nsprefix_ + ':' if (UseCapturedNS_ and self.valueMeta_nsprefix_) else ''
             self.valueMeta.export(outfile, level, namespaceprefix_, namespacedef_='', name_='valueMeta', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.label is not None:
+            child_dict = self.label.exportJson(json_dict, 'label', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['label'] = child_dict
+        if self.valueBase64Binary is not None:
+            child_dict = self.valueBase64Binary.exportJson(json_dict, 'valueBase64Binary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueBase64Binary'] = child_dict
+        if self.valueBoolean is not None:
+            child_dict = self.valueBoolean.exportJson(json_dict, 'valueBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueBoolean'] = child_dict
+        if self.valueCanonical is not None:
+            child_dict = self.valueCanonical.exportJson(json_dict, 'valueCanonical', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCanonical'] = child_dict
+        if self.valueCode is not None:
+            child_dict = self.valueCode.exportJson(json_dict, 'valueCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCode'] = child_dict
+        if self.valueDate is not None:
+            child_dict = self.valueDate.exportJson(json_dict, 'valueDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDate'] = child_dict
+        if self.valueDateTime is not None:
+            child_dict = self.valueDateTime.exportJson(json_dict, 'valueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDateTime'] = child_dict
+        if self.valueDecimal is not None:
+            child_dict = self.valueDecimal.exportJson(json_dict, 'valueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDecimal'] = child_dict
+        if self.valueId is not None:
+            child_dict = self.valueId.exportJson(json_dict, 'valueId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueId'] = child_dict
+        if self.valueInstant is not None:
+            child_dict = self.valueInstant.exportJson(json_dict, 'valueInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueInstant'] = child_dict
+        if self.valueInteger is not None:
+            child_dict = self.valueInteger.exportJson(json_dict, 'valueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueInteger'] = child_dict
+        if self.valueMarkdown is not None:
+            child_dict = self.valueMarkdown.exportJson(json_dict, 'valueMarkdown', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMarkdown'] = child_dict
+        if self.valueOid is not None:
+            child_dict = self.valueOid.exportJson(json_dict, 'valueOid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueOid'] = child_dict
+        if self.valuePositiveInt is not None:
+            child_dict = self.valuePositiveInt.exportJson(json_dict, 'valuePositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valuePositiveInt'] = child_dict
+        if self.valueString is not None:
+            child_dict = self.valueString.exportJson(json_dict, 'valueString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueString'] = child_dict
+        if self.valueTime is not None:
+            child_dict = self.valueTime.exportJson(json_dict, 'valueTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTime'] = child_dict
+        if self.valueUnsignedInt is not None:
+            child_dict = self.valueUnsignedInt.exportJson(json_dict, 'valueUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUnsignedInt'] = child_dict
+        if self.valueUri is not None:
+            child_dict = self.valueUri.exportJson(json_dict, 'valueUri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUri'] = child_dict
+        if self.valueUrl is not None:
+            child_dict = self.valueUrl.exportJson(json_dict, 'valueUrl', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUrl'] = child_dict
+        if self.valueUuid is not None:
+            child_dict = self.valueUuid.exportJson(json_dict, 'valueUuid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUuid'] = child_dict
+        if self.valueAddress is not None:
+            child_dict = self.valueAddress.exportJson(json_dict, 'valueAddress', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAddress'] = child_dict
+        if self.valueAge is not None:
+            child_dict = self.valueAge.exportJson(json_dict, 'valueAge', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAge'] = child_dict
+        if self.valueAnnotation is not None:
+            child_dict = self.valueAnnotation.exportJson(json_dict, 'valueAnnotation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAnnotation'] = child_dict
+        if self.valueAttachment is not None:
+            child_dict = self.valueAttachment.exportJson(json_dict, 'valueAttachment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueAttachment'] = child_dict
+        if self.valueCodeableConcept is not None:
+            child_dict = self.valueCodeableConcept.exportJson(json_dict, 'valueCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCodeableConcept'] = child_dict
+        if self.valueCoding is not None:
+            child_dict = self.valueCoding.exportJson(json_dict, 'valueCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCoding'] = child_dict
+        if self.valueContactPoint is not None:
+            child_dict = self.valueContactPoint.exportJson(json_dict, 'valueContactPoint', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContactPoint'] = child_dict
+        if self.valueCount is not None:
+            child_dict = self.valueCount.exportJson(json_dict, 'valueCount', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueCount'] = child_dict
+        if self.valueDistance is not None:
+            child_dict = self.valueDistance.exportJson(json_dict, 'valueDistance', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDistance'] = child_dict
+        if self.valueDuration is not None:
+            child_dict = self.valueDuration.exportJson(json_dict, 'valueDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDuration'] = child_dict
+        if self.valueHumanName is not None:
+            child_dict = self.valueHumanName.exportJson(json_dict, 'valueHumanName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueHumanName'] = child_dict
+        if self.valueIdentifier is not None:
+            child_dict = self.valueIdentifier.exportJson(json_dict, 'valueIdentifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueIdentifier'] = child_dict
+        if self.valueMoney is not None:
+            child_dict = self.valueMoney.exportJson(json_dict, 'valueMoney', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMoney'] = child_dict
+        if self.valuePeriod is not None:
+            child_dict = self.valuePeriod.exportJson(json_dict, 'valuePeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valuePeriod'] = child_dict
+        if self.valueQuantity is not None:
+            child_dict = self.valueQuantity.exportJson(json_dict, 'valueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueQuantity'] = child_dict
+        if self.valueRange is not None:
+            child_dict = self.valueRange.exportJson(json_dict, 'valueRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRange'] = child_dict
+        if self.valueRatio is not None:
+            child_dict = self.valueRatio.exportJson(json_dict, 'valueRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRatio'] = child_dict
+        if self.valueReference is not None:
+            child_dict = self.valueReference.exportJson(json_dict, 'valueReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueReference'] = child_dict
+        if self.valueSampledData is not None:
+            child_dict = self.valueSampledData.exportJson(json_dict, 'valueSampledData', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSampledData'] = child_dict
+        if self.valueSignature is not None:
+            child_dict = self.valueSignature.exportJson(json_dict, 'valueSignature', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueSignature'] = child_dict
+        if self.valueTiming is not None:
+            child_dict = self.valueTiming.exportJson(json_dict, 'valueTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTiming'] = child_dict
+        if self.valueContactDetail is not None:
+            child_dict = self.valueContactDetail.exportJson(json_dict, 'valueContactDetail', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContactDetail'] = child_dict
+        if self.valueContributor is not None:
+            child_dict = self.valueContributor.exportJson(json_dict, 'valueContributor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueContributor'] = child_dict
+        if self.valueDataRequirement is not None:
+            child_dict = self.valueDataRequirement.exportJson(json_dict, 'valueDataRequirement', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDataRequirement'] = child_dict
+        if self.valueExpression is not None:
+            child_dict = self.valueExpression.exportJson(json_dict, 'valueExpression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueExpression'] = child_dict
+        if self.valueParameterDefinition is not None:
+            child_dict = self.valueParameterDefinition.exportJson(json_dict, 'valueParameterDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueParameterDefinition'] = child_dict
+        if self.valueRelatedArtifact is not None:
+            child_dict = self.valueRelatedArtifact.exportJson(json_dict, 'valueRelatedArtifact', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueRelatedArtifact'] = child_dict
+        if self.valueTriggerDefinition is not None:
+            child_dict = self.valueTriggerDefinition.exportJson(json_dict, 'valueTriggerDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueTriggerDefinition'] = child_dict
+        if self.valueUsageContext is not None:
+            child_dict = self.valueUsageContext.exportJson(json_dict, 'valueUsageContext', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueUsageContext'] = child_dict
+        if self.valueDosage is not None:
+            child_dict = self.valueDosage.exportJson(json_dict, 'valueDosage', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueDosage'] = child_dict
+        if self.valueMeta is not None:
+            child_dict = self.valueMeta.exportJson(json_dict, 'valueMeta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['valueMeta'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -16748,12 +19508,12 @@ class ElementDefinition_Type(BackboneElement):
     targetProfile -- Used when the type is "Reference" or "canonical", and identifies a profile structure or implementation Guide that applies to the target of the reference this element refers to. If any profiles are specified, then the content must conform to at least one of them. The URL can be a local reference - to a contained StructureDefinition, or a reference to another StructureDefinition or Implementation Guide by a canonical URL. When an implementation guide is specified, the target resource SHALL conform to at least one profile defined in the implementation guide.
     aggregation -- If the type is a reference to another resource, how the resource is or can be aggregated - is it a contained resource, or a reference, and if the context is a bundle, is it included in the bundle.
     versioning -- Whether this reference needs to be version specific or version independent, or whether either can be used.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, code=None, profile=None, targetProfile=None, aggregation=None, versioning=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, code: 'uri' = None, profile: List_['canonical'] = None, targetProfile: List_['canonical'] = None, aggregation: List_['AggregationMode'] = None, versioning: 'ReferenceVersionRules' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -16832,14 +19592,14 @@ class ElementDefinition_Type(BackboneElement):
         return self.versioning
     def set_versioning(self, versioning):
         self.versioning = versioning
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.code is not None or
             self.profile or
             self.targetProfile or
             self.aggregation or
             self.versioning is not None or
-            super(ElementDefinition_Type, self)._hasContent()
+            super(ElementDefinition_Type, self).has__content()
         ):
             return True
         else:
@@ -16860,7 +19620,7 @@ class ElementDefinition_Type(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Type')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Type', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -16890,10 +19650,52 @@ class ElementDefinition_Type(BackboneElement):
         if self.versioning is not None:
             namespaceprefix_ = self.versioning_nsprefix_ + ':' if (UseCapturedNS_ and self.versioning_nsprefix_) else ''
             self.versioning.export(outfile, level, namespaceprefix_, namespacedef_='', name_='versioning', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
+        child_list = []
+        for child in self.profile:
+            child_dict = child.exportJson(json_dict, 'profile', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['profile'] = child_list
+        child_list = []
+        for child in self.targetProfile:
+            child_dict = child.exportJson(json_dict, 'targetProfile', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['targetProfile'] = child_list
+        child_list = []
+        for child in self.aggregation:
+            child_dict = child.exportJson(json_dict, 'aggregation', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['aggregation'] = child_list
+        if self.versioning is not None:
+            child_dict = self.versioning.exportJson(json_dict, 'versioning', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['versioning'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -16939,12 +19741,12 @@ class ElementDefinition_Base(BackboneElement):
     path -- The Path that identifies the base element - this matches the ElementDefinition.path for that element. Across FHIR, there is only one base definition of any element - that is, an element definition on a [[[StructureDefinition]]] without a StructureDefinition.base.
     min -- Minimum cardinality of the base element identified by the path.
     max -- Maximum cardinality of the base element identified by the path.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, path=None, min=None, max=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, path: 'string' = None, min: 'unsignedInt' = None, max: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -16984,12 +19786,12 @@ class ElementDefinition_Base(BackboneElement):
         return self.max
     def set_max(self, max):
         self.max = max
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.path is not None or
             self.min is not None or
             self.max is not None or
-            super(ElementDefinition_Base, self)._hasContent()
+            super(ElementDefinition_Base, self).has__content()
         ):
             return True
         else:
@@ -17010,7 +19812,7 @@ class ElementDefinition_Base(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Base')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Base', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -17034,10 +19836,35 @@ class ElementDefinition_Base(BackboneElement):
         if self.max is not None:
             namespaceprefix_ = self.max_nsprefix_ + ':' if (UseCapturedNS_ and self.max_nsprefix_) else ''
             self.max.export(outfile, level, namespaceprefix_, namespacedef_='', name_='max', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
+        if self.min is not None:
+            child_dict = self.min.exportJson(json_dict, 'min', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['min'] = child_dict
+        if self.max is not None:
+            child_dict = self.max.exportJson(json_dict, 'max', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['max'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -17074,12 +19901,12 @@ class ElementDefinition_Mapping(BackboneElement):
     language -- Identifies the computable language in which mapping.map is expressed.
     map -- Expresses what part of the target specification corresponds to this element.
     comment -- Comments that provide information about the mapping or its use.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, identity=None, language=None, map=None, comment=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, identity: 'id' = None, language: 'code' = None, map: 'string' = None, comment: 'string' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -17125,13 +19952,13 @@ class ElementDefinition_Mapping(BackboneElement):
         return self.comment
     def set_comment(self, comment):
         self.comment = comment
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.identity is not None or
             self.language is not None or
             self.map is not None or
             self.comment is not None or
-            super(ElementDefinition_Mapping, self)._hasContent()
+            super(ElementDefinition_Mapping, self).has__content()
         ):
             return True
         else:
@@ -17152,7 +19979,7 @@ class ElementDefinition_Mapping(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Mapping')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Mapping', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -17179,10 +20006,39 @@ class ElementDefinition_Mapping(BackboneElement):
         if self.comment is not None:
             namespaceprefix_ = self.comment_nsprefix_ + ':' if (UseCapturedNS_ and self.comment_nsprefix_) else ''
             self.comment.export(outfile, level, namespaceprefix_, namespacedef_='', name_='comment', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.identity is not None:
+            child_dict = self.identity.exportJson(json_dict, 'identity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['identity'] = child_dict
+        if self.language is not None:
+            child_dict = self.language.exportJson(json_dict, 'language', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['language'] = child_dict
+        if self.map is not None:
+            child_dict = self.map.exportJson(json_dict, 'map', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['map'] = child_dict
+        if self.comment is not None:
+            child_dict = self.comment.exportJson(json_dict, 'comment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['comment'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -17227,12 +20083,12 @@ class ElementDefinition_Constraint(BackboneElement):
     expression -- A [FHIRPath](fhirpath.html) expression of constraint that can be executed to see if this constraint is met.
     xpath -- An XPath expression of constraint that can be executed to see if this constraint is met.
     source -- A reference to the original source of the constraint, for traceability purposes.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, key=None, requirements=None, severity=None, human=None, expression=None, xpath=None, source=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, key: 'id' = None, requirements: 'string' = None, severity: 'ConstraintSeverity' = None, human: 'string' = None, expression: 'string' = None, xpath: 'string' = None, source: 'canonical' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -17296,7 +20152,7 @@ class ElementDefinition_Constraint(BackboneElement):
         return self.source
     def set_source(self, source):
         self.source = source
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.key is not None or
             self.requirements is not None or
@@ -17305,7 +20161,7 @@ class ElementDefinition_Constraint(BackboneElement):
             self.expression is not None or
             self.xpath is not None or
             self.source is not None or
-            super(ElementDefinition_Constraint, self)._hasContent()
+            super(ElementDefinition_Constraint, self).has__content()
         ):
             return True
         else:
@@ -17326,7 +20182,7 @@ class ElementDefinition_Constraint(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition.Constraint')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition.Constraint', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -17362,10 +20218,51 @@ class ElementDefinition_Constraint(BackboneElement):
         if self.source is not None:
             namespaceprefix_ = self.source_nsprefix_ + ':' if (UseCapturedNS_ and self.source_nsprefix_) else ''
             self.source.export(outfile, level, namespaceprefix_, namespacedef_='', name_='source', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.key is not None:
+            child_dict = self.key.exportJson(json_dict, 'key', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['key'] = child_dict
+        if self.requirements is not None:
+            child_dict = self.requirements.exportJson(json_dict, 'requirements', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['requirements'] = child_dict
+        if self.severity is not None:
+            child_dict = self.severity.exportJson(json_dict, 'severity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['severity'] = child_dict
+        if self.human is not None:
+            child_dict = self.human.exportJson(json_dict, 'human', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['human'] = child_dict
+        if self.expression is not None:
+            child_dict = self.expression.exportJson(json_dict, 'expression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['expression'] = child_dict
+        if self.xpath is not None:
+            child_dict = self.xpath.exportJson(json_dict, 'xpath', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['xpath'] = child_dict
+        if self.source is not None:
+            child_dict = self.source.exportJson(json_dict, 'source', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['source'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -17458,12 +20355,12 @@ class ElementDefinition(BackboneElement):
     isSummary -- Whether the element should be included if a client requests a search with the parameter _summary=true.
     binding -- Binds to a value set if this element is coded (code, Coding, CodeableConcept, Quantity), or the data types (string, uri).
     mapping -- Identifies a concept from an external specification that roughly corresponds to this element.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, path=None, representation=None, sliceName=None, sliceIsConstraining=None, label=None, code=None, slicing=None, short=None, definition=None, comment=None, requirements=None, alias=None, min=None, max=None, base=None, contentReference=None, type_=None, defaultValueBase64Binary=None, defaultValueBoolean=None, defaultValueCanonical=None, defaultValueCode=None, defaultValueDate=None, defaultValueDateTime=None, defaultValueDecimal=None, defaultValueId=None, defaultValueInstant=None, defaultValueInteger=None, defaultValueMarkdown=None, defaultValueOid=None, defaultValuePositiveInt=None, defaultValueString=None, defaultValueTime=None, defaultValueUnsignedInt=None, defaultValueUri=None, defaultValueUrl=None, defaultValueUuid=None, defaultValueAddress=None, defaultValueAge=None, defaultValueAnnotation=None, defaultValueAttachment=None, defaultValueCodeableConcept=None, defaultValueCoding=None, defaultValueContactPoint=None, defaultValueCount=None, defaultValueDistance=None, defaultValueDuration=None, defaultValueHumanName=None, defaultValueIdentifier=None, defaultValueMoney=None, defaultValuePeriod=None, defaultValueQuantity=None, defaultValueRange=None, defaultValueRatio=None, defaultValueReference=None, defaultValueSampledData=None, defaultValueSignature=None, defaultValueTiming=None, defaultValueContactDetail=None, defaultValueContributor=None, defaultValueDataRequirement=None, defaultValueExpression=None, defaultValueParameterDefinition=None, defaultValueRelatedArtifact=None, defaultValueTriggerDefinition=None, defaultValueUsageContext=None, defaultValueDosage=None, defaultValueMeta=None, meaningWhenMissing=None, orderMeaning=None, fixedBase64Binary=None, fixedBoolean=None, fixedCanonical=None, fixedCode=None, fixedDate=None, fixedDateTime=None, fixedDecimal=None, fixedId=None, fixedInstant=None, fixedInteger=None, fixedMarkdown=None, fixedOid=None, fixedPositiveInt=None, fixedString=None, fixedTime=None, fixedUnsignedInt=None, fixedUri=None, fixedUrl=None, fixedUuid=None, fixedAddress=None, fixedAge=None, fixedAnnotation=None, fixedAttachment=None, fixedCodeableConcept=None, fixedCoding=None, fixedContactPoint=None, fixedCount=None, fixedDistance=None, fixedDuration=None, fixedHumanName=None, fixedIdentifier=None, fixedMoney=None, fixedPeriod=None, fixedQuantity=None, fixedRange=None, fixedRatio=None, fixedReference=None, fixedSampledData=None, fixedSignature=None, fixedTiming=None, fixedContactDetail=None, fixedContributor=None, fixedDataRequirement=None, fixedExpression=None, fixedParameterDefinition=None, fixedRelatedArtifact=None, fixedTriggerDefinition=None, fixedUsageContext=None, fixedDosage=None, fixedMeta=None, patternBase64Binary=None, patternBoolean=None, patternCanonical=None, patternCode=None, patternDate=None, patternDateTime=None, patternDecimal=None, patternId=None, patternInstant=None, patternInteger=None, patternMarkdown=None, patternOid=None, patternPositiveInt=None, patternString=None, patternTime=None, patternUnsignedInt=None, patternUri=None, patternUrl=None, patternUuid=None, patternAddress=None, patternAge=None, patternAnnotation=None, patternAttachment=None, patternCodeableConcept=None, patternCoding=None, patternContactPoint=None, patternCount=None, patternDistance=None, patternDuration=None, patternHumanName=None, patternIdentifier=None, patternMoney=None, patternPeriod=None, patternQuantity=None, patternRange=None, patternRatio=None, patternReference=None, patternSampledData=None, patternSignature=None, patternTiming=None, patternContactDetail=None, patternContributor=None, patternDataRequirement=None, patternExpression=None, patternParameterDefinition=None, patternRelatedArtifact=None, patternTriggerDefinition=None, patternUsageContext=None, patternDosage=None, patternMeta=None, example=None, minValueDate=None, minValueDateTime=None, minValueInstant=None, minValueTime=None, minValueDecimal=None, minValueInteger=None, minValuePositiveInt=None, minValueUnsignedInt=None, minValueQuantity=None, maxValueDate=None, maxValueDateTime=None, maxValueInstant=None, maxValueTime=None, maxValueDecimal=None, maxValueInteger=None, maxValuePositiveInt=None, maxValueUnsignedInt=None, maxValueQuantity=None, maxLength=None, condition=None, constraint=None, mustSupport=None, isModifier=None, isModifierReason=None, isSummary=None, binding=None, mapping=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, path: 'string' = None, representation: List_['PropertyRepresentation'] = None, sliceName: 'string' = None, sliceIsConstraining: 'boolean' = None, label: 'string' = None, code: List_['Coding'] = None, slicing: 'ElementDefinition.Slicing' = None, short: 'string' = None, definition: 'markdown' = None, comment: 'markdown' = None, requirements: 'markdown' = None, alias: List_['string'] = None, min: 'unsignedInt' = None, max: 'string' = None, base: 'ElementDefinition.Base' = None, contentReference: 'uri' = None, type_: List_['ElementDefinition.Type'] = None, defaultValueBase64Binary: 'base64Binary' = None, defaultValueBoolean: 'boolean' = None, defaultValueCanonical: 'canonical' = None, defaultValueCode: 'code' = None, defaultValueDate: 'date' = None, defaultValueDateTime: 'dateTime' = None, defaultValueDecimal: 'decimal' = None, defaultValueId: 'id' = None, defaultValueInstant: 'instant' = None, defaultValueInteger: 'integer' = None, defaultValueMarkdown: 'markdown' = None, defaultValueOid: 'oid' = None, defaultValuePositiveInt: 'positiveInt' = None, defaultValueString: 'string' = None, defaultValueTime: 'time' = None, defaultValueUnsignedInt: 'unsignedInt' = None, defaultValueUri: 'uri' = None, defaultValueUrl: 'url' = None, defaultValueUuid: 'uuid' = None, defaultValueAddress: 'Address' = None, defaultValueAge: 'Age' = None, defaultValueAnnotation: 'Annotation' = None, defaultValueAttachment: 'Attachment' = None, defaultValueCodeableConcept: 'CodeableConcept' = None, defaultValueCoding: 'Coding' = None, defaultValueContactPoint: 'ContactPoint' = None, defaultValueCount: 'Count' = None, defaultValueDistance: 'Distance' = None, defaultValueDuration: 'Duration' = None, defaultValueHumanName: 'HumanName' = None, defaultValueIdentifier: 'Identifier' = None, defaultValueMoney: 'Money' = None, defaultValuePeriod: 'Period' = None, defaultValueQuantity: 'Quantity' = None, defaultValueRange: 'Range' = None, defaultValueRatio: 'Ratio' = None, defaultValueReference: 'Reference' = None, defaultValueSampledData: 'SampledData' = None, defaultValueSignature: 'Signature' = None, defaultValueTiming: 'Timing' = None, defaultValueContactDetail: 'ContactDetail' = None, defaultValueContributor: 'Contributor' = None, defaultValueDataRequirement: 'DataRequirement' = None, defaultValueExpression: 'Expression' = None, defaultValueParameterDefinition: 'ParameterDefinition' = None, defaultValueRelatedArtifact: 'RelatedArtifact' = None, defaultValueTriggerDefinition: 'TriggerDefinition' = None, defaultValueUsageContext: 'UsageContext' = None, defaultValueDosage: 'Dosage' = None, defaultValueMeta: 'Meta' = None, meaningWhenMissing: 'markdown' = None, orderMeaning: 'string' = None, fixedBase64Binary: 'base64Binary' = None, fixedBoolean: 'boolean' = None, fixedCanonical: 'canonical' = None, fixedCode: 'code' = None, fixedDate: 'date' = None, fixedDateTime: 'dateTime' = None, fixedDecimal: 'decimal' = None, fixedId: 'id' = None, fixedInstant: 'instant' = None, fixedInteger: 'integer' = None, fixedMarkdown: 'markdown' = None, fixedOid: 'oid' = None, fixedPositiveInt: 'positiveInt' = None, fixedString: 'string' = None, fixedTime: 'time' = None, fixedUnsignedInt: 'unsignedInt' = None, fixedUri: 'uri' = None, fixedUrl: 'url' = None, fixedUuid: 'uuid' = None, fixedAddress: 'Address' = None, fixedAge: 'Age' = None, fixedAnnotation: 'Annotation' = None, fixedAttachment: 'Attachment' = None, fixedCodeableConcept: 'CodeableConcept' = None, fixedCoding: 'Coding' = None, fixedContactPoint: 'ContactPoint' = None, fixedCount: 'Count' = None, fixedDistance: 'Distance' = None, fixedDuration: 'Duration' = None, fixedHumanName: 'HumanName' = None, fixedIdentifier: 'Identifier' = None, fixedMoney: 'Money' = None, fixedPeriod: 'Period' = None, fixedQuantity: 'Quantity' = None, fixedRange: 'Range' = None, fixedRatio: 'Ratio' = None, fixedReference: 'Reference' = None, fixedSampledData: 'SampledData' = None, fixedSignature: 'Signature' = None, fixedTiming: 'Timing' = None, fixedContactDetail: 'ContactDetail' = None, fixedContributor: 'Contributor' = None, fixedDataRequirement: 'DataRequirement' = None, fixedExpression: 'Expression' = None, fixedParameterDefinition: 'ParameterDefinition' = None, fixedRelatedArtifact: 'RelatedArtifact' = None, fixedTriggerDefinition: 'TriggerDefinition' = None, fixedUsageContext: 'UsageContext' = None, fixedDosage: 'Dosage' = None, fixedMeta: 'Meta' = None, patternBase64Binary: 'base64Binary' = None, patternBoolean: 'boolean' = None, patternCanonical: 'canonical' = None, patternCode: 'code' = None, patternDate: 'date' = None, patternDateTime: 'dateTime' = None, patternDecimal: 'decimal' = None, patternId: 'id' = None, patternInstant: 'instant' = None, patternInteger: 'integer' = None, patternMarkdown: 'markdown' = None, patternOid: 'oid' = None, patternPositiveInt: 'positiveInt' = None, patternString: 'string' = None, patternTime: 'time' = None, patternUnsignedInt: 'unsignedInt' = None, patternUri: 'uri' = None, patternUrl: 'url' = None, patternUuid: 'uuid' = None, patternAddress: 'Address' = None, patternAge: 'Age' = None, patternAnnotation: 'Annotation' = None, patternAttachment: 'Attachment' = None, patternCodeableConcept: 'CodeableConcept' = None, patternCoding: 'Coding' = None, patternContactPoint: 'ContactPoint' = None, patternCount: 'Count' = None, patternDistance: 'Distance' = None, patternDuration: 'Duration' = None, patternHumanName: 'HumanName' = None, patternIdentifier: 'Identifier' = None, patternMoney: 'Money' = None, patternPeriod: 'Period' = None, patternQuantity: 'Quantity' = None, patternRange: 'Range' = None, patternRatio: 'Ratio' = None, patternReference: 'Reference' = None, patternSampledData: 'SampledData' = None, patternSignature: 'Signature' = None, patternTiming: 'Timing' = None, patternContactDetail: 'ContactDetail' = None, patternContributor: 'Contributor' = None, patternDataRequirement: 'DataRequirement' = None, patternExpression: 'Expression' = None, patternParameterDefinition: 'ParameterDefinition' = None, patternRelatedArtifact: 'RelatedArtifact' = None, patternTriggerDefinition: 'TriggerDefinition' = None, patternUsageContext: 'UsageContext' = None, patternDosage: 'Dosage' = None, patternMeta: 'Meta' = None, example: List_['ElementDefinition.Example'] = None, minValueDate: 'date' = None, minValueDateTime: 'dateTime' = None, minValueInstant: 'instant' = None, minValueTime: 'time' = None, minValueDecimal: 'decimal' = None, minValueInteger: 'integer' = None, minValuePositiveInt: 'positiveInt' = None, minValueUnsignedInt: 'unsignedInt' = None, minValueQuantity: 'Quantity' = None, maxValueDate: 'date' = None, maxValueDateTime: 'dateTime' = None, maxValueInstant: 'instant' = None, maxValueTime: 'time' = None, maxValueDecimal: 'decimal' = None, maxValueInteger: 'integer' = None, maxValuePositiveInt: 'positiveInt' = None, maxValueUnsignedInt: 'unsignedInt' = None, maxValueQuantity: 'Quantity' = None, maxLength: 'integer' = None, condition: List_['id'] = None, constraint: List_['ElementDefinition.Constraint'] = None, mustSupport: 'boolean' = None, isModifier: 'boolean' = None, isModifierReason: 'string' = None, isSummary: 'boolean' = None, binding: 'ElementDefinition.Binding' = None, mapping: List_['ElementDefinition.Mapping'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -18739,7 +21636,7 @@ class ElementDefinition(BackboneElement):
         self.mapping.insert(index, value)
     def replace_mapping_at(self, index, value):
         self.mapping[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.path is not None or
             self.representation or
@@ -18938,7 +21835,7 @@ class ElementDefinition(BackboneElement):
             self.isSummary is not None or
             self.binding is not None or
             self.mapping or
-            super(ElementDefinition, self)._hasContent()
+            super(ElementDefinition, self).has__content()
         ):
             return True
         else:
@@ -18959,7 +21856,7 @@ class ElementDefinition(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ElementDefinition')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ElementDefinition', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -19565,10 +22462,835 @@ class ElementDefinition(BackboneElement):
         for mapping_ in self.mapping:
             namespaceprefix_ = self.mapping_nsprefix_ + ':' if (UseCapturedNS_ and self.mapping_nsprefix_) else ''
             mapping_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='mapping', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.path is not None:
+            child_dict = self.path.exportJson(json_dict, 'path', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['path'] = child_dict
+        child_list = []
+        for child in self.representation:
+            child_dict = child.exportJson(json_dict, 'representation', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['representation'] = child_list
+        if self.sliceName is not None:
+            child_dict = self.sliceName.exportJson(json_dict, 'sliceName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['sliceName'] = child_dict
+        if self.sliceIsConstraining is not None:
+            child_dict = self.sliceIsConstraining.exportJson(json_dict, 'sliceIsConstraining', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['sliceIsConstraining'] = child_dict
+        if self.label is not None:
+            child_dict = self.label.exportJson(json_dict, 'label', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['label'] = child_dict
+        child_list = []
+        for child in self.code:
+            child_dict = child.exportJson(json_dict, 'code', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['code'] = child_list
+        if self.slicing is not None:
+            child_dict = self.slicing.exportJson(json_dict, 'slicing', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['slicing'] = child_dict
+        if self.short is not None:
+            child_dict = self.short.exportJson(json_dict, 'short', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['short'] = child_dict
+        if self.definition is not None:
+            child_dict = self.definition.exportJson(json_dict, 'definition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['definition'] = child_dict
+        if self.comment is not None:
+            child_dict = self.comment.exportJson(json_dict, 'comment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['comment'] = child_dict
+        if self.requirements is not None:
+            child_dict = self.requirements.exportJson(json_dict, 'requirements', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['requirements'] = child_dict
+        child_list = []
+        for child in self.alias:
+            child_dict = child.exportJson(json_dict, 'alias', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['alias'] = child_list
+        if self.min is not None:
+            child_dict = self.min.exportJson(json_dict, 'min', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['min'] = child_dict
+        if self.max is not None:
+            child_dict = self.max.exportJson(json_dict, 'max', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['max'] = child_dict
+        if self.base is not None:
+            child_dict = self.base.exportJson(json_dict, 'base', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['base'] = child_dict
+        if self.contentReference is not None:
+            child_dict = self.contentReference.exportJson(json_dict, 'contentReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['contentReference'] = child_dict
+        child_list = []
+        for child in self.type_:
+            child_dict = child.exportJson(json_dict, 'type', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['type'] = child_list
+        if self.defaultValueBase64Binary is not None:
+            child_dict = self.defaultValueBase64Binary.exportJson(json_dict, 'defaultValueBase64Binary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueBase64Binary'] = child_dict
+        if self.defaultValueBoolean is not None:
+            child_dict = self.defaultValueBoolean.exportJson(json_dict, 'defaultValueBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueBoolean'] = child_dict
+        if self.defaultValueCanonical is not None:
+            child_dict = self.defaultValueCanonical.exportJson(json_dict, 'defaultValueCanonical', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueCanonical'] = child_dict
+        if self.defaultValueCode is not None:
+            child_dict = self.defaultValueCode.exportJson(json_dict, 'defaultValueCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueCode'] = child_dict
+        if self.defaultValueDate is not None:
+            child_dict = self.defaultValueDate.exportJson(json_dict, 'defaultValueDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDate'] = child_dict
+        if self.defaultValueDateTime is not None:
+            child_dict = self.defaultValueDateTime.exportJson(json_dict, 'defaultValueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDateTime'] = child_dict
+        if self.defaultValueDecimal is not None:
+            child_dict = self.defaultValueDecimal.exportJson(json_dict, 'defaultValueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDecimal'] = child_dict
+        if self.defaultValueId is not None:
+            child_dict = self.defaultValueId.exportJson(json_dict, 'defaultValueId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueId'] = child_dict
+        if self.defaultValueInstant is not None:
+            child_dict = self.defaultValueInstant.exportJson(json_dict, 'defaultValueInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueInstant'] = child_dict
+        if self.defaultValueInteger is not None:
+            child_dict = self.defaultValueInteger.exportJson(json_dict, 'defaultValueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueInteger'] = child_dict
+        if self.defaultValueMarkdown is not None:
+            child_dict = self.defaultValueMarkdown.exportJson(json_dict, 'defaultValueMarkdown', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueMarkdown'] = child_dict
+        if self.defaultValueOid is not None:
+            child_dict = self.defaultValueOid.exportJson(json_dict, 'defaultValueOid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueOid'] = child_dict
+        if self.defaultValuePositiveInt is not None:
+            child_dict = self.defaultValuePositiveInt.exportJson(json_dict, 'defaultValuePositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValuePositiveInt'] = child_dict
+        if self.defaultValueString is not None:
+            child_dict = self.defaultValueString.exportJson(json_dict, 'defaultValueString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueString'] = child_dict
+        if self.defaultValueTime is not None:
+            child_dict = self.defaultValueTime.exportJson(json_dict, 'defaultValueTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueTime'] = child_dict
+        if self.defaultValueUnsignedInt is not None:
+            child_dict = self.defaultValueUnsignedInt.exportJson(json_dict, 'defaultValueUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueUnsignedInt'] = child_dict
+        if self.defaultValueUri is not None:
+            child_dict = self.defaultValueUri.exportJson(json_dict, 'defaultValueUri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueUri'] = child_dict
+        if self.defaultValueUrl is not None:
+            child_dict = self.defaultValueUrl.exportJson(json_dict, 'defaultValueUrl', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueUrl'] = child_dict
+        if self.defaultValueUuid is not None:
+            child_dict = self.defaultValueUuid.exportJson(json_dict, 'defaultValueUuid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueUuid'] = child_dict
+        if self.defaultValueAddress is not None:
+            child_dict = self.defaultValueAddress.exportJson(json_dict, 'defaultValueAddress', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueAddress'] = child_dict
+        if self.defaultValueAge is not None:
+            child_dict = self.defaultValueAge.exportJson(json_dict, 'defaultValueAge', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueAge'] = child_dict
+        if self.defaultValueAnnotation is not None:
+            child_dict = self.defaultValueAnnotation.exportJson(json_dict, 'defaultValueAnnotation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueAnnotation'] = child_dict
+        if self.defaultValueAttachment is not None:
+            child_dict = self.defaultValueAttachment.exportJson(json_dict, 'defaultValueAttachment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueAttachment'] = child_dict
+        if self.defaultValueCodeableConcept is not None:
+            child_dict = self.defaultValueCodeableConcept.exportJson(json_dict, 'defaultValueCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueCodeableConcept'] = child_dict
+        if self.defaultValueCoding is not None:
+            child_dict = self.defaultValueCoding.exportJson(json_dict, 'defaultValueCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueCoding'] = child_dict
+        if self.defaultValueContactPoint is not None:
+            child_dict = self.defaultValueContactPoint.exportJson(json_dict, 'defaultValueContactPoint', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueContactPoint'] = child_dict
+        if self.defaultValueCount is not None:
+            child_dict = self.defaultValueCount.exportJson(json_dict, 'defaultValueCount', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueCount'] = child_dict
+        if self.defaultValueDistance is not None:
+            child_dict = self.defaultValueDistance.exportJson(json_dict, 'defaultValueDistance', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDistance'] = child_dict
+        if self.defaultValueDuration is not None:
+            child_dict = self.defaultValueDuration.exportJson(json_dict, 'defaultValueDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDuration'] = child_dict
+        if self.defaultValueHumanName is not None:
+            child_dict = self.defaultValueHumanName.exportJson(json_dict, 'defaultValueHumanName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueHumanName'] = child_dict
+        if self.defaultValueIdentifier is not None:
+            child_dict = self.defaultValueIdentifier.exportJson(json_dict, 'defaultValueIdentifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueIdentifier'] = child_dict
+        if self.defaultValueMoney is not None:
+            child_dict = self.defaultValueMoney.exportJson(json_dict, 'defaultValueMoney', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueMoney'] = child_dict
+        if self.defaultValuePeriod is not None:
+            child_dict = self.defaultValuePeriod.exportJson(json_dict, 'defaultValuePeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValuePeriod'] = child_dict
+        if self.defaultValueQuantity is not None:
+            child_dict = self.defaultValueQuantity.exportJson(json_dict, 'defaultValueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueQuantity'] = child_dict
+        if self.defaultValueRange is not None:
+            child_dict = self.defaultValueRange.exportJson(json_dict, 'defaultValueRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueRange'] = child_dict
+        if self.defaultValueRatio is not None:
+            child_dict = self.defaultValueRatio.exportJson(json_dict, 'defaultValueRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueRatio'] = child_dict
+        if self.defaultValueReference is not None:
+            child_dict = self.defaultValueReference.exportJson(json_dict, 'defaultValueReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueReference'] = child_dict
+        if self.defaultValueSampledData is not None:
+            child_dict = self.defaultValueSampledData.exportJson(json_dict, 'defaultValueSampledData', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueSampledData'] = child_dict
+        if self.defaultValueSignature is not None:
+            child_dict = self.defaultValueSignature.exportJson(json_dict, 'defaultValueSignature', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueSignature'] = child_dict
+        if self.defaultValueTiming is not None:
+            child_dict = self.defaultValueTiming.exportJson(json_dict, 'defaultValueTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueTiming'] = child_dict
+        if self.defaultValueContactDetail is not None:
+            child_dict = self.defaultValueContactDetail.exportJson(json_dict, 'defaultValueContactDetail', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueContactDetail'] = child_dict
+        if self.defaultValueContributor is not None:
+            child_dict = self.defaultValueContributor.exportJson(json_dict, 'defaultValueContributor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueContributor'] = child_dict
+        if self.defaultValueDataRequirement is not None:
+            child_dict = self.defaultValueDataRequirement.exportJson(json_dict, 'defaultValueDataRequirement', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDataRequirement'] = child_dict
+        if self.defaultValueExpression is not None:
+            child_dict = self.defaultValueExpression.exportJson(json_dict, 'defaultValueExpression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueExpression'] = child_dict
+        if self.defaultValueParameterDefinition is not None:
+            child_dict = self.defaultValueParameterDefinition.exportJson(json_dict, 'defaultValueParameterDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueParameterDefinition'] = child_dict
+        if self.defaultValueRelatedArtifact is not None:
+            child_dict = self.defaultValueRelatedArtifact.exportJson(json_dict, 'defaultValueRelatedArtifact', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueRelatedArtifact'] = child_dict
+        if self.defaultValueTriggerDefinition is not None:
+            child_dict = self.defaultValueTriggerDefinition.exportJson(json_dict, 'defaultValueTriggerDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueTriggerDefinition'] = child_dict
+        if self.defaultValueUsageContext is not None:
+            child_dict = self.defaultValueUsageContext.exportJson(json_dict, 'defaultValueUsageContext', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueUsageContext'] = child_dict
+        if self.defaultValueDosage is not None:
+            child_dict = self.defaultValueDosage.exportJson(json_dict, 'defaultValueDosage', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueDosage'] = child_dict
+        if self.defaultValueMeta is not None:
+            child_dict = self.defaultValueMeta.exportJson(json_dict, 'defaultValueMeta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['defaultValueMeta'] = child_dict
+        if self.meaningWhenMissing is not None:
+            child_dict = self.meaningWhenMissing.exportJson(json_dict, 'meaningWhenMissing', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['meaningWhenMissing'] = child_dict
+        if self.orderMeaning is not None:
+            child_dict = self.orderMeaning.exportJson(json_dict, 'orderMeaning', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['orderMeaning'] = child_dict
+        if self.fixedBase64Binary is not None:
+            child_dict = self.fixedBase64Binary.exportJson(json_dict, 'fixedBase64Binary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedBase64Binary'] = child_dict
+        if self.fixedBoolean is not None:
+            child_dict = self.fixedBoolean.exportJson(json_dict, 'fixedBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedBoolean'] = child_dict
+        if self.fixedCanonical is not None:
+            child_dict = self.fixedCanonical.exportJson(json_dict, 'fixedCanonical', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedCanonical'] = child_dict
+        if self.fixedCode is not None:
+            child_dict = self.fixedCode.exportJson(json_dict, 'fixedCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedCode'] = child_dict
+        if self.fixedDate is not None:
+            child_dict = self.fixedDate.exportJson(json_dict, 'fixedDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDate'] = child_dict
+        if self.fixedDateTime is not None:
+            child_dict = self.fixedDateTime.exportJson(json_dict, 'fixedDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDateTime'] = child_dict
+        if self.fixedDecimal is not None:
+            child_dict = self.fixedDecimal.exportJson(json_dict, 'fixedDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDecimal'] = child_dict
+        if self.fixedId is not None:
+            child_dict = self.fixedId.exportJson(json_dict, 'fixedId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedId'] = child_dict
+        if self.fixedInstant is not None:
+            child_dict = self.fixedInstant.exportJson(json_dict, 'fixedInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedInstant'] = child_dict
+        if self.fixedInteger is not None:
+            child_dict = self.fixedInteger.exportJson(json_dict, 'fixedInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedInteger'] = child_dict
+        if self.fixedMarkdown is not None:
+            child_dict = self.fixedMarkdown.exportJson(json_dict, 'fixedMarkdown', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedMarkdown'] = child_dict
+        if self.fixedOid is not None:
+            child_dict = self.fixedOid.exportJson(json_dict, 'fixedOid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedOid'] = child_dict
+        if self.fixedPositiveInt is not None:
+            child_dict = self.fixedPositiveInt.exportJson(json_dict, 'fixedPositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedPositiveInt'] = child_dict
+        if self.fixedString is not None:
+            child_dict = self.fixedString.exportJson(json_dict, 'fixedString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedString'] = child_dict
+        if self.fixedTime is not None:
+            child_dict = self.fixedTime.exportJson(json_dict, 'fixedTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedTime'] = child_dict
+        if self.fixedUnsignedInt is not None:
+            child_dict = self.fixedUnsignedInt.exportJson(json_dict, 'fixedUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedUnsignedInt'] = child_dict
+        if self.fixedUri is not None:
+            child_dict = self.fixedUri.exportJson(json_dict, 'fixedUri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedUri'] = child_dict
+        if self.fixedUrl is not None:
+            child_dict = self.fixedUrl.exportJson(json_dict, 'fixedUrl', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedUrl'] = child_dict
+        if self.fixedUuid is not None:
+            child_dict = self.fixedUuid.exportJson(json_dict, 'fixedUuid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedUuid'] = child_dict
+        if self.fixedAddress is not None:
+            child_dict = self.fixedAddress.exportJson(json_dict, 'fixedAddress', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedAddress'] = child_dict
+        if self.fixedAge is not None:
+            child_dict = self.fixedAge.exportJson(json_dict, 'fixedAge', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedAge'] = child_dict
+        if self.fixedAnnotation is not None:
+            child_dict = self.fixedAnnotation.exportJson(json_dict, 'fixedAnnotation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedAnnotation'] = child_dict
+        if self.fixedAttachment is not None:
+            child_dict = self.fixedAttachment.exportJson(json_dict, 'fixedAttachment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedAttachment'] = child_dict
+        if self.fixedCodeableConcept is not None:
+            child_dict = self.fixedCodeableConcept.exportJson(json_dict, 'fixedCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedCodeableConcept'] = child_dict
+        if self.fixedCoding is not None:
+            child_dict = self.fixedCoding.exportJson(json_dict, 'fixedCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedCoding'] = child_dict
+        if self.fixedContactPoint is not None:
+            child_dict = self.fixedContactPoint.exportJson(json_dict, 'fixedContactPoint', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedContactPoint'] = child_dict
+        if self.fixedCount is not None:
+            child_dict = self.fixedCount.exportJson(json_dict, 'fixedCount', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedCount'] = child_dict
+        if self.fixedDistance is not None:
+            child_dict = self.fixedDistance.exportJson(json_dict, 'fixedDistance', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDistance'] = child_dict
+        if self.fixedDuration is not None:
+            child_dict = self.fixedDuration.exportJson(json_dict, 'fixedDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDuration'] = child_dict
+        if self.fixedHumanName is not None:
+            child_dict = self.fixedHumanName.exportJson(json_dict, 'fixedHumanName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedHumanName'] = child_dict
+        if self.fixedIdentifier is not None:
+            child_dict = self.fixedIdentifier.exportJson(json_dict, 'fixedIdentifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedIdentifier'] = child_dict
+        if self.fixedMoney is not None:
+            child_dict = self.fixedMoney.exportJson(json_dict, 'fixedMoney', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedMoney'] = child_dict
+        if self.fixedPeriod is not None:
+            child_dict = self.fixedPeriod.exportJson(json_dict, 'fixedPeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedPeriod'] = child_dict
+        if self.fixedQuantity is not None:
+            child_dict = self.fixedQuantity.exportJson(json_dict, 'fixedQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedQuantity'] = child_dict
+        if self.fixedRange is not None:
+            child_dict = self.fixedRange.exportJson(json_dict, 'fixedRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedRange'] = child_dict
+        if self.fixedRatio is not None:
+            child_dict = self.fixedRatio.exportJson(json_dict, 'fixedRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedRatio'] = child_dict
+        if self.fixedReference is not None:
+            child_dict = self.fixedReference.exportJson(json_dict, 'fixedReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedReference'] = child_dict
+        if self.fixedSampledData is not None:
+            child_dict = self.fixedSampledData.exportJson(json_dict, 'fixedSampledData', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedSampledData'] = child_dict
+        if self.fixedSignature is not None:
+            child_dict = self.fixedSignature.exportJson(json_dict, 'fixedSignature', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedSignature'] = child_dict
+        if self.fixedTiming is not None:
+            child_dict = self.fixedTiming.exportJson(json_dict, 'fixedTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedTiming'] = child_dict
+        if self.fixedContactDetail is not None:
+            child_dict = self.fixedContactDetail.exportJson(json_dict, 'fixedContactDetail', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedContactDetail'] = child_dict
+        if self.fixedContributor is not None:
+            child_dict = self.fixedContributor.exportJson(json_dict, 'fixedContributor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedContributor'] = child_dict
+        if self.fixedDataRequirement is not None:
+            child_dict = self.fixedDataRequirement.exportJson(json_dict, 'fixedDataRequirement', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDataRequirement'] = child_dict
+        if self.fixedExpression is not None:
+            child_dict = self.fixedExpression.exportJson(json_dict, 'fixedExpression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedExpression'] = child_dict
+        if self.fixedParameterDefinition is not None:
+            child_dict = self.fixedParameterDefinition.exportJson(json_dict, 'fixedParameterDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedParameterDefinition'] = child_dict
+        if self.fixedRelatedArtifact is not None:
+            child_dict = self.fixedRelatedArtifact.exportJson(json_dict, 'fixedRelatedArtifact', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedRelatedArtifact'] = child_dict
+        if self.fixedTriggerDefinition is not None:
+            child_dict = self.fixedTriggerDefinition.exportJson(json_dict, 'fixedTriggerDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedTriggerDefinition'] = child_dict
+        if self.fixedUsageContext is not None:
+            child_dict = self.fixedUsageContext.exportJson(json_dict, 'fixedUsageContext', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedUsageContext'] = child_dict
+        if self.fixedDosage is not None:
+            child_dict = self.fixedDosage.exportJson(json_dict, 'fixedDosage', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedDosage'] = child_dict
+        if self.fixedMeta is not None:
+            child_dict = self.fixedMeta.exportJson(json_dict, 'fixedMeta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['fixedMeta'] = child_dict
+        if self.patternBase64Binary is not None:
+            child_dict = self.patternBase64Binary.exportJson(json_dict, 'patternBase64Binary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternBase64Binary'] = child_dict
+        if self.patternBoolean is not None:
+            child_dict = self.patternBoolean.exportJson(json_dict, 'patternBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternBoolean'] = child_dict
+        if self.patternCanonical is not None:
+            child_dict = self.patternCanonical.exportJson(json_dict, 'patternCanonical', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternCanonical'] = child_dict
+        if self.patternCode is not None:
+            child_dict = self.patternCode.exportJson(json_dict, 'patternCode', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternCode'] = child_dict
+        if self.patternDate is not None:
+            child_dict = self.patternDate.exportJson(json_dict, 'patternDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDate'] = child_dict
+        if self.patternDateTime is not None:
+            child_dict = self.patternDateTime.exportJson(json_dict, 'patternDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDateTime'] = child_dict
+        if self.patternDecimal is not None:
+            child_dict = self.patternDecimal.exportJson(json_dict, 'patternDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDecimal'] = child_dict
+        if self.patternId is not None:
+            child_dict = self.patternId.exportJson(json_dict, 'patternId', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternId'] = child_dict
+        if self.patternInstant is not None:
+            child_dict = self.patternInstant.exportJson(json_dict, 'patternInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternInstant'] = child_dict
+        if self.patternInteger is not None:
+            child_dict = self.patternInteger.exportJson(json_dict, 'patternInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternInteger'] = child_dict
+        if self.patternMarkdown is not None:
+            child_dict = self.patternMarkdown.exportJson(json_dict, 'patternMarkdown', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternMarkdown'] = child_dict
+        if self.patternOid is not None:
+            child_dict = self.patternOid.exportJson(json_dict, 'patternOid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternOid'] = child_dict
+        if self.patternPositiveInt is not None:
+            child_dict = self.patternPositiveInt.exportJson(json_dict, 'patternPositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternPositiveInt'] = child_dict
+        if self.patternString is not None:
+            child_dict = self.patternString.exportJson(json_dict, 'patternString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternString'] = child_dict
+        if self.patternTime is not None:
+            child_dict = self.patternTime.exportJson(json_dict, 'patternTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternTime'] = child_dict
+        if self.patternUnsignedInt is not None:
+            child_dict = self.patternUnsignedInt.exportJson(json_dict, 'patternUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternUnsignedInt'] = child_dict
+        if self.patternUri is not None:
+            child_dict = self.patternUri.exportJson(json_dict, 'patternUri', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternUri'] = child_dict
+        if self.patternUrl is not None:
+            child_dict = self.patternUrl.exportJson(json_dict, 'patternUrl', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternUrl'] = child_dict
+        if self.patternUuid is not None:
+            child_dict = self.patternUuid.exportJson(json_dict, 'patternUuid', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternUuid'] = child_dict
+        if self.patternAddress is not None:
+            child_dict = self.patternAddress.exportJson(json_dict, 'patternAddress', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternAddress'] = child_dict
+        if self.patternAge is not None:
+            child_dict = self.patternAge.exportJson(json_dict, 'patternAge', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternAge'] = child_dict
+        if self.patternAnnotation is not None:
+            child_dict = self.patternAnnotation.exportJson(json_dict, 'patternAnnotation', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternAnnotation'] = child_dict
+        if self.patternAttachment is not None:
+            child_dict = self.patternAttachment.exportJson(json_dict, 'patternAttachment', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternAttachment'] = child_dict
+        if self.patternCodeableConcept is not None:
+            child_dict = self.patternCodeableConcept.exportJson(json_dict, 'patternCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternCodeableConcept'] = child_dict
+        if self.patternCoding is not None:
+            child_dict = self.patternCoding.exportJson(json_dict, 'patternCoding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternCoding'] = child_dict
+        if self.patternContactPoint is not None:
+            child_dict = self.patternContactPoint.exportJson(json_dict, 'patternContactPoint', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternContactPoint'] = child_dict
+        if self.patternCount is not None:
+            child_dict = self.patternCount.exportJson(json_dict, 'patternCount', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternCount'] = child_dict
+        if self.patternDistance is not None:
+            child_dict = self.patternDistance.exportJson(json_dict, 'patternDistance', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDistance'] = child_dict
+        if self.patternDuration is not None:
+            child_dict = self.patternDuration.exportJson(json_dict, 'patternDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDuration'] = child_dict
+        if self.patternHumanName is not None:
+            child_dict = self.patternHumanName.exportJson(json_dict, 'patternHumanName', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternHumanName'] = child_dict
+        if self.patternIdentifier is not None:
+            child_dict = self.patternIdentifier.exportJson(json_dict, 'patternIdentifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternIdentifier'] = child_dict
+        if self.patternMoney is not None:
+            child_dict = self.patternMoney.exportJson(json_dict, 'patternMoney', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternMoney'] = child_dict
+        if self.patternPeriod is not None:
+            child_dict = self.patternPeriod.exportJson(json_dict, 'patternPeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternPeriod'] = child_dict
+        if self.patternQuantity is not None:
+            child_dict = self.patternQuantity.exportJson(json_dict, 'patternQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternQuantity'] = child_dict
+        if self.patternRange is not None:
+            child_dict = self.patternRange.exportJson(json_dict, 'patternRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternRange'] = child_dict
+        if self.patternRatio is not None:
+            child_dict = self.patternRatio.exportJson(json_dict, 'patternRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternRatio'] = child_dict
+        if self.patternReference is not None:
+            child_dict = self.patternReference.exportJson(json_dict, 'patternReference', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternReference'] = child_dict
+        if self.patternSampledData is not None:
+            child_dict = self.patternSampledData.exportJson(json_dict, 'patternSampledData', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternSampledData'] = child_dict
+        if self.patternSignature is not None:
+            child_dict = self.patternSignature.exportJson(json_dict, 'patternSignature', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternSignature'] = child_dict
+        if self.patternTiming is not None:
+            child_dict = self.patternTiming.exportJson(json_dict, 'patternTiming', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternTiming'] = child_dict
+        if self.patternContactDetail is not None:
+            child_dict = self.patternContactDetail.exportJson(json_dict, 'patternContactDetail', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternContactDetail'] = child_dict
+        if self.patternContributor is not None:
+            child_dict = self.patternContributor.exportJson(json_dict, 'patternContributor', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternContributor'] = child_dict
+        if self.patternDataRequirement is not None:
+            child_dict = self.patternDataRequirement.exportJson(json_dict, 'patternDataRequirement', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDataRequirement'] = child_dict
+        if self.patternExpression is not None:
+            child_dict = self.patternExpression.exportJson(json_dict, 'patternExpression', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternExpression'] = child_dict
+        if self.patternParameterDefinition is not None:
+            child_dict = self.patternParameterDefinition.exportJson(json_dict, 'patternParameterDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternParameterDefinition'] = child_dict
+        if self.patternRelatedArtifact is not None:
+            child_dict = self.patternRelatedArtifact.exportJson(json_dict, 'patternRelatedArtifact', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternRelatedArtifact'] = child_dict
+        if self.patternTriggerDefinition is not None:
+            child_dict = self.patternTriggerDefinition.exportJson(json_dict, 'patternTriggerDefinition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternTriggerDefinition'] = child_dict
+        if self.patternUsageContext is not None:
+            child_dict = self.patternUsageContext.exportJson(json_dict, 'patternUsageContext', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternUsageContext'] = child_dict
+        if self.patternDosage is not None:
+            child_dict = self.patternDosage.exportJson(json_dict, 'patternDosage', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternDosage'] = child_dict
+        if self.patternMeta is not None:
+            child_dict = self.patternMeta.exportJson(json_dict, 'patternMeta', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patternMeta'] = child_dict
+        child_list = []
+        for child in self.example:
+            child_dict = child.exportJson(json_dict, 'example', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['example'] = child_list
+        if self.minValueDate is not None:
+            child_dict = self.minValueDate.exportJson(json_dict, 'minValueDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueDate'] = child_dict
+        if self.minValueDateTime is not None:
+            child_dict = self.minValueDateTime.exportJson(json_dict, 'minValueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueDateTime'] = child_dict
+        if self.minValueInstant is not None:
+            child_dict = self.minValueInstant.exportJson(json_dict, 'minValueInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueInstant'] = child_dict
+        if self.minValueTime is not None:
+            child_dict = self.minValueTime.exportJson(json_dict, 'minValueTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueTime'] = child_dict
+        if self.minValueDecimal is not None:
+            child_dict = self.minValueDecimal.exportJson(json_dict, 'minValueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueDecimal'] = child_dict
+        if self.minValueInteger is not None:
+            child_dict = self.minValueInteger.exportJson(json_dict, 'minValueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueInteger'] = child_dict
+        if self.minValuePositiveInt is not None:
+            child_dict = self.minValuePositiveInt.exportJson(json_dict, 'minValuePositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValuePositiveInt'] = child_dict
+        if self.minValueUnsignedInt is not None:
+            child_dict = self.minValueUnsignedInt.exportJson(json_dict, 'minValueUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueUnsignedInt'] = child_dict
+        if self.minValueQuantity is not None:
+            child_dict = self.minValueQuantity.exportJson(json_dict, 'minValueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['minValueQuantity'] = child_dict
+        if self.maxValueDate is not None:
+            child_dict = self.maxValueDate.exportJson(json_dict, 'maxValueDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueDate'] = child_dict
+        if self.maxValueDateTime is not None:
+            child_dict = self.maxValueDateTime.exportJson(json_dict, 'maxValueDateTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueDateTime'] = child_dict
+        if self.maxValueInstant is not None:
+            child_dict = self.maxValueInstant.exportJson(json_dict, 'maxValueInstant', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueInstant'] = child_dict
+        if self.maxValueTime is not None:
+            child_dict = self.maxValueTime.exportJson(json_dict, 'maxValueTime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueTime'] = child_dict
+        if self.maxValueDecimal is not None:
+            child_dict = self.maxValueDecimal.exportJson(json_dict, 'maxValueDecimal', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueDecimal'] = child_dict
+        if self.maxValueInteger is not None:
+            child_dict = self.maxValueInteger.exportJson(json_dict, 'maxValueInteger', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueInteger'] = child_dict
+        if self.maxValuePositiveInt is not None:
+            child_dict = self.maxValuePositiveInt.exportJson(json_dict, 'maxValuePositiveInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValuePositiveInt'] = child_dict
+        if self.maxValueUnsignedInt is not None:
+            child_dict = self.maxValueUnsignedInt.exportJson(json_dict, 'maxValueUnsignedInt', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueUnsignedInt'] = child_dict
+        if self.maxValueQuantity is not None:
+            child_dict = self.maxValueQuantity.exportJson(json_dict, 'maxValueQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxValueQuantity'] = child_dict
+        if self.maxLength is not None:
+            child_dict = self.maxLength.exportJson(json_dict, 'maxLength', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxLength'] = child_dict
+        child_list = []
+        for child in self.condition:
+            child_dict = child.exportJson(json_dict, 'condition', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['condition'] = child_list
+        child_list = []
+        for child in self.constraint:
+            child_dict = child.exportJson(json_dict, 'constraint', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['constraint'] = child_list
+        if self.mustSupport is not None:
+            child_dict = self.mustSupport.exportJson(json_dict, 'mustSupport', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['mustSupport'] = child_dict
+        if self.isModifier is not None:
+            child_dict = self.isModifier.exportJson(json_dict, 'isModifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['isModifier'] = child_dict
+        if self.isModifierReason is not None:
+            child_dict = self.isModifierReason.exportJson(json_dict, 'isModifierReason', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['isModifierReason'] = child_dict
+        if self.isSummary is not None:
+            child_dict = self.isSummary.exportJson(json_dict, 'isSummary', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['isSummary'] = child_dict
+        if self.binding is not None:
+            child_dict = self.binding.exportJson(json_dict, 'binding', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['binding'] = child_dict
+        child_list = []
+        for child in self.mapping:
+            child_dict = child.exportJson(json_dict, 'mapping', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['mapping'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -20587,12 +24309,12 @@ class ProdCharacteristic(BackboneElement):
     imprint -- Where applicable, the imprint can be specified as text.
     image -- Where applicable, the image can be provided The format of the image attachment shall be specified by regional implementations.
     scoring -- Where applicable, the scoring can be specified An appropriate controlled vocabulary shall be used The term and the term identifier shall be used.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, height=None, width=None, depth=None, weight=None, nominalVolume=None, externalDiameter=None, shape=None, color=None, imprint=None, image=None, scoring=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, height: 'Quantity' = None, width: 'Quantity' = None, depth: 'Quantity' = None, weight: 'Quantity' = None, nominalVolume: 'Quantity' = None, externalDiameter: 'Quantity' = None, shape: 'string' = None, color: List_['string'] = None, imprint: List_['string'] = None, image: List_['Attachment'] = None, scoring: 'CodeableConcept' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -20707,7 +24429,7 @@ class ProdCharacteristic(BackboneElement):
         return self.scoring
     def set_scoring(self, scoring):
         self.scoring = scoring
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.height is not None or
             self.width is not None or
@@ -20720,7 +24442,7 @@ class ProdCharacteristic(BackboneElement):
             self.imprint or
             self.image or
             self.scoring is not None or
-            super(ProdCharacteristic, self)._hasContent()
+            super(ProdCharacteristic, self).has__content()
         ):
             return True
         else:
@@ -20741,7 +24463,7 @@ class ProdCharacteristic(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ProdCharacteristic')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ProdCharacteristic', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -20789,10 +24511,76 @@ class ProdCharacteristic(BackboneElement):
         if self.scoring is not None:
             namespaceprefix_ = self.scoring_nsprefix_ + ':' if (UseCapturedNS_ and self.scoring_nsprefix_) else ''
             self.scoring.export(outfile, level, namespaceprefix_, namespacedef_='', name_='scoring', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.height is not None:
+            child_dict = self.height.exportJson(json_dict, 'height', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['height'] = child_dict
+        if self.width is not None:
+            child_dict = self.width.exportJson(json_dict, 'width', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['width'] = child_dict
+        if self.depth is not None:
+            child_dict = self.depth.exportJson(json_dict, 'depth', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['depth'] = child_dict
+        if self.weight is not None:
+            child_dict = self.weight.exportJson(json_dict, 'weight', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['weight'] = child_dict
+        if self.nominalVolume is not None:
+            child_dict = self.nominalVolume.exportJson(json_dict, 'nominalVolume', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['nominalVolume'] = child_dict
+        if self.externalDiameter is not None:
+            child_dict = self.externalDiameter.exportJson(json_dict, 'externalDiameter', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['externalDiameter'] = child_dict
+        if self.shape is not None:
+            child_dict = self.shape.exportJson(json_dict, 'shape', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['shape'] = child_dict
+        child_list = []
+        for child in self.color:
+            child_dict = child.exportJson(json_dict, 'color', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['color'] = child_list
+        child_list = []
+        for child in self.imprint:
+            child_dict = child.exportJson(json_dict, 'imprint', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['imprint'] = child_list
+        child_list = []
+        for child in self.image:
+            child_dict = child.exportJson(json_dict, 'image', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['image'] = child_list
+        if self.scoring is not None:
+            child_dict = self.scoring.exportJson(json_dict, 'scoring', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['scoring'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -20886,12 +24674,12 @@ class Timing_Repeat(BackboneElement):
     timeOfDay -- Specified time of day for action to take place.
     when -- An approximate time period during the day, potentially linked to an event of daily living that indicates when the action should occur.
     offset -- The number of minutes from the event. If the event code does not indicate whether the minutes is before or after the event, then the offset is assumed to be after the event.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, boundsDuration=None, boundsRange=None, boundsPeriod=None, count=None, countMax=None, duration=None, durationMax=None, durationUnit=None, frequency=None, frequencyMax=None, period=None, periodMax=None, periodUnit=None, dayOfWeek=None, timeOfDay=None, when=None, offset=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, boundsDuration: 'Duration' = None, boundsRange: 'Range' = None, boundsPeriod: 'Period' = None, count: 'positiveInt' = None, countMax: 'positiveInt' = None, duration: 'decimal' = None, durationMax: 'decimal' = None, durationUnit: 'UnitsOfTime' = None, frequency: 'positiveInt' = None, frequencyMax: 'positiveInt' = None, period: 'decimal' = None, periodMax: 'decimal' = None, periodUnit: 'UnitsOfTime' = None, dayOfWeek: List_['code'] = None, timeOfDay: List_['time'] = None, when: List_['EventTiming'] = None, offset: 'unsignedInt' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21042,7 +24830,7 @@ class Timing_Repeat(BackboneElement):
         return self.offset
     def set_offset(self, offset):
         self.offset = offset
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.boundsDuration is not None or
             self.boundsRange is not None or
@@ -21061,7 +24849,7 @@ class Timing_Repeat(BackboneElement):
             self.timeOfDay or
             self.when or
             self.offset is not None or
-            super(Timing_Repeat, self)._hasContent()
+            super(Timing_Repeat, self).has__content()
         ):
             return True
         else:
@@ -21082,7 +24870,7 @@ class Timing_Repeat(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Timing.Repeat')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Timing.Repeat', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21148,10 +24936,100 @@ class Timing_Repeat(BackboneElement):
         if self.offset is not None:
             namespaceprefix_ = self.offset_nsprefix_ + ':' if (UseCapturedNS_ and self.offset_nsprefix_) else ''
             self.offset.export(outfile, level, namespaceprefix_, namespacedef_='', name_='offset', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.boundsDuration is not None:
+            child_dict = self.boundsDuration.exportJson(json_dict, 'boundsDuration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['boundsDuration'] = child_dict
+        if self.boundsRange is not None:
+            child_dict = self.boundsRange.exportJson(json_dict, 'boundsRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['boundsRange'] = child_dict
+        if self.boundsPeriod is not None:
+            child_dict = self.boundsPeriod.exportJson(json_dict, 'boundsPeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['boundsPeriod'] = child_dict
+        if self.count is not None:
+            child_dict = self.count.exportJson(json_dict, 'count', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['count'] = child_dict
+        if self.countMax is not None:
+            child_dict = self.countMax.exportJson(json_dict, 'countMax', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['countMax'] = child_dict
+        if self.duration is not None:
+            child_dict = self.duration.exportJson(json_dict, 'duration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['duration'] = child_dict
+        if self.durationMax is not None:
+            child_dict = self.durationMax.exportJson(json_dict, 'durationMax', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['durationMax'] = child_dict
+        if self.durationUnit is not None:
+            child_dict = self.durationUnit.exportJson(json_dict, 'durationUnit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['durationUnit'] = child_dict
+        if self.frequency is not None:
+            child_dict = self.frequency.exportJson(json_dict, 'frequency', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['frequency'] = child_dict
+        if self.frequencyMax is not None:
+            child_dict = self.frequencyMax.exportJson(json_dict, 'frequencyMax', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['frequencyMax'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
+        if self.periodMax is not None:
+            child_dict = self.periodMax.exportJson(json_dict, 'periodMax', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['periodMax'] = child_dict
+        if self.periodUnit is not None:
+            child_dict = self.periodUnit.exportJson(json_dict, 'periodUnit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['periodUnit'] = child_dict
+        child_list = []
+        for child in self.dayOfWeek:
+            child_dict = child.exportJson(json_dict, 'dayOfWeek', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['dayOfWeek'] = child_list
+        child_list = []
+        for child in self.timeOfDay:
+            child_dict = child.exportJson(json_dict, 'timeOfDay', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['timeOfDay'] = child_list
+        child_list = []
+        for child in self.when:
+            child_dict = child.exportJson(json_dict, 'when', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['when'] = child_list
+        if self.offset is not None:
+            child_dict = self.offset.exportJson(json_dict, 'offset', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['offset'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -21257,12 +25135,12 @@ class Timing(BackboneElement):
     event -- Identifies specific times when the event occurs.
     repeat -- A set of rules that describe when the event is scheduled.
     code -- A code for the timing schedule (or just text in code.text). Some codes such as BID are ubiquitous, but many institutions define their own additional codes. If a code is provided, the code is understood to be a complete statement of whatever is specified in the structured timing data, and either the code or the data may be used to interpret the Timing, with the exception that .repeat.bounds still applies over the code (and is not contained in the code).
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, event=None, repeat=None, code=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, event: List_['dateTime'] = None, repeat: 'Timing.Repeat' = None, code: 'CodeableConcept' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21311,12 +25189,12 @@ class Timing(BackboneElement):
         return self.code
     def set_code(self, code):
         self.code = code
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.event or
             self.repeat is not None or
             self.code is not None or
-            super(Timing, self)._hasContent()
+            super(Timing, self).has__content()
         ):
             return True
         else:
@@ -21337,7 +25215,7 @@ class Timing(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Timing')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Timing', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21361,10 +25239,38 @@ class Timing(BackboneElement):
         if self.code is not None:
             namespaceprefix_ = self.code_nsprefix_ + ':' if (UseCapturedNS_ and self.code_nsprefix_) else ''
             self.code.export(outfile, level, namespaceprefix_, namespacedef_='', name_='code', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        child_list = []
+        for child in self.event:
+            child_dict = child.exportJson(json_dict, 'event', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['event'] = child_list
+        if self.repeat is not None:
+            child_dict = self.repeat.exportJson(json_dict, 'repeat', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['repeat'] = child_dict
+        if self.code is not None:
+            child_dict = self.code.exportJson(json_dict, 'code', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['code'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -21401,12 +25307,12 @@ class ProductShelfLife(BackboneElement):
     type -- This describes the shelf life, taking into account various scenarios such as shelf life of the packaged Medicinal Product itself, shelf life after transformation where necessary and shelf life after the first opening of a bottle, etc. The shelf life type shall be specified using an appropriate controlled vocabulary The controlled term and the controlled term identifier shall be specified.
     period -- The shelf life time period can be specified using a numerical value for the period of time and its unit of time measurement The unit of measurement shall be specified in accordance with ISO 11240 and the resulting terminology The symbol and the symbol identifier shall be used.
     specialPrecautionsForStorage -- Special precautions for storage, if any, can be specified using an appropriate controlled vocabulary The controlled term and the controlled term identifier shall be specified.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, identifier=None, type_=None, period=None, specialPrecautionsForStorage=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, identifier: 'Identifier' = None, type_: 'CodeableConcept' = None, period: 'Quantity' = None, specialPrecautionsForStorage: List_['CodeableConcept'] = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21461,13 +25367,13 @@ class ProductShelfLife(BackboneElement):
         self.specialPrecautionsForStorage.insert(index, value)
     def replace_specialPrecautionsForStorage_at(self, index, value):
         self.specialPrecautionsForStorage[index] = value
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.identifier is not None or
             self.type_ is not None or
             self.period is not None or
             self.specialPrecautionsForStorage or
-            super(ProductShelfLife, self)._hasContent()
+            super(ProductShelfLife, self).has__content()
         ):
             return True
         else:
@@ -21488,7 +25394,7 @@ class ProductShelfLife(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ProductShelfLife')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ProductShelfLife', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21515,10 +25421,42 @@ class ProductShelfLife(BackboneElement):
         for specialPrecautionsForStorage_ in self.specialPrecautionsForStorage:
             namespaceprefix_ = self.specialPrecautionsForStorage_nsprefix_ + ':' if (UseCapturedNS_ and self.specialPrecautionsForStorage_nsprefix_) else ''
             specialPrecautionsForStorage_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='specialPrecautionsForStorage', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.identifier is not None:
+            child_dict = self.identifier.exportJson(json_dict, 'identifier', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['identifier'] = child_dict
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.period is not None:
+            child_dict = self.period.exportJson(json_dict, 'period', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['period'] = child_dict
+        child_list = []
+        for child in self.specialPrecautionsForStorage:
+            child_dict = child.exportJson(json_dict, 'specialPrecautionsForStorage', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['specialPrecautionsForStorage'] = child_list
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -21561,12 +25499,12 @@ class Population(BackboneElement):
     gender -- The gender of the specific population.
     race -- Race of the specific population.
     physiologicalCondition -- The existing physiological conditions of the specific population to which this applies.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, ageRange=None, ageCodeableConcept=None, gender=None, race=None, physiologicalCondition=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, ageRange: 'Range' = None, ageCodeableConcept: 'CodeableConcept' = None, gender: 'CodeableConcept' = None, race: 'CodeableConcept' = None, physiologicalCondition: 'CodeableConcept' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21618,14 +25556,14 @@ class Population(BackboneElement):
         return self.physiologicalCondition
     def set_physiologicalCondition(self, physiologicalCondition):
         self.physiologicalCondition = physiologicalCondition
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.ageRange is not None or
             self.ageCodeableConcept is not None or
             self.gender is not None or
             self.race is not None or
             self.physiologicalCondition is not None or
-            super(Population, self)._hasContent()
+            super(Population, self).has__content()
         ):
             return True
         else:
@@ -21646,7 +25584,7 @@ class Population(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Population')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Population', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21676,10 +25614,43 @@ class Population(BackboneElement):
         if self.physiologicalCondition is not None:
             namespaceprefix_ = self.physiologicalCondition_nsprefix_ + ':' if (UseCapturedNS_ and self.physiologicalCondition_nsprefix_) else ''
             self.physiologicalCondition.export(outfile, level, namespaceprefix_, namespacedef_='', name_='physiologicalCondition', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.ageRange is not None:
+            child_dict = self.ageRange.exportJson(json_dict, 'ageRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['ageRange'] = child_dict
+        if self.ageCodeableConcept is not None:
+            child_dict = self.ageCodeableConcept.exportJson(json_dict, 'ageCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['ageCodeableConcept'] = child_dict
+        if self.gender is not None:
+            child_dict = self.gender.exportJson(json_dict, 'gender', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['gender'] = child_dict
+        if self.race is not None:
+            child_dict = self.race.exportJson(json_dict, 'race', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['race'] = child_dict
+        if self.physiologicalCondition is not None:
+            child_dict = self.physiologicalCondition.exportJson(json_dict, 'physiologicalCondition', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['physiologicalCondition'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -21725,12 +25696,12 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
     If the element is present, it must have a value for at least one of the defined elements, an @id referenced from the Narrative, or extensions
     lowLimit -- Lower limit possible or expected.
     highLimit -- Upper limit possible or expected.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, lowLimit=None, highLimit=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, lowLimit: 'Quantity' = None, highLimit: 'Quantity' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21764,11 +25735,11 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
         return self.highLimit
     def set_highLimit(self, highLimit):
         self.highLimit = highLimit
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.lowLimit is not None or
             self.highLimit is not None or
-            super(SubstanceAmount_ReferenceRange, self)._hasContent()
+            super(SubstanceAmount_ReferenceRange, self).has__content()
         ):
             return True
         else:
@@ -21789,7 +25760,7 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SubstanceAmount.ReferenceRange')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SubstanceAmount.ReferenceRange', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21810,10 +25781,31 @@ class SubstanceAmount_ReferenceRange(BackboneElement):
         if self.highLimit is not None:
             namespaceprefix_ = self.highLimit_nsprefix_ + ':' if (UseCapturedNS_ and self.highLimit_nsprefix_) else ''
             self.highLimit.export(outfile, level, namespaceprefix_, namespacedef_='', name_='highLimit', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.lowLimit is not None:
+            child_dict = self.lowLimit.exportJson(json_dict, 'lowLimit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['lowLimit'] = child_dict
+        if self.highLimit is not None:
+            child_dict = self.highLimit.exportJson(json_dict, 'highLimit', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['highLimit'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -21847,12 +25839,12 @@ class SubstanceAmount(BackboneElement):
     amountType -- Most elements that require a quantitative value will also have a field called amount type. Amount type should always be specified because the actual value of the amount is often dependent on it. EXAMPLE: In capturing the actual relative amounts of substances or molecular fragments it is essential to indicate whether the amount refers to a mole ratio or weight ratio. For any given element an effort should be made to use same the amount type for all related definitional elements.
     amountText -- A textual comment on a numeric value.
     referenceRange -- Reference range of possible or expected values.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, amountQuantity=None, amountRange=None, amountString=None, amountType=None, amountText=None, referenceRange=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, amountQuantity: 'Quantity' = None, amountRange: 'Range' = None, amountString: 'string' = None, amountType: 'CodeableConcept' = None, amountText: 'string' = None, referenceRange: 'SubstanceAmount.ReferenceRange' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -21910,7 +25902,7 @@ class SubstanceAmount(BackboneElement):
         return self.referenceRange
     def set_referenceRange(self, referenceRange):
         self.referenceRange = referenceRange
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.amountQuantity is not None or
             self.amountRange is not None or
@@ -21918,7 +25910,7 @@ class SubstanceAmount(BackboneElement):
             self.amountType is not None or
             self.amountText is not None or
             self.referenceRange is not None or
-            super(SubstanceAmount, self)._hasContent()
+            super(SubstanceAmount, self).has__content()
         ):
             return True
         else:
@@ -21939,7 +25931,7 @@ class SubstanceAmount(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SubstanceAmount')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SubstanceAmount', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -21972,10 +25964,47 @@ class SubstanceAmount(BackboneElement):
         if self.referenceRange is not None:
             namespaceprefix_ = self.referenceRange_nsprefix_ + ':' if (UseCapturedNS_ and self.referenceRange_nsprefix_) else ''
             self.referenceRange.export(outfile, level, namespaceprefix_, namespacedef_='', name_='referenceRange', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.amountQuantity is not None:
+            child_dict = self.amountQuantity.exportJson(json_dict, 'amountQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['amountQuantity'] = child_dict
+        if self.amountRange is not None:
+            child_dict = self.amountRange.exportJson(json_dict, 'amountRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['amountRange'] = child_dict
+        if self.amountString is not None:
+            child_dict = self.amountString.exportJson(json_dict, 'amountString', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['amountString'] = child_dict
+        if self.amountType is not None:
+            child_dict = self.amountType.exportJson(json_dict, 'amountType', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['amountType'] = child_dict
+        if self.amountText is not None:
+            child_dict = self.amountText.exportJson(json_dict, 'amountText', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['amountText'] = child_dict
+        if self.referenceRange is not None:
+            child_dict = self.referenceRange.exportJson(json_dict, 'referenceRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['referenceRange'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -22039,12 +26068,12 @@ class MarketingStatus(BackboneElement):
     Placed on the market
     ”
     refers to the release of the Medicinal Product into the distribution chain.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, country=None, jurisdiction=None, status=None, dateRange=None, restoreDate=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, country: 'CodeableConcept' = None, jurisdiction: 'CodeableConcept' = None, status: 'CodeableConcept' = None, dateRange: 'Period' = None, restoreDate: 'dateTime' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -22096,14 +26125,14 @@ class MarketingStatus(BackboneElement):
         return self.restoreDate
     def set_restoreDate(self, restoreDate):
         self.restoreDate = restoreDate
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.country is not None or
             self.jurisdiction is not None or
             self.status is not None or
             self.dateRange is not None or
             self.restoreDate is not None or
-            super(MarketingStatus, self)._hasContent()
+            super(MarketingStatus, self).has__content()
         ):
             return True
         else:
@@ -22124,7 +26153,7 @@ class MarketingStatus(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='MarketingStatus')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='MarketingStatus', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -22154,10 +26183,43 @@ class MarketingStatus(BackboneElement):
         if self.restoreDate is not None:
             namespaceprefix_ = self.restoreDate_nsprefix_ + ':' if (UseCapturedNS_ and self.restoreDate_nsprefix_) else ''
             self.restoreDate.export(outfile, level, namespaceprefix_, namespacedef_='', name_='restoreDate', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.country is not None:
+            child_dict = self.country.exportJson(json_dict, 'country', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['country'] = child_dict
+        if self.jurisdiction is not None:
+            child_dict = self.jurisdiction.exportJson(json_dict, 'jurisdiction', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['jurisdiction'] = child_dict
+        if self.status is not None:
+            child_dict = self.status.exportJson(json_dict, 'status', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['status'] = child_dict
+        if self.dateRange is not None:
+            child_dict = self.dateRange.exportJson(json_dict, 'dateRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['dateRange'] = child_dict
+        if self.restoreDate is not None:
+            child_dict = self.restoreDate.exportJson(json_dict, 'restoreDate', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['restoreDate'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -22203,12 +26265,12 @@ class Dosage_DoseAndRate(BackboneElement):
     Amount of medication per dose.
     Amount of medication per unit of time.
     type -- The kind of dose or rate specified, for example, ordered or calculated.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, type_=None, doseRange=None, doseQuantity=None, rateRatio=None, rateRange=None, rateQuantity=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, type_: 'CodeableConcept' = None, doseRange: 'Range' = None, doseQuantity: 'Quantity' = None, rateRatio: 'Ratio' = None, rateRange: 'Range' = None, rateQuantity: 'Quantity' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -22266,7 +26328,7 @@ class Dosage_DoseAndRate(BackboneElement):
         return self.rateQuantity
     def set_rateQuantity(self, rateQuantity):
         self.rateQuantity = rateQuantity
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.type_ is not None or
             self.doseRange is not None or
@@ -22274,7 +26336,7 @@ class Dosage_DoseAndRate(BackboneElement):
             self.rateRatio is not None or
             self.rateRange is not None or
             self.rateQuantity is not None or
-            super(Dosage_DoseAndRate, self)._hasContent()
+            super(Dosage_DoseAndRate, self).has__content()
         ):
             return True
         else:
@@ -22295,7 +26357,7 @@ class Dosage_DoseAndRate(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Dosage.DoseAndRate')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Dosage.DoseAndRate', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -22328,10 +26390,47 @@ class Dosage_DoseAndRate(BackboneElement):
         if self.rateQuantity is not None:
             namespaceprefix_ = self.rateQuantity_nsprefix_ + ':' if (UseCapturedNS_ and self.rateQuantity_nsprefix_) else ''
             self.rateQuantity.export(outfile, level, namespaceprefix_, namespacedef_='', name_='rateQuantity', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.type_ is not None:
+            child_dict = self.type_.exportJson(json_dict, 'type', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['type'] = child_dict
+        if self.doseRange is not None:
+            child_dict = self.doseRange.exportJson(json_dict, 'doseRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['doseRange'] = child_dict
+        if self.doseQuantity is not None:
+            child_dict = self.doseQuantity.exportJson(json_dict, 'doseQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['doseQuantity'] = child_dict
+        if self.rateRatio is not None:
+            child_dict = self.rateRatio.exportJson(json_dict, 'rateRatio', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['rateRatio'] = child_dict
+        if self.rateRange is not None:
+            child_dict = self.rateRange.exportJson(json_dict, 'rateRange', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['rateRange'] = child_dict
+        if self.rateQuantity is not None:
+            child_dict = self.rateQuantity.exportJson(json_dict, 'rateQuantity', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['rateQuantity'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -22394,12 +26493,12 @@ class Dosage(BackboneElement):
     maxDosePerPeriod -- Upper limit on medication per unit of time.
     maxDosePerAdministration -- Upper limit on medication per administration.
     maxDosePerLifetime -- Upper limit on medication per lifetime of the patient.
-
+    
     """
     __hash__ = GeneratedsSuper.__hash__
     subclass = None
     superclass = BackboneElement
-    def __init__(self, id=None, extension=None, modifierExtension=None, sequence=None, text=None, additionalInstruction=None, patientInstruction=None, timing=None, asNeededBoolean=None, asNeededCodeableConcept=None, site=None, route=None, method=None, doseAndRate=None, maxDosePerPeriod=None, maxDosePerAdministration=None, maxDosePerLifetime=None, gds_collector_=None, **kwargs_):
+    def __init__(self, id: 'string_primitive' = None, extension: List_['Extension'] = None, modifierExtension: List_['Extension'] = None, sequence: 'integer' = None, text: 'string' = None, additionalInstruction: List_['CodeableConcept'] = None, patientInstruction: 'string' = None, timing: 'Timing' = None, asNeededBoolean: 'boolean' = None, asNeededCodeableConcept: 'CodeableConcept' = None, site: 'CodeableConcept' = None, route: 'CodeableConcept' = None, method: 'CodeableConcept' = None, doseAndRate: List_['Dosage.DoseAndRate'] = None, maxDosePerPeriod: 'Ratio' = None, maxDosePerAdministration: 'Quantity' = None, maxDosePerLifetime: 'Quantity' = None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -22523,7 +26622,7 @@ class Dosage(BackboneElement):
         return self.maxDosePerLifetime
     def set_maxDosePerLifetime(self, maxDosePerLifetime):
         self.maxDosePerLifetime = maxDosePerLifetime
-    def _hasContent(self):
+    def has__content(self):
         if (
             self.sequence is not None or
             self.text is not None or
@@ -22539,7 +26638,7 @@ class Dosage(BackboneElement):
             self.maxDosePerPeriod is not None or
             self.maxDosePerAdministration is not None or
             self.maxDosePerLifetime is not None or
-            super(Dosage, self)._hasContent()
+            super(Dosage, self).has__content()
         ):
             return True
         else:
@@ -22560,7 +26659,7 @@ class Dosage(BackboneElement):
         outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
         already_processed = set()
         self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Dosage')
-        if self._hasContent():
+        if self.has__content():
             outfile.write('>%s' % (eol_, ))
             self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Dosage', pretty_print=pretty_print)
             showIndent(outfile, level, pretty_print)
@@ -22617,10 +26716,85 @@ class Dosage(BackboneElement):
         if self.maxDosePerLifetime is not None:
             namespaceprefix_ = self.maxDosePerLifetime_nsprefix_ + ':' if (UseCapturedNS_ and self.maxDosePerLifetime_nsprefix_) else ''
             self.maxDosePerLifetime.export(outfile, level, namespaceprefix_, namespacedef_='', name_='maxDosePerLifetime', pretty_print=pretty_print)
+    def exportJson(self, parent_dict=None, key=None, is_list=False):
+        json_dict = dict()
+        self.exportJsonAttributes(json_dict)
+        self.exportJsonChildren(json_dict)
+        return self.exportJsonResult(json_dict, parent_dict, key, is_list)
+    def exportJsonResult(self, json_dict, parent_dict, key, is_list, sub_defs=[], attr_defs=[]):
+        return super().exportJsonResult(json_dict, parent_dict, key, is_list, attr_defs)
+    def exportJsonAttributes(self, json_dict):
+        super().exportJsonAttributes(json_dict)
+    def exportJsonChildren(self, json_dict):
+        super().exportJsonChildren(json_dict)
+        if self.sequence is not None:
+            child_dict = self.sequence.exportJson(json_dict, 'sequence', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['sequence'] = child_dict
+        if self.text is not None:
+            child_dict = self.text.exportJson(json_dict, 'text', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['text'] = child_dict
+        child_list = []
+        for child in self.additionalInstruction:
+            child_dict = child.exportJson(json_dict, 'additionalInstruction', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['additionalInstruction'] = child_list
+        if self.patientInstruction is not None:
+            child_dict = self.patientInstruction.exportJson(json_dict, 'patientInstruction', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['patientInstruction'] = child_dict
+        if self.timing is not None:
+            child_dict = self.timing.exportJson(json_dict, 'timing', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['timing'] = child_dict
+        if self.asNeededBoolean is not None:
+            child_dict = self.asNeededBoolean.exportJson(json_dict, 'asNeededBoolean', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['asNeededBoolean'] = child_dict
+        if self.asNeededCodeableConcept is not None:
+            child_dict = self.asNeededCodeableConcept.exportJson(json_dict, 'asNeededCodeableConcept', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['asNeededCodeableConcept'] = child_dict
+        if self.site is not None:
+            child_dict = self.site.exportJson(json_dict, 'site', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['site'] = child_dict
+        if self.route is not None:
+            child_dict = self.route.exportJson(json_dict, 'route', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['route'] = child_dict
+        if self.method is not None:
+            child_dict = self.method.exportJson(json_dict, 'method', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['method'] = child_dict
+        child_list = []
+        for child in self.doseAndRate:
+            child_dict = child.exportJson(json_dict, 'doseAndRate', True)
+            if child_dict is not None and child_dict != {}:
+                child_list.append(child_dict)
+        if child_list:
+            json_dict['doseAndRate'] = child_list
+        if self.maxDosePerPeriod is not None:
+            child_dict = self.maxDosePerPeriod.exportJson(json_dict, 'maxDosePerPeriod', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxDosePerPeriod'] = child_dict
+        if self.maxDosePerAdministration is not None:
+            child_dict = self.maxDosePerAdministration.exportJson(json_dict, 'maxDosePerAdministration', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxDosePerAdministration'] = child_dict
+        if self.maxDosePerLifetime is not None:
+            child_dict = self.maxDosePerLifetime.exportJson(json_dict, 'maxDosePerLifetime', False)
+            if child_dict is not None and child_dict != {}:
+                json_dict['maxDosePerLifetime'] = child_dict
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
             self.gds_elementtree_node_ = node
+        if SaveNodeDict:
+            node_dict[node] = self 
         already_processed = set()
         self.ns_prefix_ = node.prefix
         self._buildAttributes(node, node.attrib, already_processed)
@@ -22705,6 +26879,11 @@ class Dosage(BackboneElement):
             obj_.original_tagname_ = 'maxDosePerLifetime'
         super(Dosage, self)._buildChildren(child_, node, nodeName_, True)
 # end class Dosage
+
+
+#
+# End data representation classes.
+#
 
 
 GDSClassesMapping = {
@@ -22871,8 +27050,8 @@ def parseLiteral(inFileName, silence=False, print_warnings=True):
         doc = None
         rootNode = None
     if not silence:
-        sys.stdout.write('#from FHIR4CodeSystemSuper import *\n\n')
-        sys.stdout.write('import FHIR4CodeSystemSuper as model_\n\n')
+        sys.stdout.write('#from fhir4_codesystem_super import *\n\n')
+        sys.stdout.write('import fhir4_codesystem_super as model_\n\n')
         sys.stdout.write('rootObj = model_.rootClass(\n')
         rootObj.exportLiteral(sys.stdout, 0, name_=rootTag)
         sys.stdout.write(')\n')
@@ -22905,186 +27084,510 @@ RenameMappings_ = {
 # Mapping of namespaces to types defined in them
 # and the file in which each is defined.
 # simpleTypes are marked "ST" and complexTypes "CT".
-NamespaceToDefMappings_ = {'http://hl7.org/fhir': [('date-primitive', 'fhir-base.xsd', 'ST'),
-                         ('dateTime-primitive', 'fhir-base.xsd', 'ST'),
-                         ('code-primitive', 'fhir-base.xsd', 'ST'),
-                         ('string-primitive', 'fhir-base.xsd', 'ST'),
-                         ('integer-primitive', 'fhir-base.xsd', 'ST'),
-                         ('oid-primitive', 'fhir-base.xsd', 'ST'),
-                         ('canonical-primitive', 'fhir-base.xsd', 'ST'),
-                         ('uri-primitive', 'fhir-base.xsd', 'ST'),
-                         ('uuid-primitive', 'fhir-base.xsd', 'ST'),
-                         ('url-primitive', 'fhir-base.xsd', 'ST'),
-                         ('instant-primitive', 'fhir-base.xsd', 'ST'),
-                         ('boolean-primitive', 'fhir-base.xsd', 'ST'),
-                         ('base64Binary-primitive', 'fhir-base.xsd', 'ST'),
-                         ('unsignedInt-primitive', 'fhir-base.xsd', 'ST'),
-                         ('markdown-primitive', 'fhir-base.xsd', 'ST'),
-                         ('time-primitive', 'fhir-base.xsd', 'ST'),
-                         ('id-primitive', 'fhir-base.xsd', 'ST'),
-                         ('positiveInt-primitive', 'fhir-base.xsd', 'ST'),
-                         ('decimal-primitive', 'fhir-base.xsd', 'ST'),
-                         ('AddressUse-list', 'fhir-base.xsd', 'ST'),
-                         ('AddressType-list', 'fhir-base.xsd', 'ST'),
-                         ('ContributorType-list', 'fhir-base.xsd', 'ST'),
-                         ('SortDirection-list', 'fhir-base.xsd', 'ST'),
-                         ('NameUse-list', 'fhir-base.xsd', 'ST'),
-                         ('ContactPointSystem-list', 'fhir-base.xsd', 'ST'),
-                         ('ContactPointUse-list', 'fhir-base.xsd', 'ST'),
-                         ('IdentifierUse-list', 'fhir-base.xsd', 'ST'),
+NamespaceToDefMappings_ = {'http://hl7.org/fhir': [('date-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('dateTime-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('code-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('string-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('integer-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('oid-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('canonical-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('uri-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('uuid-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('url-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('instant-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('boolean-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('base64Binary-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('unsignedInt-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('markdown-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('time-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('id-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('positiveInt-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('decimal-primitive',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('AddressUse-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('AddressType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ContributorType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('SortDirection-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('NameUse-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ContactPointSystem-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ContactPointUse-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('IdentifierUse-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
                          ('SampledDataDataType-primitive',
-                          'fhir-base.xsd',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
                           'ST'),
-                         ('TriggerType-list', 'fhir-base.xsd', 'ST'),
-                         ('QuantityComparator-list', 'fhir-base.xsd', 'ST'),
-                         ('RelatedArtifactType-list', 'fhir-base.xsd', 'ST'),
-                         ('ExpressionLanguage-list', 'fhir-base.xsd', 'ST'),
-                         ('UnitsOfTime-list', 'fhir-base.xsd', 'ST'),
-                         ('EventTiming-list', 'fhir-base.xsd', 'ST'),
-                         ('PropertyRepresentation-list', 'fhir-base.xsd', 'ST'),
-                         ('ConstraintSeverity-list', 'fhir-base.xsd', 'ST'),
-                         ('AggregationMode-list', 'fhir-base.xsd', 'ST'),
-                         ('ReferenceVersionRules-list', 'fhir-base.xsd', 'ST'),
-                         ('SlicingRules-list', 'fhir-base.xsd', 'ST'),
-                         ('BindingStrength-list', 'fhir-base.xsd', 'ST'),
-                         ('DiscriminatorType-list', 'fhir-base.xsd', 'ST'),
-                         ('PublicationStatus-list', 'fhir-base.xsd', 'ST'),
-                         ('SearchParamType-list', 'fhir-base.xsd', 'ST'),
-                         ('AdministrativeGender-list', 'fhir-base.xsd', 'ST'),
-                         ('FHIRVersion-list', 'fhir-base.xsd', 'ST'),
-                         ('NoteType-list', 'fhir-base.xsd', 'ST'),
-                         ('RemittanceOutcome-list', 'fhir-base.xsd', 'ST'),
-                         ('ConceptMapEquivalence-list', 'fhir-base.xsd', 'ST'),
+                         ('TriggerType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('QuantityComparator-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('RelatedArtifactType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ExpressionLanguage-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('UnitsOfTime-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('EventTiming-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('PropertyRepresentation-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ConstraintSeverity-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('AggregationMode-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ReferenceVersionRules-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('SlicingRules-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('BindingStrength-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('DiscriminatorType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('PublicationStatus-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('SearchParamType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('AdministrativeGender-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('FHIRVersion-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('NoteType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('RemittanceOutcome-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
+                         ('ConceptMapEquivalence-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'ST'),
                          ('DocumentReferenceStatus-list',
-                          'fhir-base.xsd',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
                           'ST'),
-                         ('date', 'fhir-base.xsd', 'CT'),
-                         ('dateTime', 'fhir-base.xsd', 'CT'),
-                         ('code', 'fhir-base.xsd', 'CT'),
-                         ('string', 'fhir-base.xsd', 'CT'),
-                         ('integer', 'fhir-base.xsd', 'CT'),
-                         ('oid', 'fhir-base.xsd', 'CT'),
-                         ('canonical', 'fhir-base.xsd', 'CT'),
-                         ('uri', 'fhir-base.xsd', 'CT'),
-                         ('uuid', 'fhir-base.xsd', 'CT'),
-                         ('url', 'fhir-base.xsd', 'CT'),
-                         ('instant', 'fhir-base.xsd', 'CT'),
-                         ('boolean', 'fhir-base.xsd', 'CT'),
-                         ('base64Binary', 'fhir-base.xsd', 'CT'),
-                         ('unsignedInt', 'fhir-base.xsd', 'CT'),
-                         ('markdown', 'fhir-base.xsd', 'CT'),
-                         ('time', 'fhir-base.xsd', 'CT'),
-                         ('id', 'fhir-base.xsd', 'CT'),
-                         ('positiveInt', 'fhir-base.xsd', 'CT'),
-                         ('decimal', 'fhir-base.xsd', 'CT'),
-                         ('Extension', 'fhir-base.xsd', 'CT'),
-                         ('BackboneElement', 'fhir-base.xsd', 'CT'),
-                         ('Element', 'fhir-base.xsd', 'CT'),
-                         ('Meta', 'fhir-base.xsd', 'CT'),
-                         ('Address', 'fhir-base.xsd', 'CT'),
-                         ('AddressUse', 'fhir-base.xsd', 'CT'),
-                         ('AddressType', 'fhir-base.xsd', 'CT'),
-                         ('Contributor', 'fhir-base.xsd', 'CT'),
-                         ('ContributorType', 'fhir-base.xsd', 'CT'),
-                         ('Attachment', 'fhir-base.xsd', 'CT'),
-                         ('Count', 'fhir-base.xsd', 'CT'),
-                         ('DataRequirement', 'fhir-base.xsd', 'CT'),
-                         ('DataRequirement_CodeFilter', 'fhir-base.xsd', 'CT'),
-                         ('DataRequirement_DateFilter', 'fhir-base.xsd', 'CT'),
-                         ('DataRequirement_Sort', 'fhir-base.xsd', 'CT'),
-                         ('SortDirection', 'fhir-base.xsd', 'CT'),
-                         ('Dosage', 'fhir-base.xsd', 'CT'),
-                         ('Dosage_DoseAndRate', 'fhir-base.xsd', 'CT'),
-                         ('Money', 'fhir-base.xsd', 'CT'),
-                         ('HumanName', 'fhir-base.xsd', 'CT'),
-                         ('NameUse', 'fhir-base.xsd', 'CT'),
-                         ('ContactPoint', 'fhir-base.xsd', 'CT'),
-                         ('ContactPointSystem', 'fhir-base.xsd', 'CT'),
-                         ('ContactPointUse', 'fhir-base.xsd', 'CT'),
-                         ('MarketingStatus', 'fhir-base.xsd', 'CT'),
-                         ('Identifier', 'fhir-base.xsd', 'CT'),
-                         ('IdentifierUse', 'fhir-base.xsd', 'CT'),
-                         ('SubstanceAmount', 'fhir-base.xsd', 'CT'),
+                         ('date',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('dateTime',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('code',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('string',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('integer',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('oid',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('canonical',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('uri',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('uuid',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('url',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('instant',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('boolean',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('base64Binary',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('unsignedInt',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('markdown',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('time',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('id',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('positiveInt',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('decimal',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Extension',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('BackboneElement',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Element',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Meta',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Address',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('AddressUse',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('AddressType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Contributor',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ContributorType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Attachment',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Count',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DataRequirement',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DataRequirement_CodeFilter',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DataRequirement_DateFilter',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DataRequirement_Sort',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SortDirection',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Dosage',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Dosage_DoseAndRate',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Money',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('HumanName',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('NameUse',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ContactPoint',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ContactPointSystem',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ContactPointUse',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('MarketingStatus',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Identifier',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('IdentifierUse',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SubstanceAmount',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
                          ('SubstanceAmount_ReferenceRange',
-                          'fhir-base.xsd',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
                           'CT'),
-                         ('Coding', 'fhir-base.xsd', 'CT'),
-                         ('SampledData', 'fhir-base.xsd', 'CT'),
-                         ('SampledDataDataType', 'fhir-base.xsd', 'CT'),
-                         ('Population', 'fhir-base.xsd', 'CT'),
-                         ('Ratio', 'fhir-base.xsd', 'CT'),
-                         ('Distance', 'fhir-base.xsd', 'CT'),
-                         ('Age', 'fhir-base.xsd', 'CT'),
-                         ('Reference', 'fhir-base.xsd', 'CT'),
-                         ('TriggerDefinition', 'fhir-base.xsd', 'CT'),
-                         ('TriggerType', 'fhir-base.xsd', 'CT'),
-                         ('Quantity', 'fhir-base.xsd', 'CT'),
-                         ('QuantityComparator', 'fhir-base.xsd', 'CT'),
-                         ('Period', 'fhir-base.xsd', 'CT'),
-                         ('Duration', 'fhir-base.xsd', 'CT'),
-                         ('Range', 'fhir-base.xsd', 'CT'),
-                         ('RelatedArtifact', 'fhir-base.xsd', 'CT'),
-                         ('RelatedArtifactType', 'fhir-base.xsd', 'CT'),
-                         ('Annotation', 'fhir-base.xsd', 'CT'),
-                         ('ProductShelfLife', 'fhir-base.xsd', 'CT'),
-                         ('ContactDetail', 'fhir-base.xsd', 'CT'),
-                         ('UsageContext', 'fhir-base.xsd', 'CT'),
-                         ('Expression', 'fhir-base.xsd', 'CT'),
-                         ('ExpressionLanguage', 'fhir-base.xsd', 'CT'),
-                         ('Signature', 'fhir-base.xsd', 'CT'),
-                         ('Timing', 'fhir-base.xsd', 'CT'),
-                         ('Timing_Repeat', 'fhir-base.xsd', 'CT'),
-                         ('UnitsOfTime', 'fhir-base.xsd', 'CT'),
-                         ('EventTiming', 'fhir-base.xsd', 'CT'),
-                         ('ProdCharacteristic', 'fhir-base.xsd', 'CT'),
-                         ('CodeableConcept', 'fhir-base.xsd', 'CT'),
-                         ('ParameterDefinition', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition', 'fhir-base.xsd', 'CT'),
+                         ('Coding',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SampledData',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SampledDataDataType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Population',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Ratio',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Distance',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Age',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Reference',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('TriggerDefinition',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('TriggerType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Quantity',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('QuantityComparator',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Period',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Duration',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Range',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('RelatedArtifact',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('RelatedArtifactType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Annotation',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ProductShelfLife',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ContactDetail',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('UsageContext',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Expression',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ExpressionLanguage',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Signature',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Timing',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Timing_Repeat',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('UnitsOfTime',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('EventTiming',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ProdCharacteristic',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('CodeableConcept',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ParameterDefinition',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
                          ('ElementDefinition_Constraint',
-                          'fhir-base.xsd',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
                           'CT'),
-                         ('ElementDefinition_Mapping', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition_Base', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition_Type', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition_Example', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition_Slicing', 'fhir-base.xsd', 'CT'),
-                         ('ElementDefinition_Binding', 'fhir-base.xsd', 'CT'),
+                         ('ElementDefinition_Mapping',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition_Base',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition_Type',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition_Example',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition_Slicing',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ElementDefinition_Binding',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
                          ('ElementDefinition_Discriminator',
-                          'fhir-base.xsd',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
                           'CT'),
-                         ('PropertyRepresentation', 'fhir-base.xsd', 'CT'),
-                         ('ConstraintSeverity', 'fhir-base.xsd', 'CT'),
-                         ('AggregationMode', 'fhir-base.xsd', 'CT'),
-                         ('ReferenceVersionRules', 'fhir-base.xsd', 'CT'),
-                         ('SlicingRules', 'fhir-base.xsd', 'CT'),
-                         ('BindingStrength', 'fhir-base.xsd', 'CT'),
-                         ('DiscriminatorType', 'fhir-base.xsd', 'CT'),
-                         ('DomainResource', 'fhir-base.xsd', 'CT'),
-                         ('Resource', 'fhir-base.xsd', 'CT'),
-                         ('PublicationStatus', 'fhir-base.xsd', 'CT'),
-                         ('SearchParamType', 'fhir-base.xsd', 'CT'),
-                         ('AdministrativeGender', 'fhir-base.xsd', 'CT'),
-                         ('FHIRVersion', 'fhir-base.xsd', 'CT'),
-                         ('NoteType', 'fhir-base.xsd', 'CT'),
-                         ('RemittanceOutcome', 'fhir-base.xsd', 'CT'),
-                         ('ConceptMapEquivalence', 'fhir-base.xsd', 'CT'),
-                         ('DocumentReferenceStatus', 'fhir-base.xsd', 'CT'),
-                         ('FilterOperator-list', 'codesystem.xsd', 'ST'),
-                         ('PropertyType-list', 'codesystem.xsd', 'ST'),
-                         ('CodeSystemHierarchyMeaning-list',
-                          'codesystem.xsd',
+                         ('PropertyRepresentation',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ConstraintSeverity',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('AggregationMode',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ReferenceVersionRules',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SlicingRules',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('BindingStrength',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DiscriminatorType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DomainResource',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('Resource',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('PublicationStatus',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('SearchParamType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('AdministrativeGender',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('FHIRVersion',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('NoteType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('RemittanceOutcome',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('ConceptMapEquivalence',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('DocumentReferenceStatus',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR/fhir-base.xsd',
+                          'CT'),
+                         ('FilterOperator-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
                           'ST'),
-                         ('CodeSystemContentMode-list', 'codesystem.xsd', 'ST'),
-                         ('CodeSystem', 'codesystem.xsd', 'CT'),
-                         ('CodeSystem_Filter', 'codesystem.xsd', 'CT'),
-                         ('CodeSystem_Property', 'codesystem.xsd', 'CT'),
-                         ('CodeSystem_Concept', 'codesystem.xsd', 'CT'),
-                         ('CodeSystem_Designation', 'codesystem.xsd', 'CT'),
-                         ('CodeSystem_Property1', 'codesystem.xsd', 'CT'),
-                         ('FilterOperator', 'codesystem.xsd', 'CT'),
-                         ('PropertyType', 'codesystem.xsd', 'CT'),
-                         ('CodeSystemHierarchyMeaning', 'codesystem.xsd', 'CT'),
-                         ('CodeSystemContentMode', 'codesystem.xsd', 'CT')]}
+                         ('PropertyType-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'ST'),
+                         ('CodeSystemHierarchyMeaning-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'ST'),
+                         ('CodeSystemContentMode-list',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'ST'),
+                         ('CodeSystem',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystem_Filter',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystem_Property',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystem_Concept',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystem_Designation',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystem_Property1',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('FilterOperator',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('PropertyType',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystemHierarchyMeaning',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT'),
+                         ('CodeSystemContentMode',
+                          'C:\\Users\\nikol\\gitrepos\\malac-ct\\FHIR\\codesystem.xsd',
+                          'CT')]}
 
 __all__ = [
     "Address",

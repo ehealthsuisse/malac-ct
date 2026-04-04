@@ -3,6 +3,15 @@ from malac_ct import extensions_dict
 import prop_csv_and_master as pcam
 import fhir4_codesystem as f4cs
 import fhir4_valueset as f4vs
+import malac_hd_fhir_utils as utils # imported directly, will be a own pypi package in the future
+
+for mod in [f4cs.supermod, f4vs.supermod]:
+    mod.Resource.exportJsonAttributes = utils.exportJsonAttributesResource
+    #mod.ResourceContainer.exportJsonResult = utils.exportJsonResultResourceContainer
+    #mod.Narrative.exportJsonResult = utils.exportJsonResultNarrative
+    mod.Element.exportJsonResult = utils.exportJsonResultElement
+    mod.date.exportJsonAttributes = utils.exportJsonAttributesDateDateTime
+    mod.dateTime.exportJsonAttributes = utils.exportJsonAttributesDateDateTime
 
 ####################################################################################
 #
@@ -14,6 +23,7 @@ import fhir4_valueset as f4vs
 #
 ####################################################################################
 
+@pcam.trim_output
 def get_id(self):
     """Return CodeSystem.id or ValueSet.id
     """
@@ -24,6 +34,7 @@ def get_id(self):
 # NOT SUPPORTED:
 #   CodeSystem.meta or ValueSet.meta in general
 # def get_meta(resource):
+@pcam.trim_output
 def get_profiles(self):
     """Return CodeSytem.meta.profile or ValueSet.meta.profile.
     """
@@ -37,6 +48,7 @@ def get_profiles(self):
 
     return the_profile_list
 
+@pcam.trim_output
 def get_implicitrules(self):
     """Return CodeSytem.implicitRules or ValueSet.implicitRules.
     """
@@ -44,6 +56,7 @@ def get_implicitrules(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_language(self):
     """Return CodeSystem.language or ValueSet.language.
     """
@@ -51,6 +64,7 @@ def get_language(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_text(self):
     """NOT SUPPORTED: Return CodeSystem.text or ValueSet.text.
 
@@ -65,6 +79,7 @@ def get_text(self):
     """
     return None
 
+@pcam.trim_output
 def get_contained(self):
     """NOT SUPPORTED: Return CodeSystem.contained or ValueSet.contained.
 
@@ -78,6 +93,7 @@ def get_contained(self):
     """
     return None
 
+@pcam.trim_output
 def get_extension(self):
     """NOT SUPPORTED: Return CodeSystem.extension or ValueSet.extension.
 
@@ -89,6 +105,7 @@ def get_extension(self):
     """
     return None
 
+@pcam.trim_output
 def get_modifierextension(self):
     """NOT SUPPORTED: Return CodeSystem.modifierExtension or ValueSet.modifierExtension.
 
@@ -100,6 +117,7 @@ def get_modifierextension(self):
     """
     return None
 
+@pcam.trim_output
 def get_url(self):
     """Return CodeSystem.url or ValueSet.url.
     """
@@ -107,6 +125,7 @@ def get_url(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_identifier(self):
     """Return CodeSystem.identifier or ValueSet.identifier.
 
@@ -132,6 +151,7 @@ def get_identifier(self):
 
     return the_identifier_list
 
+@pcam.trim_output
 def get_version(self):
     """Return CodeSystem.version or ValueSet.version.
     """
@@ -139,6 +159,7 @@ def get_version(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_name(self):
     """Return CodeSystem.name or ValueSet.name.
     """
@@ -153,6 +174,7 @@ def get_name(self):
             return tmp
     return None
 
+@pcam.trim_output
 def get_title(self):
     """Return CodeSystem.title or ValueSet.title.
     """
@@ -167,6 +189,7 @@ def get_title(self):
             return tmp
     return None
 
+@pcam.trim_output
 def get_status(self):
     """Return CodeSystem.status or ValueSet.status.
     """
@@ -174,6 +197,7 @@ def get_status(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_experimental(self):
     """Return CodeSystem.experimental or ValueSet.experimental.
     """
@@ -181,6 +205,7 @@ def get_experimental(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_date(self):
     """Return CodeSystem.date or ValueSet.date.
     """
@@ -188,6 +213,7 @@ def get_date(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_publisher(self):
     """Return CodeSystem.publisher or ValueSet.publisher.
     """
@@ -195,6 +221,7 @@ def get_publisher(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_contact(self):
     """Return CodeSystem.contact or ValueSet.contact.
     """
@@ -234,6 +261,7 @@ def get_contact(self):
 
     return the_contact_list
 
+@pcam.trim_output
 def get_description(self):
     """Return CodeSystem.description or ValueSet.description.
     """
@@ -256,6 +284,7 @@ def get_description(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_usecontext(self):
     """NOT SUPPORTED: Return CodeSystem.useContext or ValueSet.useContext.
 
@@ -265,6 +294,7 @@ def get_usecontext(self):
     """
     return []
 
+@pcam.trim_output
 def get_jurisdiction(self):
     """NOT SUPPORTED: Return CodeSystem.jurisdiction or ValueSet.jurisdiction.
 
@@ -274,6 +304,7 @@ def get_jurisdiction(self):
     """
     return []
 
+@pcam.trim_output
 def get_purpose(self):
     """Return CodeSystem.purpose or ValueSet.purpose.
     """
@@ -281,6 +312,7 @@ def get_purpose(self):
         return tmp.get_value()
     return None
 
+@pcam.trim_output
 def get_copyright(self):
     """Return CodeSystem.copyright or ValueSet.copyright.
     """
@@ -570,7 +602,7 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
     if extension := fhir_source.get_extension():
         for one_extension in extension:
             if one_url := one_extension.get_url():
-                
+
                 if delete_extensions_in_target_with_same_urls:
                     pcam_target.extension = [item for item in pcam_target.extension if item.url != one_url]
 
@@ -579,10 +611,12 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
 
                 if one_value := one_extension.get_valueOid(): #TODO support of further types
                     the_extension.value = one_value.get_value()
-                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', '')))
                 elif one_value := one_extension.get_valueInteger():
                     the_extension.value = int(one_value.get_value())
-                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(one_value.original_tagname_.replace('value','')))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(pcam.first_char_to_lower(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', '')))
                 elif one_value := one_extension.get_valueCoding():
                     the_coding = pcam.Coding()
                     if tmp := one_value.get_system(): the_coding.codesystem = tmp.get_value()
@@ -591,8 +625,8 @@ def parse_extension(pcam_target, fhir_source, delete_extensions_in_target_with_s
                     if tmp := one_value.get_display(): the_coding.display = tmp.get_value()
                     if tmp := one_value.get_userSelected(): the_coding.userSelected = tmp.get_value()
                     the_extension.value = the_coding
-                    # original_tagname_ e.g. is 'valueCoding'; 'value' will be removed, the rest will be used to determine the correct PropertyCodeType
-                    the_extension.type = pcam.ExtensionType(one_value.original_tagname_.replace('value',''))
+                    # if source file is XML 'Sub' classes will be used. In case of JSON, however, the datatypes will be used directly (without 'Sub')
+                    the_extension.type = pcam.ExtensionType(tmp if 'Sub' not in (tmp := type(one_value).__name__) else tmp.replace('Sub', ''))
 
                 pcam_target.extension.append(the_extension)
 
@@ -692,6 +726,31 @@ class FHIR4CsAndVs:
 
         resource = input.get_resource()
         if resource == 'CodeSystem':
-            f4cs.CodeSystemSub.exporto(input, outfile)
+            f4cs.CodeSystem.exporto(input, outfile)
         elif resource == 'ValueSet':
-            f4vs.ValueSetSub.exporto(input, outfile)
+            f4vs.ValueSet.exporto(input, outfile)
+
+class FHIR4CsAndVsJson():
+    """Class serves as entrypoint for properly parsing and writing
+    FHIR CodeSystem and ValueSet resources as json.
+    """
+    def __init__(self) -> None:
+        pass
+
+    # just for calling the outer method (within )
+    def parse(filename):
+        import json
+        with open(filename,'r') as f:
+            if 'CodeSystem-' in filename:
+                return utils.parse_json(f4cs.supermod, json.load(f))
+            elif 'ValueSet-' in filename:
+                return utils.parse_json(f4vs.supermod, json.load(f))
+            else:
+                sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')
+
+    def exporto(input, outfile, output_class, args_lang=None, include_hierarchy_extension_4_valueset=False):
+        resource = input.get_resource()
+        if resource == 'CodeSystem':
+            f4cs.CodeSystem.exporto(input, outfile, json=True)
+        elif resource == 'ValueSet':
+            f4vs.ValueSet.exporto(input, outfile, json=True)
