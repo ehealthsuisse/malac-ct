@@ -107,8 +107,8 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
 
             except requests.exceptions.ConnectionError as e:
                 if attempt < 2:  # still some retries left
-                    print(f"Connection error (attempt {attempt + 1}/3), retrying in 5 seconds...")
-                    time.sleep(5)
+                    print(f"Connection error (attempt {attempt + 1}/3), retrying in 60 seconds...")
+                    time.sleep(60)
                     json_format_file.seek(0)  # reset file pointer for retry
                     continue
                 else:  # last try failed
