@@ -79,6 +79,7 @@ def detectClassByEnding(filename):
 def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerUserPassword, FHIRServerTergiTunnelToken, verification, failIfUploadGoesWrong=False):
     import requests
     import os
+    import time
 
     headers={ 'Content-Type' : 'application/fhir+json; charset=utf-8' }
     if (FHIRServerTergiTunnelToken):
@@ -96,17 +97,35 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
         sys.exit("The FHIR Ressource Type could not be detected from the file name. \n %s" % descriptionText)
 
     with open(input.replace(iClass,".4.fhir.json"), 'rb') as json_format_file:
-        if auth is None:
-            res = requests.put(FHIRServer, headers=headers, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
-        else:
-            res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification) # files={'upload_file': json_format_file})
+        # retry 3 times
+        for attempt in range(3):
+            try:
+                if auth is None:
+                    res = requests.put(FHIRServer, headers=headers, data=json_format_file, verify=verification, timeout=(30, 900))  # timeout(connect, read/response)
+                else:
+                    res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification, timeout=(30, 900))  # timeout(connect, read/response)
+
+            except requests.exceptions.ConnectionError as e:
+                if attempt < 2:  # still some retries left
+                    print(f"Connection error (attempt {attempt + 1}/3), retrying in 5 seconds...")
+                    time.sleep(5)
+                    json_format_file.seek(0)  # reset file pointer for retry
+                    continue
+                else:  # last try failed
+                    print(f"Connection failed after 3 attempts: {e}")
+                    raise
+            
+            except requests.exceptions.Timeout as e:
+                print(f"Timeout after {600} seconds: {e}")
+                raise  # no retry for a timeout (server is too slow)
+
 
     if failIfUploadGoesWrong:
         try:
             res.raise_for_status()
-        except:
-            print("ERROR: " + res.text)
-            res.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print(f"ERROR: HTTP {res.status_code} - {res.text}")
+            raise
 
 def main() -> None:
     start = time.time()
