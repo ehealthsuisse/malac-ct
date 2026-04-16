@@ -100,23 +100,25 @@ def upload_to_fhir_server(input, iClass, FHIRServer, FHIRServerUser, FHIRServerU
         # retry 3 times
         for attempt in range(3):
             try:
+                json_format_file.seek(0)  # reset file pointer for retry
                 if auth is None:
                     res = requests.put(FHIRServer, headers=headers, data=json_format_file, verify=verification, timeout=(30, 900))  # timeout(connect, read/response)
                 else:
                     res = requests.put(FHIRServer, headers=headers, auth=auth, data=json_format_file, verify=verification, timeout=(30, 900))  # timeout(connect, read/response)
+                break
 
             except requests.exceptions.ConnectionError as e:
                 if attempt < 2:  # still some retries left
                     print(f"Connection error (attempt {attempt + 1}/3), retrying in 60 seconds...")
                     time.sleep(60)
-                    json_format_file.seek(0)  # reset file pointer for retry
+                    
                     continue
                 else:  # last try failed
                     print(f"Connection failed after 3 attempts: {e}")
                     raise
             
             except requests.exceptions.Timeout as e:
-                print(f"Timeout after {600} seconds: {e}")
+                print(f"Timeout after 900 seconds: {e}")
                 raise  # no retry for a timeout (server is too slow)
 
 
