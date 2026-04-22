@@ -18,6 +18,14 @@ class ParentingBy(enum.Enum):
         else:
             return newValue
 
+class DuplicateConceptError(Exception):
+    pass
+
+def check_for_duplicates(tempConcept, conceptList, check_parent_by="parent"):
+    for concept in conceptList:
+        if concept.code == tempConcept.code and getattr(concept, check_parent_by, None) == getattr(tempConcept, check_parent_by, None):
+                raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+
 def trim_output(func):
     """strips/trims strings and list of strings"""
     def wrapper(*args, **kwargs):
@@ -270,6 +278,13 @@ class PropCsvAndMaster():
                             if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
                                 import sys
                                 sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
+                        
+                        # check for duplicate concepts with same parent
+                        if self.parenting_by == ParentingBy.conceptOrder:
+                            check_for_duplicates(tempConcept, self.concept, "parentByConceptOrder")
+                        else:
+                            check_for_duplicates(tempConcept, self.get_concept())
+                        
                         self.concept.append(tempConcept)
 
                     # fill members of parents
@@ -701,27 +716,6 @@ class PropCsvAndMaster():
             for oneMember in oneCon.member:
                 if popdCon := conDict.pop(oneMember.code+oneMember.system, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
-
-    def check_duplicate_codes_per_level(self):
-        seen_codes_per_level = {}
-        duplicates = {}
-
-        for concept in self.concept:
-            level = concept.level if hasattr(concept, 'level') else 0
-
-            # level = concept.level
-            if level not in seen_codes_per_level:
-                seen_codes_per_level[level] = []
-
-            if concept.code in seen_codes_per_level[level]:
-                if level not in duplicates:
-                    duplicates[level] = []
-                duplicates[level].append(concept.code)
-            else:
-                seen_codes_per_level[level].append(concept.code)
-
-        if duplicates:
-            print("Warning: Duplicate concepts found: ", {f"Level {k}": v for k, v in duplicates.items()})
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, file_style=FileStyle.propCSV):
         csv_meta = []

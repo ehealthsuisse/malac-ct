@@ -322,11 +322,25 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                     the_from_expand_sorted_list = []
                     # recrusivly parse the information in the contains
                     self.parse_expansion_contains_information(0, tmp, concept_code_dict, the_from_expand_sorted_list)
+                    
+                    # duplicate check for parentless codes
+                    self.check_parentless_for_duplicates(concept_code_dict)
+                    
                     # subtract/delete all concepts from self.concept that are in the expand and add these concepts on the end of the list
                     # this is only done for the case, that an (invalid) fhir xml got more concepts in the include than in the expansion
                     self.concept = the_from_expand_sorted_list + list(set(self.concept) - set(the_from_expand_sorted_list))
 
             return self.concept
+
+    def check_parentless_for_duplicates(self, dict):
+        seen_codes = []
+
+        for concept in dict.values():
+            if concept.parent is None:
+                if concept.code in seen_codes or hasattr(concept, "same_code_and_same_system"):
+                    raise pcam.DuplicateConceptError(f"Duplicate concept code found: {concept.code}")
+                else:
+                    seen_codes.append(concept.code)
 
     def parse_include_information(include_list, exclude=False):
         """Parse the given include_list (of type ValueSet_Include, i.e. ValueSet.compose.include or ValueSet.compose.exclude)
@@ -468,6 +482,8 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
 
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
+                        # duplicate check for codes with parents
+                        pcam.check_for_duplicates(the_concept, parent.member, "")
                         # setting theConcept as child of the parent
                         parent.member.append(the_concept)
                         # setting the parent of one_concept

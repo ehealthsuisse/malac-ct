@@ -8,6 +8,19 @@ import ext_aut
 
 tempindex = None
 
+def check_for_duplicates(tempConcept, dictConcepts, termtype):
+    for concept in dictConcepts.values():
+        if tempConcept.code == concept.code:
+            if termtype == "CS":
+                raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+            # elif termtype == "VS":
+            #     for property in getattr(tempConcept, "property", None):
+            #         if property.code == "parent":
+            #             temp_parent = property.value
+            #     for property in getattr(concept, "property", None):
+            #         if property.code == "parent" and property.value == temp_parent:
+            #             raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+
 class Fsh1(pcam.PropCsvAndMaster):
 
     def __init__(self, inFile):
@@ -275,6 +288,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theConcept.code = value
                     theConcept.designation = []
                     theConcept.property = []
+                    # check for duplicate codes
+                    check_for_duplicates(theConcept, dictConcept, "CS")
                     dictConcept[tempindex] = theConcept
 
             elif self.resource == self.resource.ValueSet:
@@ -291,6 +306,8 @@ class Fsh1(pcam.PropCsvAndMaster):
                     theConcept.version = finalVSVersion
                     theConcept.designation = []
                     theConcept.filter = []
+                    # space holder for duplicate check:
+                    # check_for_duplicates(theConcept, dictConcept, "VS")
                     dictConcept[theConcept.code] = theConcept
                 if '.display' in line:
                     for oneConcept in dictConcept:

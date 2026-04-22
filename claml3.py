@@ -275,7 +275,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
                     theProperty.code = oneMeta.get_name()
                     theProperty.value = oneMeta.get_value()
                     theConcept.property.append(theProperty)
-
+                # space holder for duplicate check 
                 retArr.append(theConcept)
             self.concept = retArr
             return retArr

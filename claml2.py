@@ -98,6 +98,17 @@ def exporto_extension_to_class(claml_metas, extensions_written_to_metas, claml_c
             if value := one_extension.value:
                 claml_class.add_Meta(MetaSub(one_extension.url, value))
 
+def check_for_duplicates(tempConcept, conceptList):
+    if hasattr(tempConcept, "parent") and getattr(tempConcept, "parent") is not None:
+        tempParent = tempConcept.parent.code
+    else:
+        tempParent = None
+    for concept in conceptList:
+        if concept.code == tempConcept.code:
+            if (concept.parent.code if hasattr(concept, "parent") and concept.parent else None) == tempParent:
+                raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+
+
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
 #        return get_Meta_with_name(self,'Sortierreihenfolge')
@@ -578,6 +589,8 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
                 if len(thePropertys) > 0 and self.get_resource() == "CodeSystem":
                     theConcept.property += thePropertys
 
+                # check for duplicate codes
+                check_for_duplicates(theConcept, retArr)
                 retArr.append(theConcept)
                 self.concept = retArr
             return retArr
