@@ -1,4 +1,5 @@
 import enum
+import time
 from unittest import skip
 from malac_ct import extensions_dict
 import ext
@@ -279,12 +280,6 @@ class PropCsvAndMaster():
                                 import sys
                                 sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
                         
-                        # check for duplicate concepts with same parent
-                        if self.parenting_by == ParentingBy.conceptOrder:
-                            check_for_duplicates(tempConcept, self.concept, "parentByConceptOrder")
-                        else:
-                            check_for_duplicates(tempConcept, self.get_concept())
-                        
                         self.concept.append(tempConcept)
 
                     # fill members of parents
@@ -333,10 +328,34 @@ class PropCsvAndMaster():
 
                         for one_concept in self.concept:
                             self.add_children_to_CS_concept(concept_dict, one_concept)
-
             except UnicodeDecodeError:
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
+        if self.parenting_by == ParentingBy.conceptOrder:
+            self.check_duplicate_codes_per_parent("parentByConceptOrder")
+        else:
+            self.check_duplicate_codes_per_parent()
+
+    def check_duplicate_codes_per_parent(self, check_parent_by="parent"):
+        start = time.time()
+        seen_codes_per_parent = {}
+        duplicates = {}
+
+        for concept in self.concept:
+            parent = concept.parent.code if hasattr(concept, check_parent_by) else 0
+
+            if parent not in seen_codes_per_parent:
+                seen_codes_per_parent[parent] = []
+
+            if concept.code in seen_codes_per_parent[parent]:
+                if parent not in duplicates:
+                    duplicates[parent] = []
+                duplicates[parent].append(concept.code)
+            else:
+                seen_codes_per_parent[parent].append(concept.code)
+
+        if duplicates:
+            raise DuplicateConceptError("Duplicate concept code found: ", {f"Parent {k}": v for k, v in duplicates.items()})
 
     def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:
