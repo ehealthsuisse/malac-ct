@@ -174,7 +174,7 @@ def main() -> None:
         for csv2AppendTo in args.appendProcessedTerminologyTo:
             timestamp = input.appendMetaDataTo(csv2AppendTo, timestamp)
 
-    # sort the input, check for VS duplicates
+    # sort the input
     if 'CodeSystem-' in input.filename:
         input.sortConceptsExpandStyle()
     elif 'ValueSet-' in input.filename:
