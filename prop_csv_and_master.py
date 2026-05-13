@@ -342,7 +342,7 @@ class PropCsvAndMaster():
         duplicates = {}
 
         for concept in self.concept:
-            parent = concept.parent.code if hasattr(concept, check_parent_by) else 0
+            parent = concept.parent.code if (hasattr(concept, check_parent_by) and concept.parent is not None) else 0
 
             if parent not in seen_codes_per_parent:
                 seen_codes_per_parent[parent] = []
