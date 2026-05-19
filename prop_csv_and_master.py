@@ -25,7 +25,11 @@ class DuplicateConceptError(Exception):
 def check_for_duplicates(tempConcept, conceptList, check_parent_by="parent"):
     for concept in conceptList:
         if concept.code == tempConcept.code and getattr(concept, check_parent_by, None) == getattr(tempConcept, check_parent_by, None):
-                raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+                if not hasattr(tempConcept, "system"):
+                    raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+                else:
+                    if hasattr(tempConcept, "system") and hasattr(concept, "system") and concept.system == tempConcept.system:
+                        raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
 
 def trim_output(func):
     """strips/trims strings and list of strings"""
@@ -337,25 +341,31 @@ class PropCsvAndMaster():
             self.check_duplicate_codes_per_parent()
 
     def check_duplicate_codes_per_parent(self, check_parent_by="parent"):
-        start = time.time()
-        seen_codes_per_parent = {}
-        duplicates = {}
-
-        for concept in self.concept:
-            parent = concept.parent.code if (hasattr(concept, check_parent_by) and concept.parent is not None) else 0
-
-            if parent not in seen_codes_per_parent:
-                seen_codes_per_parent[parent] = []
-
-            if concept.code in seen_codes_per_parent[parent]:
-                if parent not in duplicates:
-                    duplicates[parent] = []
-                duplicates[parent].append(concept.code)
-            else:
-                seen_codes_per_parent[parent].append(concept.code)
+        if self.resource == self.resource.CodeSystem:
+            seen_codes = set()
+            duplicates = set()
+            for concept in self.concept:
+                if concept.code in seen_codes:
+                    duplicates.add(concept.code)
+                else:
+                    seen_codes.add(concept.code)
+        else:
+            seen_codes_per_parent = {}
+            duplicates = {}
+            for concept in self.concept:
+                parent = concept.parent.code if (hasattr(concept, check_parent_by) and concept.parent is not None) else 0
+                if parent not in seen_codes_per_parent:
+                    seen_codes_per_parent[parent] = set()
+        
+                if (concept.code, concept.system) in seen_codes_per_parent[parent]:
+                    if parent not in duplicates:
+                        duplicates[parent] = set()
+                    duplicates[parent].add((concept.code, concept.system))
+                else:
+                    seen_codes_per_parent[parent].add((concept.code, concept.system))
 
         if duplicates:
-            raise DuplicateConceptError("Duplicate concept code found: ", {f"Parent {k}": v for k, v in duplicates.items()})
+            raise DuplicateConceptError("Duplicate concept code found: ", duplicates)
 
     def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:

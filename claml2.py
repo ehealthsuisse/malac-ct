@@ -106,7 +106,11 @@ def check_for_duplicates(tempConcept, conceptList):
     for concept in conceptList:
         if concept.code == tempConcept.code:
             if (concept.parent.code if hasattr(concept, "parent") and concept.parent else None) == tempParent:
-                raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+                if not hasattr(tempConcept, "system"):
+                    raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+                else:
+                    if hasattr(tempConcept, "system") and hasattr(concept, "system") and concept.system == tempConcept.system:
+                        raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
 
 
 #class Class(supermod.Class):

@@ -18,7 +18,7 @@ def check_for_duplicates(tempConcept, dictConcepts, termtype):
             #         if property.code == "parent":
             #             temp_parent = property.value
             #     for property in getattr(concept, "property", None):
-            #         if property.code == "parent" and property.value == temp_parent:
+            #         if property.code == "parent" and property.value == temp_parent and property.system == tempConcept.system:
             #             raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
 
 class Fsh1(pcam.PropCsvAndMaster):
