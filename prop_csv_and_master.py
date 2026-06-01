@@ -22,9 +22,21 @@ class ParentingBy(enum.Enum):
 class DuplicateConceptError(Exception):
     pass
 
+def get_full_path(concept):
+    path = []
+    current = concept
+    while hasattr(current, 'parent') and current.parent:
+        path.append((current.parent.code, getattr(current.parent, 'system', None)))
+        current = current.parent
+    return tuple(reversed(path))
+
+# helper function to check for duplicate occurences of tempConcept in the conceptList on (code) for VS and (code, system) for VS
 def check_for_duplicates(tempConcept, conceptList, check_parent_by="parent"):
     for concept in conceptList:
-        if concept.code == tempConcept.code and getattr(concept, check_parent_by, None) == getattr(tempConcept, check_parent_by, None):
+        if concept.code == tempConcept.code:
+            concept_parent = getattr(concept, check_parent_by, None)
+            tempConcept_parent = getattr(tempConcept, check_parent_by, None)
+            if (concept_parent is None and tempConcept_parent is None) or (concept_parent is not None and tempConcept_parent is not None and concept_parent.code == tempConcept_parent.code):
                 if not hasattr(tempConcept, "system"):
                     raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
                 else:
@@ -350,22 +362,14 @@ class PropCsvAndMaster():
                 else:
                     seen_codes.add(concept.code)
         else:
-            seen_codes_per_parent = {}
-            duplicates = {}
+            path_duplicates = {}
             for concept in self.concept:
-                parent = concept.parent.code if (hasattr(concept, check_parent_by) and concept.parent is not None) else 0
-                if parent not in seen_codes_per_parent:
-                    seen_codes_per_parent[parent] = set()
-        
-                if (concept.code, concept.system) in seen_codes_per_parent[parent]:
-                    if parent not in duplicates:
-                        duplicates[parent] = set()
-                    duplicates[parent].add((concept.code, concept.system))
+                path = get_full_path(concept)
+                key = (concept.code, concept.system, path)
+                if key in path_duplicates:
+                    raise DuplicateConceptError("Duplicate concept found: ", key)
                 else:
-                    seen_codes_per_parent[parent].add((concept.code, concept.system))
-
-        if duplicates:
-            raise DuplicateConceptError("Duplicate concept code found: ", duplicates)
+                    path_duplicates[key] = concept.code
 
     def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:

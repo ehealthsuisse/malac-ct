@@ -483,7 +483,7 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                     # if a parent has been specified add the_concept to the parent's member
                     if parent:
                         # duplicate check for codes with parents
-                        pcam.check_for_duplicates(the_concept, parent.member, "")
+                        pcam.check_for_duplicates(the_concept, parent.member)
                         # setting theConcept as child of the parent
                         parent.member.append(the_concept)
                         # setting the parent of one_concept

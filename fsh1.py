@@ -13,13 +13,7 @@ def check_for_duplicates(tempConcept, dictConcepts, termtype):
         if tempConcept.code == concept.code:
             if termtype == "CS":
                 raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
-            # elif termtype == "VS":
-            #     for property in getattr(tempConcept, "property", None):
-            #         if property.code == "parent":
-            #             temp_parent = property.value
-            #     for property in getattr(concept, "property", None):
-            #         if property.code == "parent" and property.value == temp_parent and property.system == tempConcept.system:
-            #             raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+            # placeholder for VS duplicate check
 
 class Fsh1(pcam.PropCsvAndMaster):
 
