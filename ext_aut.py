@@ -149,6 +149,22 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
             if row.Leistung: parseProp(conDict[row.Diagnose].property, row.Leistung, "LKF-Code", pcam.PropertyCodeType.coding, "https://termgit.elga.gv.at/CodeSystem/bmg-lkf-YYYY")
             row = cursor.fetchone()
 
+        # After the main concept loop is done, load thesaurus entries separately as synonyms
+        cursor.execute("SELECT [Diagnose], [Gruppe], [Bezeichnung] FROM [ICD10_TH]")
+        row = cursor.fetchone()
+        conDict = self.buildConceptDictWithAttr("code")
+        while row:
+            if row.Diagnose in conDict: 
+                parseDesig(
+                    conDict[row.Diagnose].designation,
+                    row.Bezeichnung,
+                    use_system="http://snomed.info/sct",
+                    use_code="900000000000013009",
+                    use_display="Synonym",
+                    language="de-AT"
+                )
+            row = cursor.fetchone()
+
     # just for calling the outer method
     def parse(inFilename):
         return BMGICD(inFilename)
@@ -291,6 +307,31 @@ def parseProp(conceptPropList, propertyInRow, nameOfProperty, typeOfProperty=pca
             theProperty.value = propertyInRow
         theProperty.type = typeOfProperty
         conceptPropList.append(theProperty)
+
+def parseDesig(conceptDesignationList, value, use_system, use_code, use_display=None, language=None):
+    """Add a designation (alternative label/synonym) to a concept."""
+    if value and isinstance(value, str):
+        value = value.strip()
+    if not value:
+        return
+
+    theDesignation = pcam.ConceptDesignation()
+
+    # Optional: language tag, e.g. "de" or "de-AT"
+    if language:
+        theDesignation.language = language
+
+    # use: describes what kind of designation this is (e.g. synonym, abbreviation)
+    if use_code:
+        theUse = pcam.Coding()
+        theUse.code = use_code
+        theUse.codesystem = use_system
+        if use_display:
+            theUse.display = use_display
+        theDesignation.use = theUse
+
+    theDesignation.value = value
+    conceptDesignationList.append(theDesignation)
 
 def parseChild(dictConceptParents,propertyOfConcept,nameOfChildProperty):
     # create new child link to Parent
