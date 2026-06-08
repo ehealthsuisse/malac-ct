@@ -154,15 +154,17 @@ Besonderer Dank gilt allen, die in den österreichischen Krankenanstalten mit de
         row = cursor.fetchone()
         conDict = self.buildConceptDictWithAttr("code")
         while row:
-            if row.Diagnose in conDict: 
-                parseDesig(
-                    conDict[row.Diagnose].designation,
-                    row.Bezeichnung,
-                    use_system="http://snomed.info/sct",
-                    use_code="900000000000013009",
-                    use_display="Synonym",
-                    language="de-AT"
-                )
+            # do not use designations as the IG Publisher only renders one designation per language and use
+            # if row.Diagnose in conDict: 
+            #     parseDesig(
+            #         conDict[row.Diagnose].designation,
+            #         row.Bezeichnung,
+            #         use_system="http://snomed.info/sct",
+            #         use_code="900000000000013009",
+            #         use_display="Synonym"
+            #         # language="de-AT" # do not use the language, as only one designation per language is beeing rendered in the IG Publisher
+            #     )
+            parseProp(conDict[row.Diagnose].property, row.Bezeichnung, "Synonyme") # beware not to use synonym or synonyms as these are reserved properties
             row = cursor.fetchone()
 
     # just for calling the outer method
