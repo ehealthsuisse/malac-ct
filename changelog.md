@@ -4,10 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [5.#.0+2026####]
 
 ### Added
-
+- #57 (aut-only) Load icd-10 bm*g* thesaurus entries separately as designations synonyms
 - #61 Added connection and read timeouts (30s connect, 900s/15min read) to handle large file uploads
 - #61 Added automatic retry mechanism (3 attempts) for failed FHIR server uploads with 60-second delays between retries
 - #61 Improved error handling with specific exception types (`ConnectionError`, `Timeout`, `HTTPError`)
