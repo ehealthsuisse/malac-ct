@@ -409,14 +409,18 @@ class OutdatedCsv1(pcam.PropCsvAndMaster):
                         if oneProp.code != "relationships" and oneProp.code != "child" and oneProp.code != "parent" and oneProp.code != "hints":
                             append_additional_value(csv_list, conceptRow, oneProp.code, oneProp.value)
                 if hasattr(oneConcept,"designation"):
+                    no_lang_no_use_counter = 1
                     for oneDesig in oneConcept.designation:
                         if (hasattr(oneDesig,"use") and oneDesig.use.code != "einheit_codiert" and oneDesig.use.code != "einheit_print" and
                                 oneDesig.language != "de-AT" and oneDesig.use.code != "relationships" and
                                 oneDesig.use.code != "hinweise" and oneDesig.use.code != "concept_beschreibung"):
                             if language := oneDesig.language:
                                 append_additional_value(csv_list, conceptRow, 'language_' + language, oneDesig.value)
-                            else:
+                            elif hasattr(oneDesig, "use") and oneDesig.use and oneDesig.use.code:
                                 append_additional_value(csv_list, conceptRow, oneDesig.use.code, oneDesig.value)
+                            else:
+                                append_additional_value(csv_list, conceptRow, f'designation_{no_lang_no_use_counter}', oneDesig.value)
+                                no_lang_no_use_counter += 1
 
             # add conceptRow to csv list
             csv_list.append(conceptRow)

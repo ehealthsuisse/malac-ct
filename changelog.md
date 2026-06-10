@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - #61 Added automatic retry mechanism (3 attempts) for failed FHIR server uploads with 60-second delays between retries
 - #61 Improved error handling with specific exception types (`ConnectionError`, `Timeout`, `HTTPError`)
 
+### Fixed
+
+- #22 Support multiple designations having no language and no use in .2.outdatedcsv
+
 ## [5.0.0+20260331]
 
 ### Added
