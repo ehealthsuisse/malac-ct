@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - #61 Added connection and read timeouts (30s connect, 900s/15min read) to handle large file uploads
 - #61 Added automatic retry mechanism (3 attempts) for failed FHIR server uploads with 60-second delays between retries
 - #61 Improved error handling with specific exception types (`ConnectionError`, `Timeout`, `HTTPError`)
+- #46 Added duplicate concept check logic for propcsv, spreadct, claml2, fsh (CS-only) and fhir
 
 ## [5.0.0+20260331]
 
