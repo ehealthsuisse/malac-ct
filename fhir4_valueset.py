@@ -330,6 +330,12 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                     # this is only done for the case, that an (invalid) fhir xml got more concepts in the include than in the expansion
                     self.concept = the_from_expand_sorted_list + list(set(self.concept) - set(the_from_expand_sorted_list))
 
+                    # remove intensionale placeholder (code=None) if expansion read here is successful
+                    self.concept = [
+                        c for c in self.concept
+                        if not getattr(c, 'is_intensional_placeholder', False)
+                    ]
+
             return self.concept
 
     def check_parentless_for_duplicates(self, dict):
@@ -429,11 +435,13 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
             # NOT SUPPORTED ValueSet_Include.valueSet
 
             # if it is an "include all valueset" create a dummy VSConcept
+            # beware the subcase of an expansion: the concepts there will be used for the other formats, this element will be deleted for processing
             if include_all_valueset:
                 the_concept = pcam.VSConcept()
                 the_concept.system = the_include_system
                 the_concept.version = the_include_version
                 the_concept.exclude = exclude
+                the_concept.is_intensional_placeholder = True
 
                 the_concept_list.append(the_concept)
 
@@ -466,36 +474,50 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                     if the_concept in the_from_expand_sorted_list:
                         import copy
                         the_concept = copy.deepcopy(the_concept)
+                else:
+                    # Intensional fallback: no CLD entry for this key – create a new VSConcept
+                    # directly from expansion.contains data (code, system, version, display,
+                    # designation), analogous to parse_include_information().
+                    the_concept = pcam.VSConcept()
+                    the_concept.code = tmp_code.get_value()
+                    the_concept.system = tmp_system.get_value()
+                    if tmp := one_contains.get_version():
+                        the_concept.version = tmp.get_value()
+                    if tmp := one_contains.get_display():
+                        the_concept.display = tmp.get_value()
+                    if tmp := one_contains.get_designation():
+                        the_concept.designation = f4csvs.parse_concept_designation(tmp)
+                    f4csvs.parse_extension(the_concept, one_contains)
 
-                    # set the concept's level
-                    the_concept.level = level
+                # set the concept's level
+                the_concept.level = level
 
-                    # parse ValueSet.expansion.contains.abstract
-                    if tmp := one_contains.get_abstract():
-                        the_concept.abstract = tmp.get_value()
+                # parse ValueSet.expansion.contains.abstract
+                if tmp := one_contains.get_abstract():
+                    the_concept.abstract = tmp.get_value()
 
-                    # parse ValueSet.expansion.contains.inactive
-                    if tmp := one_contains.get_inactive():
-                        the_concept.inactive = tmp.get_value()
-                        if the_concept.inactive:
-                            self.inactive = True
+                # parse ValueSet.expansion.contains.inactive
+                if tmp := one_contains.get_inactive():
+                    the_concept.inactive = tmp.get_value()
+                    if the_concept.inactive:
+                        self.inactive = True
 
-                    # if a parent has been specified add the_concept to the parent's member
-                    if parent:
-                        # duplicate check for codes with parents
-                        pcam.check_for_duplicates(the_concept, parent.member)
-                        # setting theConcept as child of the parent
-                        parent.member.append(the_concept)
-                        # setting the parent of one_concept
-                        the_concept.parent = parent
+                # if a parent has been specified add the_concept to the parent's member
+                if parent:
+                    # duplicate check for codes with parents
+                    pcam.check_for_duplicates(the_concept, parent.member)
+                    # setting theConcept as child of the parent
+                    parent.member.append(the_concept)
+                    # setting the parent of one_concept
+                    the_concept.parent = parent
 
-                    # read extension, if that url is already in the concept, delete all extensions with that same url
-                    f4csvs.parse_extension(the_concept, one_contains, delete_extensions_in_target_with_same_urls=True)
+                # read extension, if that url is already in the concept, delete all extensions with that same url
+                f4csvs.parse_extension(the_concept, one_contains, delete_extensions_in_target_with_same_urls=True)
 
-                    the_from_expand_sorted_list.append(the_concept)
-                    # if one_contains contains a list of contains go into recursion
-                    if tmp := one_contains.get_contains():
-                        self.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
+                the_from_expand_sorted_list.append(the_concept)
+                # if one_contains contains a list of contains go into recursion
+                if tmp := one_contains.get_contains():
+                    self.parse_expansion_contains_information(level+1, tmp, concept_code_dict, the_from_expand_sorted_list, the_concept)
 
     def exporto(self, outfile, json=False):
         """Write information to a FHIR ValueSet.

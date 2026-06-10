@@ -680,8 +680,13 @@ class PropCsvAndMaster():
                 tmp_pointer = oneCon
                 for part in stringAttrAsKey.split("."):
                     tmpPointer = getattr(tmp_pointer,part)
+                if tmpPointer is None:
+                    key = None
+                    break
                 key += tmpPointer
             # check if key is already in the dict and if, add it as a reference inside the object
+            if key is None:
+                continue
             if key in tmpDict:
                 # create list, if non existent, name will be generated, i.e. _same_code_same_system
                 if not hasattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):

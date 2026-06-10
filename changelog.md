@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [5.#.0+2026####]
 
 ### Added
+
 - #57 (aut-only) Load icd-10 bm*g* thesaurus entries separately as designations synonyms
+- #49 Added handling of intentional fhir valuesets (the expansion itself has to be generated beforehand!)
 - #61 Added connection and read timeouts (30s connect, 900s/15min read) to handle large file uploads
 - #61 Added automatic retry mechanism (3 attempts) for failed FHIR server uploads with 60-second delays between retries
 - #61 Improved error handling with specific exception types (`ConnectionError`, `Timeout`, `HTTPError`)
