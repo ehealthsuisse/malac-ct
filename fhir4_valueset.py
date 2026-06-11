@@ -331,11 +331,15 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                     self.concept = the_from_expand_sorted_list + list(set(self.concept) - set(the_from_expand_sorted_list))
 
                     # remove intensionale placeholder (code=None) if expansion read here is successful
+                    before = len(self.concept)
                     self.concept = [
                         c for c in self.concept
                         if not getattr(c, 'is_intensional_placeholder', False)
                     ]
-
+                    removed = before - len(self.concept)
+                    if removed:
+                        print(" (because of an existing expansion in this intentional valueset, the CLD will be ignored and the expansion will be processed instead)")
+                    
             return self.concept
 
     def check_parentless_for_duplicates(self, dict):
@@ -413,6 +417,7 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
                 the_concept.system = the_include_system
                 the_concept.version = the_include_version
                 the_concept.exclude = exclude
+                the_concept.is_intensional_placeholder = True
 
                 # all filters that belong to this ValueSet_Include will be part
                 # of one pcam.VSConcept
@@ -450,6 +455,7 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
     def parse_expansion_contains_information(self, level, contains_list, concept_code_dict, the_from_expand_sorted_list, parent=None):
         """Parse the given contains_list (of type ValueSet_Contains, i.e. ValueSet.expansion.contains) and add
         information regarding possible hierarchies to the pcam.VSConcepts which are part of concept_code_dict.
+        If this is an intentional ValueSet, read all the given information from the contains_list.
 
         level -- the current level of hierarchy. Top level should have level=0.
 
@@ -461,8 +467,8 @@ class ValueSet(supermod.ValueSet, pcam.PropCsvAndMaster):
 
         parent -- the parent of the concepts within the contains_list.
 
-        Currently, only information about a possible hierarchical ValueSet definition is being
-        retrieved from the expansion. No other information - if available - will be processed.
+        Currently, if the logical definition is given, only information about a possible hierarchical ValueSet 
+        definition is being retrieved from the expansion. No other information - if available - will be processed.
         """
         for one_contains in contains_list:
             if (tmp_code := one_contains.get_code()) and (tmp_system := one_contains.get_system()):
