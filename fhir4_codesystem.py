@@ -393,6 +393,9 @@ class CodeSystem(supermod.CodeSystem, pcam.PropCsvAndMaster):
                 # NOT SUPPORTED CodeSytem_Concept.concept
                 # would require recursion
 
+                # check for duplicate codes
+                pcam.check_for_duplicates(the_concept, the_concept_list)
+
                 the_concept_list.append(the_concept)
 
         # if the processed concepts were of type CodeSystem_ConceptSub

@@ -1,4 +1,5 @@
 import enum
+import time
 from unittest import skip
 from malac_ct import extensions_dict
 import ext
@@ -17,6 +18,30 @@ class ParentingBy(enum.Enum):
             sys.exit('It is only allowed to use parentByConceptOrder or parent and parentSystem, not both, at the same time.')
         else:
             return newValue
+
+class DuplicateConceptError(Exception):
+    pass
+
+def get_full_path(concept):
+    path = []
+    current = concept
+    while hasattr(current, 'parent') and current.parent:
+        path.append((current.parent.code, getattr(current.parent, 'system', None)))
+        current = current.parent
+    return tuple(reversed(path))
+
+# helper function to check for duplicate occurences of tempConcept in the conceptList on (code) for VS and (code, system) for VS
+def check_for_duplicates(tempConcept, conceptList, check_parent_by="parent"):
+    for concept in conceptList:
+        if concept.code == tempConcept.code:
+            concept_parent = getattr(concept, check_parent_by, None)
+            tempConcept_parent = getattr(tempConcept, check_parent_by, None)
+            if (concept_parent is None and tempConcept_parent is None) or (concept_parent is not None and tempConcept_parent is not None and concept_parent.code == tempConcept_parent.code):
+                if not hasattr(tempConcept, "system"):
+                    raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
+                else:
+                    if hasattr(tempConcept, "system") and hasattr(concept, "system") and concept.system == tempConcept.system:
+                        raise DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
 
 def trim_output(func):
     """strips/trims strings and list of strings"""
@@ -270,6 +295,7 @@ class PropCsvAndMaster():
                             if bool(tempConcept.parent) != (hasattr(tempConcept,"parentSystem") and bool(tempConcept.parentSystem)):
                                 import sys
                                 sys.exit('Parent code and system should always be stated together. See concept with code: ' + tempConcept.code)
+                        
                         self.concept.append(tempConcept)
 
                     # fill members of parents
@@ -318,10 +344,32 @@ class PropCsvAndMaster():
 
                         for one_concept in self.concept:
                             self.add_children_to_CS_concept(concept_dict, one_concept)
-
             except UnicodeDecodeError:
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
+        if self.parenting_by == ParentingBy.conceptOrder:
+            self.check_duplicate_codes_per_parent("parentByConceptOrder")
+        else:
+            self.check_duplicate_codes_per_parent()
+
+    def check_duplicate_codes_per_parent(self, check_parent_by="parent"):
+        if self.resource == self.resource.CodeSystem:
+            seen_codes = set()
+            duplicates = set()
+            for concept in self.concept:
+                if concept.code in seen_codes:
+                    duplicates.add(concept.code)
+                else:
+                    seen_codes.add(concept.code)
+        else:
+            path_duplicates = {}
+            for concept in self.concept:
+                path = get_full_path(concept)
+                key = (concept.code, concept.system, path)
+                if key in path_duplicates:
+                    raise DuplicateConceptError("Duplicate concept found: ", key)
+                else:
+                    path_duplicates[key] = concept.code
 
     def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:
@@ -632,8 +680,13 @@ class PropCsvAndMaster():
                 tmp_pointer = oneCon
                 for part in stringAttrAsKey.split("."):
                     tmpPointer = getattr(tmp_pointer,part)
+                if tmpPointer is None:
+                    key = None
+                    break
                 key += tmpPointer
             # check if key is already in the dict and if, add it as a reference inside the object
+            if key is None:
+                continue
             if key in tmpDict:
                 # create list, if non existent, name will be generated, i.e. _same_code_same_system
                 if not hasattr(tmpDict[key],"same_"+"_and_same_".join(stringAttrAsKeys)):
@@ -701,7 +754,6 @@ class PropCsvAndMaster():
             for oneMember in oneCon.member:
                 if popdCon := conDict.pop(oneMember.code+oneMember.system, None): # This will return conDict[key] if key exists in the dictionary, and None otherwise.
                     self.storeSelfAndRecrCallChildren(popdCon, conDict, sortedCons)
-
 
     def exporto(self, outfile, outputClass, argsLang=None, incHierarchyExt4VS=False, file_style=FileStyle.propCSV):
         csv_meta = []
