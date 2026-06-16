@@ -34,7 +34,7 @@ extensions_dict = {
     }
 
 descriptionText = "This is the MArkup LAnguage Converter for Clinical Terminologies, short MaLaC-CT. See arguments for more details."
-versionNumber = "5.0.0+20260331"
+versionNumber = "5.1.0+20260617"
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=descriptionText)
