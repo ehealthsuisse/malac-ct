@@ -1,4 +1,4 @@
-from fsh1 import Fsh1, writeSelfAndRecrCallMembers, exporto_extension
+from fsh1 import Fsh1, check_for_duplicates, writeSelfAndRecrCallMembers, exporto_extension
 import sys
 import prop_csv_and_master as pcam
 import ext
@@ -88,6 +88,7 @@ class Fsh2(Fsh1):
                         theConcept.display = line.split('"')[1]
                     theConcept.designation = []
                     theConcept.property = []
+                    check_for_duplicates(theConcept, dictConcept, "CS")
                     dictConcept[theConcept.code] = theConcept
 
                         # todo get to version 2
@@ -104,6 +105,8 @@ class Fsh2(Fsh1):
                     theConcept.version = finalVSVersion
                     theConcept.designation = []
                     theConcept.filter = []
+                    # space holder for duplicate check:
+                    # check_for_duplicates(theConcept, dictConcept, "VS")
                     dictConcept[theConcept.code] = theConcept
                 if '.display' in line:
                     for oneConcept in dictConcept:
