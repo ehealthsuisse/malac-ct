@@ -320,6 +320,39 @@ def get_copyright(self):
         return tmp.get_value()
     return None
 
+def ensure_shareable_profile_compliance(rootObj, canonical_shareable_profile, mod):
+    if rootObj.get_name() is None:
+        raise pcam.ShareableCSVSError("name")
+    if rootObj.get_version() is None:
+        raise pcam.ShareableCSVSError("version")
+    if rootObj.get_url() is None:
+        raise pcam.ShareableCSVSError("url")
+    if rootObj.get_status() is None:
+        raise pcam.ShareableCSVSError("status")
+    if rootObj.description is None:
+        raise pcam.ShareableCSVSError("description")
+    if not (tmp := rootObj.get_concept()):
+        raise pcam.ShareableCSVSError("concept")    
+    if rootObj.get_experimental() is None:
+        rootObj.set_experimental(mod.booleanSub(value=False))
+    if rootObj.publisher is None:
+        rootObj.set_publisher(mod.stringSub(value="Not specified"))
+    if not rootObj.contact:
+        the_contact = mod.ContactDetailSub()
+        the_contact.set_name(mod.stringSub(value="Not specified"))
+        the_contact_point = mod.ContactPointSub()
+        the_contact_point.set_system(mod.ContactPointSystemSub(value="other"))
+        the_contact_point.set_value(mod.stringSub(value="Not specified"))
+        the_contact.add_telecom(the_contact_point)
+        rootObj.add_contact(the_contact)
+
+    shareable_profile = mod.canonicalSub(value=canonical_shareable_profile)
+    if not (tmp := rootObj.meta):
+        rootObj.set_meta(mod.MetaSub(profile=[shareable_profile]))
+    else:
+        if not any(profile == canonical_shareable_profile for profile in rootObj.get_profiles()):
+            rootObj.meta.add_profile(shareable_profile)
+
 ####################################################################################
 #
 # PARSER
@@ -703,9 +736,13 @@ class FHIR4CsAndVs:
         filename -- Name of the file to be parsed.
         """
         if 'CodeSystem-' in filename:
-            return f4cs.parse(filename)
+            fhir_res = f4cs.parse(filename)
+            ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablecodesystem", f4cs)
+            return fhir_res
         elif 'ValueSet-' in filename:
-            return f4vs.parse(filename)
+            fhir_res = f4vs.parse(filename)
+            ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablevalueset", f4vs)
+            return fhir_res
         else:
             sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')
 
@@ -742,8 +779,12 @@ class FHIR4CsAndVsJson():
         import json
         with open(filename,'r') as f:
             if 'CodeSystem-' in filename:
-                return utils.parse_json(f4cs.supermod, json.load(f))
+                fhir_res = utils.parse_json(f4cs.supermod, json.load(f))
+                ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablecodesystem", f4cs)
+                return fhir_res
             elif 'ValueSet-' in filename:
+                fhir_res = utils.parse_json(f4cs.supermod, json.load(f))
+                ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablevalueset", f4vs)
                 return utils.parse_json(f4vs.supermod, json.load(f))
             else:
                 sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')

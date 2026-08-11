@@ -112,6 +112,44 @@ def check_for_duplicates(tempConcept, conceptList):
                     if hasattr(tempConcept, "system") and hasattr(concept, "system") and concept.system == tempConcept.system:
                         raise pcam.DuplicateConceptError(f"Duplicate concept code found: {tempConcept.code}")
 
+def ensure_shareable_profile_compliance(rootObj):
+    # shareable profile compliance:
+    if not any(metaObj.get_name() == "url" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError("url")
+    if not any(metaObj.get_name() == "status" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError("status")
+    if not any(metaObj.get_name() == "description" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError("description")
+    if not any(metaObj.get_name() == "experimental" for metaObj in rootObj.get_Meta()):
+        rootObj.Meta.append(MetaSub("experimental", False))
+    if len(rootObj.Class) == 0:
+        raise pcam.ShareableCSVSError("concept")
+    if rootObj.Title.get_name() is None:
+        raise pcam.ShareableCSVSError("name")
+    if rootObj.Title.get_version() is None:
+        raise pcam.ShareableCSVSError("version")
+    if rootObj.Authors is None:
+        publisher = AuthorSub("Not specified", '')
+        contact = AuthorSub("", "other^Not specified^^^^")
+        authors = AuthorsSub(Author=[publisher, contact])
+        rootObj.set_Authors(authors)
+    else:
+        if not rootObj.get_publisher():
+            rootObj.Authors.add_Author(AuthorSub("Not specified", ''))
+        if not rootObj.get_contact():
+            rootObj.Authors.add_Author(AuthorSub("", "other^Not specified^^^^"))
+
+    meta_resource = next(r for r in rootObj.Meta if r.get_name() == "resource")
+    
+    canonical_shareable_profile = None
+    if meta_resource is not None:
+        if meta_resource.value == "CodeSystem":
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+        else:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset" 
+    profiles = [p for p in rootObj.Meta if p.get_name() == "profile"]
+    if canonical_shareable_profile not in [p.value for p in profiles]:
+        rootObj.Meta.append(MetaSub("profile", canonical_shareable_profile))
 
 #class Class(supermod.Class):
 #    def get_sortierreihenfolge(self):
@@ -201,7 +239,7 @@ class ClaML2Sub(supermod.ClaML2, pcam.PropCsvAndMaster):
         author_name_list = []
         if authors := self.get_Authors():
             for author in authors.get_Author():
-                if tmp_name := author.get_name():
+                if (tmp_name := author.get_name()) and not author.valueOf_:
                     author_name_list.append(tmp_name)
         return ' & '.join(author_name_list) or None
 
@@ -1114,6 +1152,9 @@ def parse(inFilename, silence=True):
         rootClass = supermod.ClaML2
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
+
+    ensure_shareable_profile_compliance(rootObj)
+
     # Enable Python to collect the space used by the DOM.
     if not SaveElementTreeNode:
         doc = None
