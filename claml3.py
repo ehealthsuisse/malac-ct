@@ -355,7 +355,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         if tmp := self.get_identifier():
             for oneIdentifier in tmp:
                 mainIdent.set_uid(oneIdentifier)
-        if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
+        if (tmp := self.get_experimental()) is not None: metas.append(MetaSub('experimental',tmp))
         if tmp := self.get_date():
             mainIdent.set_date(datetime.datetime.strptime(tmp[:10], '%Y-%m-%d'))
         authors = None

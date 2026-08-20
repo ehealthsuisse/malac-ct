@@ -480,8 +480,9 @@ def exporto(self, globals, fhir_resource):
     if tmp := self.get_status():
         fhir_resource.set_status(globals.get('PublicationStatusSub')(value=tmp))
 
-    if tmp := self.get_experimental():
-        fhir_resource.set_experimental(globals.get('booleanSub')(value=tmp))
+    if (tmp := self.get_experimental()) is not None:
+        bool_value = tmp if isinstance(tmp, bool) else tmp.strip().lower() == "true"
+        fhir_resource.set_experimental(globals.get('booleanSub')(value=bool_value))
 
     if tmp := self.get_date():
         fhir_resource.set_date(globals.get('dateTimeSub')(value=tmp))
