@@ -248,7 +248,7 @@ class Fsh2(Fsh1):
 
                     if hasattr(oneConcept, 'code'):
                         k += 1
-                        outfile.write('* compose.include[%s].concept[%s].code = "%s"\n' % (j, k, oneConcept.code))
+                        outfile.write('* compose.include[%s].concept[%s].code = #%s\n' % (j, k, oneConcept.code))
                     if hasattr(oneConcept, 'display') and oneConcept.display:
                         outfile.write('* compose.include[%s].concept[%s].display = "%s"\n' % (j, k, oneConcept.display))
                     if hasattr(oneConcept, 'designation') and oneConcept.designation:

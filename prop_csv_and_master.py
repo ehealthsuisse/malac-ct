@@ -22,6 +22,10 @@ class ParentingBy(enum.Enum):
 class DuplicateConceptError(Exception):
     pass
 
+class ShareableCSVSError(Exception):
+    def __init__(self, keyword):
+        super().__init__(f"Terminology is not compliant with the Profile ShareableCodeSystem/ShareableValueSet, missing element : '{keyword}'")
+
 def get_full_path(concept):
     path = []
     current = concept
@@ -78,9 +82,9 @@ class PropCsvAndMaster():
         self.extension = None
         self.modifierextension = None
         self.identifier = []
-        self.experimental = None
+        self.experimental = False
         self.date = None
-        self.publisher = None
+        self.publisher = "Not specified"
         self.contact = []
         self.usecontext = []
         self.jurisdiction = []
@@ -154,7 +158,7 @@ class PropCsvAndMaster():
                         if 'date' == metaObj:
                             import datetime
                             self.date = datetime.datetime.strptime(metaList[1][i][:10], '%Y-%m-%d').strftime('%Y-%m-%d')
-                        if 'experimental' == metaObj: self.experimental = metaList[1][i]
+                        if 'experimental' == metaObj: self.experimental = metaList[1][i].strip().lower() == "true"
                         if 'publisher' == metaObj: self.publisher = metaList[1][i]
                         if metaObj.startswith('contact'):
                             # append contact if not None
@@ -189,6 +193,9 @@ class PropCsvAndMaster():
                             tempProperty.description = propElements[2]
                             tempProperty.type = PropertyCodeType[propElements[3].lower()]
                             self.property.append(tempProperty)
+
+                    # shareable profile compliance:
+                    self.ensure_shareable_profile_compliance()
 
                     if file_style is FileStyle.spreadCT:
                         csvfile.close()
@@ -344,6 +351,9 @@ class PropCsvAndMaster():
 
                         for one_concept in self.concept:
                             self.add_children_to_CS_concept(concept_dict, one_concept)
+                    # check concept length for shareable profile compliance
+                    if self.concept is None or len(self.concept) == 0:
+                        raise ShareableCSVSError("concept")
             except UnicodeDecodeError:
                 print(" (because of some DecodeError, this terminology will be read again in utf-8 instead of cp1252)")
                 return PropCsvAndMaster.__init__(self, inFile, encoding='utf-8')
@@ -370,6 +380,24 @@ class PropCsvAndMaster():
                     raise DuplicateConceptError("Duplicate concept found: ", key)
                 else:
                     path_duplicates[key] = concept.code
+
+    # check metadata compliance for shareable profiles
+    def ensure_shareable_profile_compliance(self):
+        canonical_shareable_profile = None
+        if self.resource == self.resource.CodeSystem:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+        else:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+        if self.url is None: raise ShareableCSVSError("url")
+        if self.version is None: raise ShareableCSVSError("version")
+        if self.name is None: raise ShareableCSVSError("name")
+        if self.status is None: raise ShareableCSVSError("status")
+        if self.description is None: raise ShareableCSVSError("description")
+        # experimental default False, publisher default "Not specified"
+        if len(self.contact) == 0:
+            self.contact.append(ContactDetail.from_string("|other^Not specified^^^^"))
+        if canonical_shareable_profile not in self.profiles:
+            self.profiles.append(canonical_shareable_profile)
 
     def retrieve_level_of_VS_concept(self, concept):
         if tmp_parent := concept.parent:
@@ -781,7 +809,7 @@ class PropCsvAndMaster():
         if tmp := self.get_identifier():
             for oneIdentifier in tmp:
                 csv_meta.append(("identifier",oneIdentifier))
-        if tmp := self.get_experimental(): csv_meta.append(("experimental",tmp))
+        if (tmp := self.get_experimental()) is not None: csv_meta.append(("experimental",tmp))
         if tmp := self.get_date(): csv_meta.append(("date",tmp))
         if tmp := self.get_publisher(): csv_meta.append(("publisher",tmp))
         if tmp := self.get_contact():

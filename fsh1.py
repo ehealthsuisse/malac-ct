@@ -191,7 +191,9 @@ class Fsh1(pcam.PropCsvAndMaster):
                 self.concept = list(dictConcept.values())
 
     def parse(inFilename):
-        return Fsh1(inFilename)
+        fsh_res = Fsh1(inFilename)
+        fsh_res.ensure_shareable_profile_compliance()
+        return fsh_res
 
     def parseConcepts(self, dictConcept, line, splittedLine, value):
         # TODO: big refactoring for parseConcepts for fsh1 and fsh2, since more than half is the same code
@@ -394,7 +396,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 outfile.write('* identifier[%s].system = "urn:ietf:rfc:3986" \n' % (i))
                 outfile.write('* identifier[%s].value = "urn:oid:%s" \n' % (i,oneIdentifier))
                 i += 1
-        if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
+        if (tmp := self.get_experimental()) is not None: outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
         # for the case, that there is no publisher but one or many contacts available, put in a default value
@@ -667,6 +669,26 @@ class Fsh1(pcam.PropCsvAndMaster):
             self.conceptSuppl.append(tempCon)
         # exporting the changed ValueSet
         outputClass.exporto(self, outfileVS, outputClass, argsLang, incHierarchyExt4VS)
+
+    def ensure_shareable_profile_compliance(self):
+        if self.get_url() is None: raise pcam.ShareableCSVSError("url")
+        if self.get_status() is None: raise pcam.ShareableCSVSError("status")
+        if self.get_description() is None: raise pcam.ShareableCSVSError("description")
+        if self.get_name() is None: raise pcam.ShareableCSVSError("name")
+        if self.get_version() is None: raise pcam.ShareableCSVSError("version")
+        if self.get_experimental() is None: self.experimental = False
+        if self.get_publisher() is None: self.publisher = "Not specified"
+        if len(self.get_contact()) == 0: self.contact.append(ContactDetail.from_string("|other^Not specified^^^^"))
+        # if self.concept is None: raise pcam.ShareableCSVSError("concept")
+        
+        canonical_shareable_profile = None
+        if self.resource == self.resource.CodeSystem:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+        else:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+        if canonical_shareable_profile not in self.profiles:
+            self.profiles.append(canonical_shareable_profile)
+        return
 
 def writeSelfAndRecrCallMembers(self, oneConcept, outfile, containCnt):
     containCnt[oneConcept.level] += 1

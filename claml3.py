@@ -69,6 +69,42 @@ def get_Meta_with_name(self,meta_name):
             if oneMeta.get_name == meta_name:
                 return oneMeta.get_value()
 
+def ensure_shareable_profile_compliance(rootObj):
+    # shareable profile compliance:
+    if not any(metaObj.get_name() == "url" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError()
+    
+    # if not any(identifierObj.get_status)
+    if rootObj.get_Identifier()[0].get_status() is None:
+        raise pcam.ShareableCSVSError()
+    
+    if not any(metaObj.get_name() == "description" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError()
+    
+    if not any(metaObj.get_name() == "experimental" for metaObj in rootObj.get_Meta()):
+        rootObj.Meta.append(MetaSub("experimental", False))
+    
+    if len(rootObj.Class) == 0:
+        raise pcam.ShareableCSVSError()
+    
+    # title: name and version
+    if rootObj.Title[0].get_name() is None or rootObj.Title[0].get_version() is None:
+        raise pcam.ShareableCSVSErrr()
+    
+    # TODO find out where the authors are hiding
+    # if rootObj.Authors is None:
+    #     raise pcam.ShareableCSVSError()
+    meta_resource = next(r for r in rootObj.Meta if r.get_name() == "resource")
+    canonical_shareable_profile = None
+    if meta_resource is not None:
+        if meta_resource.value == "CodeSystem":
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+        else:
+            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset" 
+    profiles = [p for p in rootObj.Meta if p.get_name() == "profile"]
+    if canonical_shareable_profile not in [p.value for p in profiles]:
+        rootObj.Meta.append(MetaSub("profile", canonical_shareable_profile))
+
 class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Classification=None, **kwargs_):
         super(ClaML3Sub, self).__init__(version, Classification,  **kwargs_)
@@ -319,7 +355,7 @@ class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
         if tmp := self.get_identifier():
             for oneIdentifier in tmp:
                 mainIdent.set_uid(oneIdentifier)
-        if tmp := self.get_experimental(): metas.append(MetaSub('experimental',tmp))
+        if (tmp := self.get_experimental()) is not None: metas.append(MetaSub('experimental',tmp))
         if tmp := self.get_date():
             mainIdent.set_date(datetime.datetime.strptime(tmp[:10], '%Y-%m-%d'))
         authors = None
@@ -653,6 +689,9 @@ def parse(inFilename, silence=True):
         rootClass = supermod.ClaML3
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
+
+    ensure_shareable_profile_compliance(rootObj.Classification[0])
+
     # Enable Python to collect the space used by the DOM.
     if not SaveElementTreeNode:
         doc = None
