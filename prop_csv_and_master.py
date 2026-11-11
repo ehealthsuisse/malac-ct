@@ -154,7 +154,7 @@ class PropCsvAndMaster():
                         if 'date' == metaObj:
                             import datetime
                             self.date = datetime.datetime.strptime(metaList[1][i][:10], '%Y-%m-%d').strftime('%Y-%m-%d')
-                        if 'experimental' == metaObj: self.experimental = metaList[1][i]
+                        if 'experimental' == metaObj: self.experimental = metaList[1][i].strip().lower() == "true"
                         if 'publisher' == metaObj: self.publisher = metaList[1][i]
                         if metaObj.startswith('contact'):
                             # append contact if not None
@@ -781,7 +781,7 @@ class PropCsvAndMaster():
         if tmp := self.get_identifier():
             for oneIdentifier in tmp:
                 csv_meta.append(("identifier",oneIdentifier))
-        if tmp := self.get_experimental(): csv_meta.append(("experimental",tmp))
+        if (tmp := self.get_experimental()) is not None: csv_meta.append(("experimental",tmp))
         if tmp := self.get_date(): csv_meta.append(("date",tmp))
         if tmp := self.get_publisher(): csv_meta.append(("publisher",tmp))
         if tmp := self.get_contact():

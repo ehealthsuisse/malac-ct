@@ -394,7 +394,7 @@ class Fsh1(pcam.PropCsvAndMaster):
                 outfile.write('* identifier[%s].system = "urn:ietf:rfc:3986" \n' % (i))
                 outfile.write('* identifier[%s].value = "urn:oid:%s" \n' % (i,oneIdentifier))
                 i += 1
-        if tmp := self.get_experimental(): outfile.write('* experimental = "%s" \n' % tmp)
+        if (tmp := self.get_experimental()) is not None: outfile.write('* experimental = "%s" \n' % tmp)
         if tmp := self.get_date(): outfile.write('* date = "%s" \n' % tmp)
         if tmp := self.get_publisher(): outfile.write('* publisher = "%s" \n' % tmp)
         # for the case, that there is no publisher but one or many contacts available, put in a default value
