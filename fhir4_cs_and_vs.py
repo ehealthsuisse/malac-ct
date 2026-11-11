@@ -329,10 +329,10 @@ def ensure_shareable_profile_compliance(rootObj, canonical_shareable_profile, mo
         raise pcam.ShareableCSVSError("url")
     if rootObj.get_status() is None:
         raise pcam.ShareableCSVSError("status")
-    if rootObj.description is None:
-        raise pcam.ShareableCSVSError("description")
     if not (tmp := rootObj.get_concept()):
-        raise pcam.ShareableCSVSError("concept")    
+        raise pcam.ShareableCSVSError("concept")
+    if rootObj.get_description() is None or rootObj.get_description().strip() == "":
+        rootObj.set_description(mod.markdownSub(value="-"))
     if rootObj.get_experimental() is None:
         rootObj.set_experimental(mod.booleanSub(value=False))
     if rootObj.publisher is None:
@@ -784,9 +784,9 @@ class FHIR4CsAndVsJson():
                 ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablecodesystem", f4cs)
                 return fhir_res
             elif 'ValueSet-' in filename:
-                fhir_res = utils.parse_json(f4cs.supermod, json.load(f))
+                fhir_res = utils.parse_json(f4vs.supermod, json.load(f))
                 ensure_shareable_profile_compliance(fhir_res, "http://hl7.org/fhir/StructureDefinition/shareablevalueset", f4vs)
-                return utils.parse_json(f4vs.supermod, json.load(f))
+                return fhir_res
             else:
                 sys.exit('Filename does not comply with convention: either "CodeSystem-" or "ValueSet-"')
 

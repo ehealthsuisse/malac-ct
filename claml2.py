@@ -118,8 +118,10 @@ def ensure_shareable_profile_compliance(rootObj):
         raise pcam.ShareableCSVSError("url")
     if not any(metaObj.get_name() == "status" for metaObj in rootObj.get_Meta()):
         raise pcam.ShareableCSVSError("status")
-    if not any(metaObj.get_name() == "description" for metaObj in rootObj.get_Meta()):
-        raise pcam.ShareableCSVSError("description")
+    if (descriptionMeta := next((m for m in rootObj.get_Meta() if m.get_name() == "description"), None)) is None:
+        rootObj.Meta.append(MetaSub("description", "-"))
+    elif descriptionMeta.get_value().strip() == "":
+        descriptionMeta.set_value("-")
     if not any(metaObj.get_name() == "experimental" for metaObj in rootObj.get_Meta()):
         rootObj.Meta.append(MetaSub("experimental", False))
     if len(rootObj.Class) == 0:

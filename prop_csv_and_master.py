@@ -392,8 +392,9 @@ class PropCsvAndMaster():
         if self.version is None: raise ShareableCSVSError("version")
         if self.name is None: raise ShareableCSVSError("name")
         if self.status is None: raise ShareableCSVSError("status")
-        if self.description is None: raise ShareableCSVSError("description")
-        # experimental default False, publisher default "Not specified"
+        # description default "-", experimental default False, publisher default "Not specified"
+        if self.description is None or self.description.strip() == "":
+            self.description = "-"
         if len(self.contact) == 0:
             self.contact.append(ContactDetail.from_string("|other^Not specified^^^^"))
         if canonical_shareable_profile not in self.profiles:

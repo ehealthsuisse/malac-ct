@@ -673,9 +673,9 @@ class Fsh1(pcam.PropCsvAndMaster):
     def ensure_shareable_profile_compliance(self):
         if self.get_url() is None: raise pcam.ShareableCSVSError("url")
         if self.get_status() is None: raise pcam.ShareableCSVSError("status")
-        if self.get_description() is None: raise pcam.ShareableCSVSError("description")
         if self.get_name() is None: raise pcam.ShareableCSVSError("name")
         if self.get_version() is None: raise pcam.ShareableCSVSError("version")
+        if self.get_description() is None or self.get_description().strip() == "": self.description = "-"
         if self.get_experimental() is None: self.experimental = False
         if self.get_publisher() is None: self.publisher = "Not specified"
         if len(self.get_contact()) == 0: self.contact.append(ContactDetail.from_string("|other^Not specified^^^^"))
