@@ -195,10 +195,6 @@ class PropCsvAndMaster():
                             self.property.append(tempProperty)
 
                     # shareable profile compliance:
-                    if self.resource not in (Resource.CodeSystem, Resource.ValueSet):
-                        raise ShareableCSVSError("resource")
-
-                    # shareable profile compliance:
                     self.ensure_shareable_profile_compliance()
 
                     if file_style is FileStyle.spreadCT:
@@ -388,6 +384,8 @@ class PropCsvAndMaster():
     # check metadata compliance for shareable profiles
     def ensure_shareable_profile_compliance(self):
         canonical_shareable_profile = None
+        if self.resource not in (Resource.CodeSystem, Resource.ValueSet):
+            raise ShareableCSVSError("resource")
         if self.resource == self.resource.CodeSystem:
             canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
         else:

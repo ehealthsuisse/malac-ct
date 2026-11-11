@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [6.0.0+2026xxxx]
 
 ### Added
-- #30 Added the profiles `ShareableCodeSystem` and `ShareableValueSet` as frameworks for CS and VS
+- #30 Added the profiles `ShareableCodeSystem` and `ShareableValueSet` as frameworks for CS and VS: required but missing metadata now throws a ShareableCSVSError, metadata fields description, experimental, publisher, and contact are defaulted if missing.
 
 ### Changed
 - #64 Explicit Parsing of experimental values

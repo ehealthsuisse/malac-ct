@@ -329,7 +329,7 @@ def ensure_shareable_profile_compliance(rootObj, canonical_shareable_profile, mo
         raise pcam.ShareableCSVSError("url")
     if rootObj.get_status() is None:
         raise pcam.ShareableCSVSError("status")
-    if not (tmp := rootObj.get_concept()):
+    if rootObj.get_resource() == "CodeSystem" and not rootObj.get_concept():
         raise pcam.ShareableCSVSError("concept")
     if rootObj.get_description() is None or rootObj.get_description().strip() == "":
         rootObj.set_description(mod.markdownSub(value="-"))
