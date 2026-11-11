@@ -72,7 +72,7 @@ class PropCsvAndMaster():
         self.version = None
         self.name = None
         self.title = None
-        self.status = Status
+        self.status = None
         self.description = None
         self.content = Content
         self.implicitrules = None
@@ -193,6 +193,10 @@ class PropCsvAndMaster():
                             tempProperty.description = propElements[2]
                             tempProperty.type = PropertyCodeType[propElements[3].lower()]
                             self.property.append(tempProperty)
+
+                    # shareable profile compliance:
+                    if self.resource not in (Resource.CodeSystem, Resource.ValueSet):
+                        raise ShareableCSVSError("resource")
 
                     # shareable profile compliance:
                     self.ensure_shareable_profile_compliance()

@@ -684,8 +684,10 @@ class Fsh1(pcam.PropCsvAndMaster):
         canonical_shareable_profile = None
         if self.resource == self.resource.CodeSystem:
             canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
-        else:
+        elif self.resource == self.resource.ValueSet:
             canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+        else:
+            raise pcam.ShareableCSVSError("resource")
         if canonical_shareable_profile not in self.profiles:
             self.profiles.append(canonical_shareable_profile)
         return

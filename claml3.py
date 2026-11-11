@@ -72,11 +72,12 @@ def get_Meta_with_name(self,meta_name):
 def ensure_shareable_profile_compliance(rootObj):
     # shareable profile compliance:
     if not any(metaObj.get_name() == "url" for metaObj in rootObj.get_Meta()):
-        raise pcam.ShareableCSVSError()
+        raise pcam.ShareableCSVSError("url")
     
     # if not any(identifierObj.get_status)
-    if rootObj.get_Identifier()[0].get_status() is None:
-        raise pcam.ShareableCSVSError()
+    identifiers = rootObj.get_Identifier()
+    if not identifiers or identifiers[0].get_status() is None:
+        raise pcam.ShareableCSVSError("status")
 
     if (descriptionMeta := next((m for m in rootObj.get_Meta() if m.get_name() == "description"), None)) is None:
         rootObj.Meta.append(MetaSub("description", "-"))
@@ -87,22 +88,29 @@ def ensure_shareable_profile_compliance(rootObj):
         rootObj.Meta.append(MetaSub("experimental", False))
     
     if len(rootObj.Class) == 0:
-        raise pcam.ShareableCSVSError()
+        raise pcam.ShareableCSVSError("concept")
     
     # title: name and version
     if rootObj.Title[0].get_name() is None or rootObj.Title[0].get_version() is None:
-        raise pcam.ShareableCSVSErrr()
+        raise pcam.ShareableCSVSError("name or version")
     
     # TODO find out where the authors are hiding
     # if rootObj.Authors is None:
     #     raise pcam.ShareableCSVSError()
-    meta_resource = next(r for r in rootObj.Meta if r.get_name() == "resource")
-    canonical_shareable_profile = None
-    if meta_resource is not None:
-        if meta_resource.value == "CodeSystem":
-            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
-        else:
-            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset" 
+    meta_resource = next(
+        (r for r in rootObj.Meta if r.get_name() == "resource"),
+        None,
+    )
+    if meta_resource is None:
+        raise pcam.ShareableCSVSError("resource")
+
+    resource_type = meta_resource.get_value()
+    if resource_type == "CodeSystem":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+    elif resource_type == "ValueSet":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+    else:
+        raise ValueError(f"Unsupported resource type: {resource_type!r}")
     profiles = [p for p in rootObj.Meta if p.get_name() == "profile"]
     if canonical_shareable_profile not in [p.value for p in profiles]:
         rootObj.Meta.append(MetaSub("profile", canonical_shareable_profile))

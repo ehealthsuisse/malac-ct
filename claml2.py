@@ -141,14 +141,20 @@ def ensure_shareable_profile_compliance(rootObj):
         if not rootObj.get_contact():
             rootObj.Authors.add_Author(AuthorSub("", "other^Not specified^^^^"))
 
-    meta_resource = next(r for r in rootObj.Meta if r.get_name() == "resource")
-    
-    canonical_shareable_profile = None
-    if meta_resource is not None:
-        if meta_resource.value == "CodeSystem":
-            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
-        else:
-            canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset" 
+    meta_resource = next(
+        (r for r in rootObj.Meta if r.get_name() == "resource"),
+        None,
+    )
+    if meta_resource is None:
+        raise pcam.ShareableCSVSError("resource")
+
+    resource_type = meta_resource.get_value()
+    if resource_type == "CodeSystem":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+    elif resource_type == "ValueSet":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+    else:
+        raise ValueError(f"Unsupported resource type: {resource_type!r}")
     profiles = [p for p in rootObj.Meta if p.get_name() == "profile"]
     if canonical_shareable_profile not in [p.value for p in profiles]:
         rootObj.Meta.append(MetaSub("profile", canonical_shareable_profile))
