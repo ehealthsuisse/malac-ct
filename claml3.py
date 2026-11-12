@@ -69,6 +69,52 @@ def get_Meta_with_name(self,meta_name):
             if oneMeta.get_name == meta_name:
                 return oneMeta.get_value()
 
+def ensure_shareable_profile_compliance(rootObj):
+    # shareable profile compliance:
+    if not any(metaObj.get_name() == "url" for metaObj in rootObj.get_Meta()):
+        raise pcam.ShareableCSVSError("url")
+    
+    # if not any(identifierObj.get_status)
+    identifiers = rootObj.get_Identifier()
+    if not identifiers or identifiers[0].get_status() is None:
+        raise pcam.ShareableCSVSError("status")
+
+    if (descriptionMeta := next((m for m in rootObj.get_Meta() if m.get_name() == "description"), None)) is None:
+        rootObj.Meta.append(MetaSub("description", "-"))
+    elif descriptionMeta.get_value().strip() == "":
+        descriptionMeta.set_value("-")
+    
+    if not any(metaObj.get_name() == "experimental" for metaObj in rootObj.get_Meta()):
+        rootObj.Meta.append(MetaSub("experimental", False))
+    
+    if len(rootObj.Class) == 0:
+        raise pcam.ShareableCSVSError("concept")
+    
+    # title: name and version
+    if rootObj.Title[0].get_name() is None or rootObj.Title[0].get_version() is None:
+        raise pcam.ShareableCSVSError("name or version")
+    
+    # TODO find out where the authors are hiding
+    # if rootObj.Authors is None:
+    #     raise pcam.ShareableCSVSError()
+    meta_resource = next(
+        (r for r in rootObj.Meta if r.get_name() == "resource"),
+        None,
+    )
+    if meta_resource is None:
+        raise pcam.ShareableCSVSError("resource")
+
+    resource_type = meta_resource.get_value()
+    if resource_type == "CodeSystem":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablecodesystem"
+    elif resource_type == "ValueSet":
+        canonical_shareable_profile = "http://hl7.org/fhir/StructureDefinition/shareablevalueset"
+    else:
+        raise ValueError(f"Unsupported resource type: {resource_type!r}")
+    profiles = [p for p in rootObj.Meta if p.get_name() == "profile"]
+    if canonical_shareable_profile not in [p.value for p in profiles]:
+        rootObj.Meta.append(MetaSub("profile", canonical_shareable_profile))
+
 class ClaML3Sub(supermod.ClaML3, pcam.PropCsvAndMaster):
     def __init__(self, version=None, Classification=None, **kwargs_):
         super(ClaML3Sub, self).__init__(version, Classification,  **kwargs_)
@@ -653,6 +699,9 @@ def parse(inFilename, silence=True):
         rootClass = supermod.ClaML3
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
+
+    ensure_shareable_profile_compliance(rootObj.Classification[0])
+
     # Enable Python to collect the space used by the DOM.
     if not SaveElementTreeNode:
         doc = None
